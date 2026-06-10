@@ -1,16 +1,64 @@
-# React + Vite
+# Zigzam
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Application React + Vite avec authentification maison (par pseudo) propulsée par Supabase.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Front** : React 19 + Vite
+- **Back / DB** : Supabase (PostgreSQL + PostgREST)
+- **Auth** : maison, via des fonctions SQL `SECURITY DEFINER` (`login`, `complete_onboarding`) — les mots de passe sont hachés en bcrypt (`pgcrypto`), jamais stockés en clair.
 
-## React Compiler
+## Prérequis
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+
+- Un projet Supabase
 
-## Expanding the ESLint configuration
+## Démarrage
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+# 1. Installer les dépendances
+npm install
+
+# 2. Configurer l'environnement
+cp .env.example .env
+# puis remplir VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY
+# (Supabase → Project Settings → API)
+
+# 3. Lancer en développement
+npm run dev
+```
+
+> ℹ️ Vite ne lit les variables `VITE_*` qu'au démarrage : **redémarre `npm run dev`** après toute modification du `.env`.
+
+## Variables d'environnement
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_URL` | URL du projet Supabase (`https://xxxx.supabase.co`) |
+| `VITE_SUPABASE_ANON_KEY` | Clé publique (anon / publishable), utilisée côté client |
+
+Voir [`.env.example`](./.env.example). Le fichier `.env` réel est ignoré par git.
+
+## Base de données
+
+Le schéma (table `users` + fonctions d'auth) est dans [`supabase/schema.sql`](./supabase/schema.sql).
+Pour l'initialiser : **Supabase → SQL Editor → New query**, colle le contenu du fichier puis **Run**.
+
+Il crée aussi trois comptes de test (mot de passe : `zigzam`) :
+
+| Pseudo | Rôle |
+|--------|------|
+| `lucas` | user |
+| `emma` | user |
+| `maitre` | admin |
+
+> ⚠️ `pgcrypto` (`crypt`/`gen_salt`) est installé dans le schéma `extensions` sur Supabase : les fonctions d'auth doivent donc déclarer `set search_path = public, extensions`.
+
+## Scripts
+
+| Commande | Effet |
+|----------|-------|
+| `npm run dev` | Serveur de développement (HMR) |
+| `npm run build` | Build de production dans `dist/` |
+| `npm run preview` | Prévisualise le build |
+| `npm run lint` | ESLint |
