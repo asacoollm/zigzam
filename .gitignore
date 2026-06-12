@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Vercel (config locale + liaison projet)
+.vercel
+
 # Variables d'environnement (contiennent les clés Supabase — ne JAMAIS commiter)
 .env
 .env.*
