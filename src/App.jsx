@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
+import Avatar from './pages/Avatar'
 
 export default function App() {
   const { user } = useAuth()
@@ -39,6 +40,16 @@ export default function App() {
             <Navigate to={home} replace />
           ) : (
             <Dashboard />
+          )
+        }
+      />
+      <Route
+        path="/avatar"
+        element={
+          !user || user.premiere_connexion ? (
+            <Navigate to={home} replace />
+          ) : (
+            <Avatar />
           )
         }
       />

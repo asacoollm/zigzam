@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:new": "supabase migration new",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "db:diff": "supabase db diff",
+    "db:status": "supabase migration list"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

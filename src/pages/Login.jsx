@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { login } from '../lib/auth'
+import { login, getStoredUser } from '../lib/auth'
+import Backdrop from '../components/Backdrop'
+import ZigzamLogo from '../components/ZigzamLogo'
+import FallGuy from '../components/FallGuy'
 import './Login.css'
 
 export default function Login() {
@@ -13,6 +16,9 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Reflète l'avatar du dernier élève connu sur cet appareil (sinon corps violet).
+  const lastAvatar = getStoredUser()?.avatar ?? null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -40,16 +46,11 @@ export default function Login() {
 
   return (
     <div className="login">
-      <div className="login__blobs" aria-hidden="true">
-        <span className="blob blob--1">🍩</span>
-        <span className="blob blob--2">💎</span>
-        <span className="blob blob--3">⭐</span>
-        <span className="blob blob--4">🎮</span>
-      </div>
+      <Backdrop />
 
       <form className="login__card" onSubmit={handleSubmit}>
-        <div className="login__logo">🦓</div>
-        <h1 className="login__title">Zigzam</h1>
+        <FallGuy className="login__mascot" color="#7c3aff" avatar={lastAvatar} />
+        <ZigzamLogo size="lg" className="login__logo" />
         <p className="login__subtitle">Connecte-toi pour jouer !</p>
 
         <label className="field">

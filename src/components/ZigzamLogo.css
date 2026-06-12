@@ -1,0 +1,40 @@
+.zlogo {
+  display: inline-flex;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1;
+  user-select: none;
+}
+
+.zlogo__letter {
+  display: inline-block;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  animation: zlogo-bounce 2.4s ease-in-out infinite;
+}
+
+@keyframes zlogo-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(3deg);
+  }
+}
+
+/* Tailles */
+.zlogo--sm {
+  font-size: 28px;
+}
+.zlogo--md {
+  font-size: 48px;
+}
+.zlogo--lg {
+  font-size: 64px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zlogo__letter {
+    animation: none;
+  }
+}

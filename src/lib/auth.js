@@ -55,3 +55,34 @@ export async function completeOnboarding(userId, newPassword, numero) {
 
   return { ok: true }
 }
+
+// --- Avatar : sauvegarde (couleur / accessoires gratuits / retrait) ---
+// Renvoie { avatar } enregistré, ou { error }.
+export async function saveAvatar(userId, avatar) {
+  const { data, error } = await supabase.rpc('save_avatar', {
+    p_user_id: userId,
+    p_avatar: avatar,
+  })
+
+  if (error) return { error: 'Impossible de sauvegarder, réessaie !' }
+  return { avatar: data }
+}
+
+// --- Avatar : achat + équipement d'un accessoire payant ---
+// Renvoie { gemmes, avatar } si ok, ou { error }.
+export async function buyAccessory(userId, category, itemId, price) {
+  const { data, error } = await supabase.rpc('buy_accessory', {
+    p_user_id: userId,
+    p_category: category,
+    p_item_id: itemId,
+    p_price: price,
+  })
+
+  if (error) return { error: 'Oups, une erreur est survenue. Réessaie !' }
+  if (data?.error === 'not_enough_gems') {
+    return { error: "Tu n'as pas assez de gemmes 💎" }
+  }
+  if (data?.error) return { error: 'Oups, une erreur est survenue. Réessaie !' }
+
+  return { gemmes: data.gemmes, avatar: data.avatar }
+}

@@ -1,16 +1,24 @@
 :root {
-  /* Palette ludique Zigzam */
-  --violet: #8b5cf6;
-  --violet-fonce: #6d28d9;
-  --rose: #ec4899;
-  --jaune: #fbbf24;
-  --turquoise: #22d3ee;
-  --vert: #34d399;
-  --orange: #fb7185;
+  /* Signature visuelle Zigzam */
+  --rose: #ff4d8d;
+  --orange: #ff8c42;
+  --violet: #7c3aff;
+  --bleu: #00bfff;
+  --vert: #3dd68c;
+
+  /* Variantes foncées pour ombres/relief */
+  --rose-fonce: #d6276b;
+  --violet-fonce: #5a1fd4;
+  --bleu-fonce: #009fe0;
+
+  /* Neutres */
   --blanc: #ffffff;
-  --texte: #3b2e58;
-  --texte-doux: #7c6f95;
+  --texte: #2b2350;
+  --texte-doux: #6b6191;
   --erreur: #ef4444;
+
+  /* Dégradé signature (boutons, accents) */
+  --degrade-zigzam: linear-gradient(90deg, #ff4d8d 0%, #7c3aff 50%, #00bfff 100%);
 
   font-family: 'Fredoka', system-ui, sans-serif;
   color: var(--texte);
@@ -31,8 +39,12 @@ body,
   width: 100%;
 }
 
+/* Fond dégradé pastel rose → violet → bleu */
 body {
-  background: linear-gradient(135deg, #a78bfa 0%, #f0abfc 50%, #fde68a 100%);
+  background:
+    radial-gradient(120% 90% at 15% 0%, rgba(255, 77, 141, 0.18), transparent 55%),
+    radial-gradient(120% 90% at 85% 100%, rgba(0, 191, 255, 0.2), transparent 55%),
+    linear-gradient(160deg, #ffe3ef 0%, #f1e2ff 48%, #e2f4ff 100%);
   background-attachment: fixed;
 }
 

@@ -2,6 +2,8 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { completeOnboarding } from '../lib/auth'
+import Backdrop from '../components/Backdrop'
+import FallGuy from '../components/FallGuy'
 import './Onboarding.css'
 
 export default function Onboarding() {
@@ -71,8 +73,9 @@ export default function Onboarding() {
 
   return (
     <div className="onb">
+      <Backdrop />
       <div className="onb__card">
-        <div className="onb__logo">🦓</div>
+        <FallGuy className="onb__mascot" color="#3dd68c" />
         <h1 className="onb__title">Bienvenue {user.pseudo} !</h1>
         <p className="onb__subtitle">
           {step === 1
