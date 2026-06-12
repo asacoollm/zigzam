@@ -207,9 +207,10 @@
   filter: grayscale(0.7);
   cursor: not-allowed;
 }
-.acc__glyph {
-  font-size: 34px;
-  line-height: 1;
+.acc__preview {
+  width: 52px;
+  height: 72px;
+  display: block;
 }
 .acc__label {
   font-size: 13px;
@@ -292,9 +293,11 @@
     opacity: 1;
   }
 }
-.modal__glyph {
-  font-size: 56px;
-  line-height: 1;
+.modal__preview {
+  width: 84px;
+  height: 116px;
+  display: block;
+  margin: 0 auto;
 }
 .modal__title {
   font-size: 20px;

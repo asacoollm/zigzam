@@ -3,7 +3,9 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 0;
+  /* Toujours DERRIÈRE le contenu : z-index négatif scopé au contexte
+     d'empilement de la page (qui établit un z-index >= 0). */
+  z-index: -1;
   perspective: 900px;
 }
 

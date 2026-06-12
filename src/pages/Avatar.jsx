@@ -153,7 +153,10 @@ export default function Avatar() {
                   onClick={() => pickItem(item)}
                   disabled={locked}
                 >
-                  <span className="acc__glyph">{item.glyph}</span>
+                  <FallGuy
+                    className="acc__preview"
+                    avatar={{ color: '#c9cde0', [tab]: item.id }}
+                  />
                   <span className="acc__label">{item.label}</span>
                   {item.price === 0 ? (
                     <span className="acc__tag acc__tag--free">Gratuit</span>
@@ -176,7 +179,10 @@ export default function Avatar() {
       {pending && (
         <div className="modal" onClick={() => !busy && setPending(null)}>
           <div className="modal__card" onClick={(e) => e.stopPropagation()}>
-            <span className="modal__glyph">{pending.glyph}</span>
+            <FallGuy
+              className="modal__preview"
+              avatar={{ color: '#c9cde0', [tab]: pending.id }}
+            />
             <h3 className="modal__title">Débloquer « {pending.label} » ?</h3>
             <p className="modal__cost">
               Coût : <strong>💎 {pending.price}</strong>
