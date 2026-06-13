@@ -2,17 +2,18 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getBadges } from '../lib/modules'
+import { isModuleBlocked } from '../lib/parental'
 import Backdrop from '../components/Backdrop'
 import Buddy from '../components/Buddy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import './Dashboard.css'
 
 const MODULES = [
-  { emoji: '💬', label: 'Discuter', color: 'var(--rose)', to: '/discuter', badge: 'discuter' },
-  { emoji: '📰', label: 'Actualités', color: 'var(--orange)', to: '/actualites', badge: 'actus' },
-  { emoji: '👥', label: 'Contacts', color: 'var(--violet)', to: '/contacts' },
-  { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar' },
-  { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie' },
+  { emoji: '💬', label: 'Discuter', color: 'var(--rose)', to: '/discuter', badge: 'discuter', key: 'discuter' },
+  { emoji: '📰', label: 'Actualités', color: 'var(--orange)', to: '/actualites', badge: 'actus', key: 'actualites' },
+  { emoji: '👥', label: 'Contacts', color: 'var(--violet)', to: '/contacts', key: 'contacts' },
+  { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar' },
+  { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
   { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)' },
 ]
@@ -29,7 +30,7 @@ export default function Dashboard() {
   }, [user.id])
 
   const modules = [...MODULES]
-  if (user.role === 'admin') {
+  if (user.role === 'admin' || user.role === 'superadmin') {
     modules.push({ emoji: '🛡️', label: 'Admin', color: 'var(--violet)', to: '/admin' })
   }
 
@@ -62,14 +63,17 @@ export default function Dashboard() {
       <main className="dash__grid">
         {modules.map((m) => {
           const count = m.badge ? badges[m.badge] : 0
+          const blocked = isModuleBlocked(user.parental, m.key)
           return (
             <button
               key={m.label}
-              className="tile"
+              className={`tile ${blocked ? 'tile--locked' : ''}`}
               style={{ '--tile-color': m.color }}
-              onClick={() => m.to && navigate(m.to)}
+              onClick={() => !blocked && m.to && navigate(m.to)}
+              disabled={blocked}
             >
-              {count > 0 && <span className="tile__badge">{count}</span>}
+              {blocked && <span className="tile__lock">🔒</span>}
+              {!blocked && count > 0 && <span className="tile__badge">{count}</span>}
               <span className="tile__emoji">{m.emoji}</span>
               <span className="tile__label">{m.label}</span>
             </button>

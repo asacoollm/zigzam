@@ -10,6 +10,7 @@ import Contacts from './pages/Contacts'
 import Economie from './pages/Economie'
 import Parametres from './pages/Parametres'
 import Admin from './pages/Admin'
+import ParentalGuard from './components/ParentalGuard'
 
 export default function App() {
   const { user } = useAuth()
@@ -22,6 +23,8 @@ export default function App() {
       : '/dashboard'
 
   return (
+    <>
+    {user && !user.premiere_connexion && <ParentalGuard />}
     <Routes>
       <Route
         path="/login"
@@ -94,7 +97,7 @@ export default function App() {
         element={
           !user || user.premiere_connexion ? (
             <Navigate to={home} replace />
-          ) : user.role !== 'admin' ? (
+          ) : user.role !== 'admin' && user.role !== 'superadmin' ? (
             <Navigate to="/dashboard" replace />
           ) : (
             <Admin />
@@ -103,5 +106,6 @@ export default function App() {
       />
       <Route path="*" element={<Navigate to={home} replace />} />
     </Routes>
+    </>
   )
 }

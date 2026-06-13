@@ -5,18 +5,24 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getStoredUser())
+  const [pauseMessage, setPauseMessage] = useState('')
 
   const signIn = (u) => {
+    setPauseMessage('')
     storeUser(u)
     setUser(u)
   }
 
-  const signOut = () => {
+  // signOut(message) : message non vide = déconnexion « pause » (contrôle parental)
+  const signOut = (message = '') => {
     clearStoredUser()
     setUser(null)
+    setPauseMessage(message)
   }
 
-  // Met à jour l'utilisateur courant (ex : après l'onboarding)
+  const clearPause = () => setPauseMessage('')
+
+  // Met à jour l'utilisateur courant (ex : après l'onboarding, gain de donuts, avatar…)
   const updateUser = (patch) => {
     setUser((prev) => {
       const next = { ...prev, ...patch }
@@ -26,7 +32,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, pauseMessage, signIn, signOut, updateUser, clearPause }}
+    >
       {children}
     </AuthContext.Provider>
   )

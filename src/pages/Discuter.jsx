@@ -161,6 +161,7 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
   const [numerosAjout, setNumerosAjout] = useState('')
   const [addLoading, setAddLoading] = useState(false)
   const [addErreur, setAddErreur] = useState('')
+  const [confirmLeave, setConfirmLeave] = useState(false)
   const channelRef = useRef(null)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
@@ -232,7 +233,6 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
   }
 
   async function handleQuitter() {
-    if (!window.confirm('Quitter cette discussion ?')) return
     await leaveDiscussion(userId, disc.id)
     onDeleted()
   }
@@ -280,12 +280,32 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
               🗑️ Supprimer
             </button>
           ) : (
-            <button className="disc__btn disc__btn--ghost disc__btn--sm" onClick={handleQuitter} type="button">
-              🚪 Quitter
+            <button className="disc__btn disc__btn--danger disc__btn--sm" onClick={() => setConfirmLeave(true)} type="button">
+              🚪 Quitter définitivement
             </button>
           )}
         </div>
       </div>
+
+      {confirmLeave && (
+        <div className="disc__modal" onClick={() => setConfirmLeave(false)}>
+          <div className="disc__modal-card" onClick={(e) => e.stopPropagation()}>
+            <span className="disc__modal-emoji">🚪</span>
+            <h3 className="disc__modal-title">Quitter définitivement cette discussion ?</h3>
+            <p className="disc__modal-text">
+              Es-tu sûr ? Tu ne pourras plus lire les messages de cette discussion.
+            </p>
+            <div className="disc__modal-actions">
+              <button className="disc__btn disc__btn--ghost" type="button" onClick={() => setConfirmLeave(false)}>
+                Annuler
+              </button>
+              <button className="disc__btn disc__btn--danger" type="button" onClick={handleQuitter}>
+                Oui, quitter définitivement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Panneau ajouter participants */}
       {showAddPart && (

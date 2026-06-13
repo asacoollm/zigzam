@@ -7,6 +7,7 @@ import {
   viewActu,
   getComments,
   addComment,
+  deleteComment,
 } from '../lib/modules'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -155,6 +156,16 @@ function SectionCommentaires({ actu, user }) {
     }
   }
 
+  async function handleDeleteComment(commentId) {
+    if (!window.confirm('Supprimer ce commentaire ?')) return
+    const result = await deleteComment(user.id, commentId)
+    if (result.error) {
+      setErreur(result.error)
+      return
+    }
+    setComments((prev) => prev.filter((c) => c.id !== commentId))
+  }
+
   return (
     <div className="news__comments">
       <h3 className="news__comments-title">💬 Commentaires</h3>
@@ -170,6 +181,16 @@ function SectionCommentaires({ actu, user }) {
             <span className="news__comment-date">{formatDate(c.date)}</span>
             <p className="news__comment-text">{c.contenu}</p>
           </div>
+          {(user.role === 'admin' || user.role === 'superadmin') && (
+            <button
+              className="news__btn news__btn--sm news__btn--danger"
+              onClick={() => handleDeleteComment(c.id)}
+              title="Supprimer ce commentaire"
+              aria-label="Supprimer ce commentaire"
+            >
+              🗑️
+            </button>
+          )}
         </div>
       ))}
       <form onSubmit={handleAddComment} className="news__comment-form">

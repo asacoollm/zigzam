@@ -2,102 +2,205 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { login, getStoredUser } from '../lib/auth'
+import { getParental, validateInviteCode, signupWithCode } from '../lib/modules'
+import { isOutsideAllowedHours, PAUSE_MESSAGE_HORAIRE } from '../lib/parental'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
 import './Login.css'
 
 export default function Login() {
-  const { signIn } = useAuth()
+  const { signIn, pauseMessage, clearPause } = useAuth()
   const navigate = useNavigate()
 
+  const [mode, setMode] = useState('login') // 'login' | 'invite' | 'signup'
   const [pseudo, setPseudo] = useState('')
   const [password, setPassword] = useState('')
+  const [code, setCode] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Reflète l'avatar du dernier élève connu sur cet appareil (sinon corps violet).
   const lastAvatar = getStoredUser()?.avatar ?? null
 
-  const handleSubmit = async (e) => {
+  const reset = (m) => {
+    setMode(m)
+    setError('')
+    setInfo('')
+    setPassword('')
+    clearPause()
+  }
+
+  // --- Connexion ---
+  const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
-
     if (!pseudo.trim() || !password) {
       setError('Remplis ton pseudo et ton mot de passe 😊')
       return
     }
-
     setLoading(true)
     const result = await login(pseudo, password)
-    setLoading(false)
-
     if (result.error) {
+      setLoading(false)
       setError(result.error)
       return
     }
-
-    signIn(result.user)
+    // Contrôle parental : blocage horaire éventuel
+    const parental = await getParental(result.user.id)
+    setLoading(false)
+    if (isOutsideAllowedHours(parental)) {
+      setError(PAUSE_MESSAGE_HORAIRE)
+      return
+    }
+    signIn({ ...result.user, parental })
     navigate(result.user.premiere_connexion ? '/onboarding' : '/dashboard', {
       replace: true,
     })
+  }
+
+  // --- Étape code d'invitation ---
+  const handleCheckCode = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!code.trim()) {
+      setError('Entre ton code d’invitation 🎟️')
+      return
+    }
+    setLoading(true)
+    const valid = await validateInviteCode(code)
+    setLoading(false)
+    if (!valid) {
+      setError("Ce code d'invitation n'est pas valide 😕")
+      return
+    }
+    reset('signup')
+    setCode(code) // conservé pour la création
+  }
+
+  // --- Création de compte ---
+  const handleSignup = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!pseudo.trim() || !password) {
+      setError('Choisis un pseudo et un mot de passe 😊')
+      return
+    }
+    setLoading(true)
+    const res = await signupWithCode(code, pseudo, password)
+    setLoading(false)
+    if (res.error) {
+      setError(res.error)
+      return
+    }
+    setMode('login')
+    setPassword('')
+    setInfo('Compte créé ! 🎉 Connecte-toi maintenant.')
   }
 
   return (
     <div className="login">
       <Backdrop />
 
-      <form className="login__card" onSubmit={handleSubmit}>
+      <div className="login__card">
         <FallGuy className="login__mascot" color="#7c3aff" avatar={lastAvatar} />
         <ZigzamLogo size="lg" className="login__logo" />
-        <p className="login__subtitle">Connecte-toi pour jouer !</p>
 
-        <label className="field">
-          <span className="field__label">👤 Ton pseudo</span>
-          <input
-            className="field__input"
-            type="text"
-            value={pseudo}
-            onChange={(e) => setPseudo(e.target.value)}
-            placeholder="Ex : lucas"
-            autoComplete="username"
-            autoFocus
-          />
-        </label>
+        {pauseMessage && <p className="login__pause">{pauseMessage}</p>}
+        {info && <p className="login__info">{info}</p>}
 
-        <label className="field">
-          <span className="field__label">🔒 Ton mot de passe</span>
-          <div className="field__password">
-            <input
-              className="field__input"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••"
-              autoComplete="current-password"
-            />
-            <button
-              type="button"
-              className="field__eye"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={
-                showPassword
-                  ? 'Cacher le mot de passe'
-                  : 'Afficher le mot de passe'
-              }
-            >
-              {showPassword ? '🙈' : '👁️'}
+        {/* ---------- CONNEXION ---------- */}
+        {mode === 'login' && (
+          <form onSubmit={handleLogin}>
+            <p className="login__subtitle">Connecte-toi pour jouer !</p>
+            <label className="field">
+              <span className="field__label">👤 Ton pseudo</span>
+              <input
+                className="field__input" type="text" value={pseudo}
+                onChange={(e) => setPseudo(e.target.value)}
+                placeholder="Ex : lucas" autoComplete="username" autoFocus
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">🔒 Ton mot de passe</span>
+              <div className="field__password">
+                <input
+                  className="field__input"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••" autoComplete="current-password"
+                />
+                <button type="button" className="field__eye"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Cacher' : 'Afficher'}>
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </label>
+            {error && <p className="login__error">{error}</p>}
+            <button className="login__button" type="submit" disabled={loading}>
+              {loading ? 'On y va…' : "C'est parti ! 🚀"}
             </button>
-          </div>
-        </label>
+            <button type="button" className="login__link" onClick={() => reset('invite')}>
+              Pas encore de compte ? Créer mon compte 🎉
+            </button>
+          </form>
+        )}
 
-        {error && <p className="login__error">{error}</p>}
+        {/* ---------- CODE D'INVITATION ---------- */}
+        {mode === 'invite' && (
+          <form onSubmit={handleCheckCode}>
+            <p className="login__subtitle">Entre ton code d'invitation 🎟️</p>
+            <label className="field">
+              <span className="field__label">🎟️ Code d'invitation</span>
+              <input
+                className="field__input" type="text" value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                placeholder="Ex : ABC123" autoFocus
+              />
+            </label>
+            {error && <p className="login__error">{error}</p>}
+            <button className="login__button" type="submit" disabled={loading}>
+              {loading ? 'Vérification…' : 'Valider le code ✨'}
+            </button>
+            <button type="button" className="login__link" onClick={() => reset('login')}>
+              ⬅️ Retour à la connexion
+            </button>
+          </form>
+        )}
 
-        <button className="login__button" type="submit" disabled={loading}>
-          {loading ? 'On y va…' : "C'est parti ! 🚀"}
-        </button>
-      </form>
+        {/* ---------- CRÉATION DE COMPTE ---------- */}
+        {mode === 'signup' && (
+          <form onSubmit={handleSignup}>
+            <p className="login__subtitle">Crée ton compte Zigzam ! 🦓</p>
+            <label className="field">
+              <span className="field__label">👤 Choisis ton pseudo</span>
+              <input
+                className="field__input" type="text" value={pseudo}
+                onChange={(e) => setPseudo(e.target.value)}
+                placeholder="Ex : lucas" autoComplete="username" autoFocus
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">🔒 Choisis un mot de passe</span>
+              <input
+                className="field__input" type="password" value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••" autoComplete="new-password"
+              />
+            </label>
+            {error && <p className="login__error">{error}</p>}
+            <button className="login__button" type="submit" disabled={loading}>
+              {loading ? 'Création…' : 'Créer mon compte 🎉'}
+            </button>
+            <button type="button" className="login__link" onClick={() => reset('login')}>
+              ⬅️ Retour à la connexion
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   )
 }

@@ -549,6 +549,47 @@
   }
 }
 
+/* ── Popup de confirmation « quitter » ── */
+.disc__modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(43, 35, 80, 0.45);
+  backdrop-filter: blur(4px);
+}
+.disc__modal-card {
+  width: 100%;
+  max-width: 340px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 24px;
+  padding: 26px 22px;
+  box-shadow: 0 30px 70px rgba(43, 35, 80, 0.4);
+}
+.disc__modal-emoji {
+  font-size: 46px;
+}
+.disc__modal-title {
+  font-size: 19px;
+  margin: 8px 0 6px;
+  color: var(--texte);
+}
+.disc__modal-text {
+  margin: 0 0 18px;
+  font-size: 15px;
+  color: var(--texte-doux);
+}
+.disc__modal-actions {
+  display: flex;
+  gap: 12px;
+}
+.disc__modal-actions .disc__btn {
+  flex: 1;
+}
+
 /* ── Respect prefers-reduced-motion ── */
 @media (prefers-reduced-motion: reduce) {
   .disc__disc-item,

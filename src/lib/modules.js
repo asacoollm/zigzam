@@ -190,6 +190,63 @@ export async function searchUsers(query) {
   return r.error ? [] : r.data
 }
 
+export async function deleteComment(adminId, commentId) {
+  const r = await rpc('delete_comment', { p_admin: adminId, p_comment: commentId })
+  return r.error ? r : { status: r.data }
+}
+
+// ---------------- CODES D'INVITATION ----------------
+export async function validateInviteCode(code) {
+  const r = await rpc('validate_invite_code', { p_code: code.trim().toUpperCase() })
+  return r.error ? false : r.data === true
+}
+export async function signupWithCode(code, pseudo, password) {
+  const r = await rpc('signup_with_code', {
+    p_code: code.trim().toUpperCase(), p_pseudo: pseudo.trim(), p_password: password,
+  })
+  if (r.error) return r
+  if (r.data?.error === 'code_invalide') return { error: "Ce code d'invitation n'est pas valide 😕" }
+  if (r.data?.error === 'pseudo_pris') return { error: 'Ce pseudo est déjà pris, choisis-en un autre 🙂' }
+  if (r.data?.error) return { error: ERR }
+  return { ok: true }
+}
+export async function createInviteCode(adminId, code) {
+  const r = await rpc('create_invite_code', { p_admin: adminId, p_code: code || '' })
+  if (r.error) return r
+  if (r.data?.error) return { error: r.data.error === 'code_existe' ? 'Ce code existe déjà.' : ERR }
+  return { ok: true, code: r.data.code }
+}
+export async function listInviteCodes(adminId) {
+  const r = await rpc('list_invite_codes', { p_admin: adminId })
+  return r.error ? [] : r.data
+}
+export async function toggleInviteCode(adminId, id, actif) {
+  return rpc('toggle_invite_code', { p_admin: adminId, p_id: id, p_actif: actif })
+}
+
+// ---------------- CONTRÔLE PARENTAL ----------------
+export async function getParental(userId) {
+  const r = await rpc('get_parental', { p_user: userId })
+  return r.error ? { configured: false } : r.data
+}
+export async function setParental(userId, code) {
+  const r = await rpc('set_parental', { p_user: userId, p_code: code })
+  return r.error ? r : { status: r.data }
+}
+export async function verifyParentalCode(userId, code) {
+  const r = await rpc('verify_parental_code', { p_user: userId, p_code: code })
+  return r.error ? false : r.data === true
+}
+export async function updateParental(userId, code, duree, debut, fin, modules, actif) {
+  const r = await rpc('update_parental', {
+    p_user: userId, p_code: code, p_duree: duree,
+    p_debut: debut || '', p_fin: fin || '', p_modules: modules, p_actif: actif,
+  })
+  if (r.error) return r
+  if (r.data === 'mauvais_code') return { error: 'Code parental incorrect.' }
+  return { ok: true }
+}
+
 // ---------------- DASHBOARD ----------------
 export async function getBadges(userId) {
   const r = await rpc('get_badges', { p_user: userId })

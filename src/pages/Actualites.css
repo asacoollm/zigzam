@@ -108,6 +108,19 @@
   font-size: 16px;
 }
 
+.news__btn--danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  box-shadow: none;
+  border: 1.5px solid rgba(239, 68, 68, 0.25);
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.news__btn--danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  transform: none;
+}
+
 /* ─── Inputs & textarea ─────────────────────────── */
 .news__input,
 .news__textarea {

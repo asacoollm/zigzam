@@ -1,11 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { changePassword, changePseudo } from '../lib/modules'
+import {
+  changePassword,
+  changePseudo,
+  getParental,
+  setParental,
+  verifyParentalCode,
+  updateParental,
+} from '../lib/modules'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
 import './Parametres.css'
+
+const MODULES_LIST = [
+  { key: 'discuter',   label: 'Discuter' },
+  { key: 'actualites', label: 'Actualités' },
+  { key: 'contacts',   label: 'Contacts' },
+  { key: 'avatar',     label: 'Avatar' },
+  { key: 'economie',   label: 'Donuts & Gemmes' },
+]
+
+function toHHMM(timeStr) {
+  if (!timeStr) return ''
+  // 'HH:MM:SS' → 'HH:MM'
+  return timeStr.slice(0, 5)
+}
 
 export default function Parametres() {
   const { user, updateUser } = useAuth()
@@ -13,7 +34,7 @@ export default function Parametres() {
 
   // --- Pseudo ---
   const [newPseudo, setNewPseudo] = useState('')
-  const [pseudoMsg, setPseudoMsg] = useState(null) // { type: 'ok'|'err', text }
+  const [pseudoMsg, setPseudoMsg] = useState(null)
   const [pseudoLoading, setPseudoLoading] = useState(false)
 
   // --- Mot de passe ---
@@ -22,6 +43,63 @@ export default function Parametres() {
   const [confirmPwd, setConfirmPwd] = useState('')
   const [pwdMsg, setPwdMsg] = useState(null)
   const [pwdLoading, setPwdLoading] = useState(false)
+
+  // --- Contrôle parental ---
+  const [parentalConfig, setParentalConfig] = useState(null)  // null = en chargement
+  const [parentalLoading, setParentalLoading] = useState(true)
+  const [parentalMsg, setParentalMsg] = useState(null)
+
+  // Setup (non configuré)
+  const [setupCode, setSetupCode]       = useState('')
+  const [setupCodeConfirm, setSetupCodeConfirm] = useState('')
+  const [setupVisible, setSetupVisible] = useState(false)
+  const [setupLoading, setSetupLoading] = useState(false)
+
+  // Déverrouillage (configuré)
+  const [unlockCode, setUnlockCode]     = useState('')
+  const [unlocked, setUnlocked]         = useState(false)
+  const [unlockLoading, setUnlockLoading] = useState(false)
+
+  // Formulaire de réglages (après déverrouillage)
+  const [duree, setDuree]               = useState(null)   // int ou null
+  const [heureDebut, setHeureDebut]     = useState('')
+  const [heureFin, setHeureFin]         = useState('')
+  const [modulesBloques, setModulesBloques] = useState([])
+  const [actif, setActif]               = useState(true)
+  const [saveLoading, setSaveLoading]   = useState(false)
+
+  // Chargement initial
+  useEffect(() => {
+    async function loadParental() {
+      setParentalLoading(true)
+      const config = await getParental(user.id)
+      setParentalConfig(config)
+      if (config && config.configured) {
+        setDuree(config.duree_max_minutes ?? null)
+        setHeureDebut(toHHMM(config.heure_debut))
+        setHeureFin(toHHMM(config.heure_fin))
+        setModulesBloques(config.modules_bloques || [])
+        setActif(config.actif ?? true)
+      }
+      setParentalLoading(false)
+    }
+    loadParental()
+  }, [user.id])
+
+  async function reloadParental() {
+    const config = await getParental(user.id)
+    setParentalConfig(config)
+    if (config && config.configured) {
+      setDuree(config.duree_max_minutes ?? null)
+      setHeureDebut(toHHMM(config.heure_debut))
+      setHeureFin(toHHMM(config.heure_fin))
+      setModulesBloques(config.modules_bloques || [])
+      setActif(config.actif ?? true)
+    }
+    return config
+  }
+
+  // --- Handlers pseudo / mot de passe ---
 
   async function handlePseudo(e) {
     e.preventDefault()
@@ -69,6 +147,251 @@ export default function Parametres() {
       setPwdMsg({ type: 'ok', text: 'Mot de passe changé avec succès !' })
     }
     setPwdLoading(false)
+  }
+
+  // --- Handlers contrôle parental ---
+
+  async function handleSetup(e) {
+    e.preventDefault()
+    setParentalMsg(null)
+    if (setupCode.length !== 4 || setupCodeConfirm.length !== 4) {
+      setParentalMsg({ type: 'err', text: 'Le code doit faire exactement 4 chiffres.' })
+      return
+    }
+    if (setupCode !== setupCodeConfirm) {
+      setParentalMsg({ type: 'err', text: 'Les deux codes ne correspondent pas.' })
+      return
+    }
+    setSetupLoading(true)
+    await setParental(user.id, setupCode)
+    const newConfig = await reloadParental()
+    updateUser({ parental: newConfig })
+    setSetupCode('')
+    setSetupCodeConfirm('')
+    setSetupVisible(false)
+    setParentalMsg({ type: 'ok', text: 'Contrôle parental configuré avec succès ! 🎉' })
+    setSetupLoading(false)
+  }
+
+  async function handleUnlock(e) {
+    e.preventDefault()
+    setParentalMsg(null)
+    setUnlockLoading(true)
+    const ok = await verifyParentalCode(user.id, unlockCode)
+    if (!ok) {
+      setParentalMsg({ type: 'err', text: 'Code incorrect.' })
+      setUnlockLoading(false)
+      return
+    }
+    setUnlocked(true)
+    setUnlockLoading(false)
+  }
+
+  function toggleModule(key) {
+    setModulesBloques(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    )
+  }
+
+  async function handleSave(e) {
+    e.preventDefault()
+    setParentalMsg(null)
+    setSaveLoading(true)
+    const res = await updateParental(
+      user.id,
+      unlockCode,
+      duree,
+      heureDebut,
+      heureFin,
+      modulesBloques,
+      actif
+    )
+    if (res.error) {
+      setParentalMsg({ type: 'err', text: res.error })
+    } else {
+      const newConfig = await reloadParental()
+      updateUser({ parental: newConfig })
+      setParentalMsg({ type: 'ok', text: 'Paramètres parentaux enregistrés !' })
+    }
+    setSaveLoading(false)
+  }
+
+  // --- Rendu section contrôle parental ---
+
+  function renderParental() {
+    if (parentalLoading) {
+      return <p className="settings__note">Chargement…</p>
+    }
+
+    if (!parentalConfig || !parentalConfig.configured) {
+      // Non configuré
+      return (
+        <>
+          <p className="settings__note">
+            Tends ton téléphone à un parent 👋
+          </p>
+          {!setupVisible ? (
+            <button
+              className="settings__btn"
+              type="button"
+              onClick={() => {
+                setSetupVisible(true)
+                setParentalMsg(null)
+              }}
+            >
+              Configurer avec un parent
+            </button>
+          ) : (
+            <form className="settings__form" onSubmit={handleSetup}>
+              <input
+                className="settings__input settings__input--code"
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                placeholder="Code parent (4 chiffres)"
+                value={setupCode}
+                onChange={(e) => setSetupCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                autoComplete="off"
+              />
+              <input
+                className="settings__input settings__input--code"
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                placeholder="Confirme le code"
+                value={setupCodeConfirm}
+                onChange={(e) => setSetupCodeConfirm(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                autoComplete="off"
+              />
+              <div className="settings__row">
+                <button
+                  className="settings__btn settings__btn--ghost"
+                  type="button"
+                  onClick={() => {
+                    setSetupVisible(false)
+                    setSetupCode('')
+                    setSetupCodeConfirm('')
+                    setParentalMsg(null)
+                  }}
+                >
+                  Annuler
+                </button>
+                <button className="settings__btn" type="submit" disabled={setupLoading}>
+                  {setupLoading ? 'En cours…' : 'Activer'}
+                </button>
+              </div>
+            </form>
+          )}
+        </>
+      )
+    }
+
+    // Configuré mais pas encore déverrouillé
+    if (!unlocked) {
+      return (
+        <form className="settings__form" onSubmit={handleUnlock}>
+          <p className="settings__note">
+            Entre le code parent pour accéder aux réglages.
+          </p>
+          <input
+            className="settings__input settings__input--code"
+            type="text"
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="Code parent (4 chiffres)"
+            value={unlockCode}
+            onChange={(e) => setUnlockCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            autoComplete="off"
+          />
+          <button className="settings__btn" type="submit" disabled={unlockLoading}>
+            {unlockLoading ? 'Vérification…' : 'Déverrouiller'}
+          </button>
+        </form>
+      )
+    }
+
+    // Configuré + déverrouillé : formulaire de réglages
+    return (
+      <form className="settings__form" onSubmit={handleSave}>
+
+        {/* Toggle actif */}
+        <label className="settings__toggle-row">
+          <span className="settings__toggle-label">Contrôle parental activé</span>
+          <div
+            className={`settings__toggle ${actif ? 'settings__toggle--on' : ''}`}
+            role="switch"
+            aria-checked={actif}
+            tabIndex={0}
+            onClick={() => setActif(v => !v)}
+            onKeyDown={(e) => e.key === ' ' && setActif(v => !v)}
+          >
+            <div className="settings__toggle-thumb" />
+          </div>
+        </label>
+
+        {/* Durée max */}
+        <div className="settings__field">
+          <label className="settings__label">Durée max par jour</label>
+          <select
+            className="settings__input settings__select"
+            value={duree === null ? 'null' : String(duree)}
+            onChange={(e) => {
+              const val = e.target.value
+              setDuree(val === 'null' ? null : Number(val))
+            }}
+          >
+            <option value="null">Illimité</option>
+            <option value="30">30 min</option>
+            <option value="60">1 h</option>
+            <option value="90">1 h 30</option>
+            <option value="120">2 h</option>
+          </select>
+        </div>
+
+        {/* Tranche horaire */}
+        <div className="settings__field">
+          <label className="settings__label">Tranche horaire autorisée</label>
+          <div className="settings__time-row">
+            <input
+              className="settings__input settings__input--time"
+              type="time"
+              value={heureDebut}
+              onChange={(e) => setHeureDebut(e.target.value)}
+            />
+            <span className="settings__time-sep">→</span>
+            <input
+              className="settings__input settings__input--time"
+              type="time"
+              value={heureFin}
+              onChange={(e) => setHeureFin(e.target.value)}
+            />
+          </div>
+          <p className="settings__note">Laisser vide = pas de restriction horaire.</p>
+        </div>
+
+        {/* Modules bloqués */}
+        <div className="settings__field">
+          <label className="settings__label">Modules bloqués</label>
+          <div className="settings__checkboxes">
+            {MODULES_LIST.map(({ key, label }) => (
+              <label key={key} className="settings__checkbox-row">
+                <input
+                  type="checkbox"
+                  className="settings__checkbox"
+                  checked={modulesBloques.includes(key)}
+                  onChange={() => toggleModule(key)}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <button className="settings__btn" type="submit" disabled={saveLoading}>
+          {saveLoading ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
+      </form>
+    )
   }
 
   return (
@@ -161,16 +484,15 @@ export default function Parametres() {
         )}
       </div>
 
-      {/* Section : Contrôle parental — désactivée */}
-      <div className="settings__card settings__card--disabled">
-        <div className="settings__disabled-overlay">
-          <span className="settings__lock">🔒</span>
-          <span className="settings__soon">Bientôt disponible</span>
-        </div>
-        <h2 className="settings__section-title">Contrôle parental</h2>
-        <p className="settings__note">
-          Gère les accès et les restrictions pour les comptes enfants.
-        </p>
+      {/* Section : Contrôle parental */}
+      <div className="settings__card">
+        <h2 className="settings__section-title">Contrôle parental 🛡️</h2>
+        {renderParental()}
+        {parentalMsg && (
+          <p className={`settings__msg settings__msg--${parentalMsg.type}`}>
+            {parentalMsg.text}
+          </p>
+        )}
       </div>
     </div>
   )

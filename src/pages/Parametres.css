@@ -136,6 +136,33 @@
   border-color: var(--violet);
 }
 
+/* Code PIN : texte centré + grande taille */
+.settings__input--code {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  padding: 14px;
+}
+
+/* Select */
+.settings__select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237c3aff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+/* Input time */
+.settings__input--time {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
 .settings__btn {
   background: var(--degrade-zigzam);
   color: #fff;
@@ -158,6 +185,25 @@
   cursor: not-allowed;
 }
 
+/* Bouton fantôme (annuler) */
+.settings__btn--ghost {
+  background: transparent;
+  color: var(--texte-doux);
+  border: 2px solid rgba(124, 58, 255, 0.25);
+}
+.settings__btn--ghost:hover:not(:disabled) {
+  background: rgba(124, 58, 255, 0.07);
+  opacity: 1;
+}
+
+/* Rangée boutons côte à côte */
+.settings__row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 /* --- Messages succès / erreur --- */
 .settings__msg {
   margin: 0;
@@ -173,37 +219,106 @@
 }
 .settings__msg--err {
   background: rgba(239, 68, 68, 0.12);
-  color: var(--erreur);
+  color: var(--erreur, #e53e3e);
   border: 1.5px solid rgba(239, 68, 68, 0.35);
 }
 
-/* --- Section désactivée (contrôle parental) --- */
-.settings__card--disabled {
-  position: relative;
-  overflow: hidden;
-  opacity: 0.72;
-  pointer-events: none;
+/* --- Contrôle parental : champs étiquetés --- */
+.settings__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--texte);
+}
+
+/* Tranche horaire */
+.settings__time-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings__time-sep {
+  font-size: 18px;
+  color: var(--texte-doux);
+  flex-shrink: 0;
+}
+
+/* Modules bloqués */
+.settings__checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings__checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--texte);
+  cursor: pointer;
   user-select: none;
 }
 
-.settings__disabled-overlay {
+.settings__checkbox {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--violet);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+/* --- Toggle actif/inactif --- */
+.settings__toggle-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(124, 58, 255, 0.1);
-  border: 1.5px solid rgba(124, 58, 255, 0.25);
-  border-radius: 14px;
-  padding: 10px 14px;
-  align-self: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.settings__lock {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.settings__soon {
-  font-size: 14px;
+.settings__toggle-label {
+  font-size: 15px;
   font-weight: 700;
-  color: var(--violet);
+  color: var(--texte);
+}
+
+.settings__toggle {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  background: rgba(124, 58, 255, 0.2);
+  border-radius: 999px;
+  flex-shrink: 0;
+  transition: background 0.22s;
+  outline: none;
+}
+.settings__toggle:focus-visible {
+  box-shadow: 0 0 0 3px rgba(124, 58, 255, 0.35);
+}
+.settings__toggle--on {
+  background: var(--violet);
+}
+
+.settings__toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.22s;
+}
+.settings__toggle--on .settings__toggle-thumb {
+  transform: translateX(22px);
 }

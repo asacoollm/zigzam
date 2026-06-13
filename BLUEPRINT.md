@@ -168,9 +168,31 @@ l'historique vient de `get_messages`.
 > **Pour appliquer une évolution du schéma** : Supabase → SQL Editor → coller
 > `supabase/schema.sql` → Run. Les `create or replace function` sont idempotents.
 
-### Comptes de test (mdp `zigzam`)
+### Rôles (3 niveaux)
 
-`lucas` (user), `emma` (user), `maitre` (admin).
+`user` (normal) · `admin` (modère les actus + supprime des commentaires) · `superadmin`
+(tout : comptes, soldes, suppression, codes d'invitation). Les RPC sensibles vérifient
+le rôle **côté serveur** via le `p_admin` passé.
+
+### Comptes
+
+`lucas` (user, mdp `zigzam`), `emma` (user), et le **superadmin `Asacool`** (mdp temporaire
+`zigzam2026`, `premiere_connexion` → onboarding au 1er login). L'ancien compte `maitre` a
+été supprimé.
+
+### Tables additionnelles (migration `…_roles_invites_parental.sql`)
+
+| Table | Rôle |
+|-------|------|
+| `codes_invitation` | codes pour l'inscription (code, actif, nb_utilisations) |
+| `controle_parental` | par user : code parent (haché), durée max, tranche horaire, modules bloqués, actif |
+
+**Inscription** : `/login` → « Créer mon compte » → code d'invitation valide
+(`validate_invite_code`) → `signup_with_code` (pseudo unique, role user, 10🍩/1💎,
+`premiere_connexion`). **Contrôle parental** : config via code parent à 4 chiffres
+(`set_parental`/`update_parental`), appliqué côté client (`lib/parental.js` +
+`ParentalGuard`) : blocage horaire au login, durée max (alerte 5 min + déconnexion douce),
+modules bloqués (tuiles grisées 🔒 sur le dashboard).
 
 ---
 

@@ -496,8 +496,10 @@ const SPORT = {
 // ----------------------------------------------------------------
 //  ANIMAUX  (compagnons — au sol à gauche, ou sur l'épaule droite)
 // ----------------------------------------------------------------
-const ground = (children) => <g transform="translate(20 130)">{children}</g>
-const shoulder = (children) => <g transform="translate(95 40)">{children}</g>
+// Les dessins d'animaux sont centrés sur l'origine ; la taille et la position
+// finales sont appliquées par ANIMAL_PLACEMENT (cf. renderAnimal).
+const ground = (children) => <g>{children}</g>
+const shoulder = (children) => <g>{children}</g>
 
 const ANIMAL = {
   cat: () => ground(
@@ -527,7 +529,7 @@ const ANIMAL = {
       <path d="M-2 12 q-9 -2 -9 5 q7 0 9 -1 Z" fill="#0090c8" />
     </g>
   ),
-  fish: () => <g transform="translate(18 92)">
+  fish: () => <g>
     <ellipse cx="0" cy="0" rx="13" ry="9" fill={C.orange} />
     <path d="M11 0 l9 -7 0 14 Z" fill={C.orange} />
     <circle cx="-5" cy="-1" r="2" fill={C.noir} /><path d="M-2 -5 q5 -3 9 0" stroke="#d96c1e" strokeWidth="1.4" fill="none" />
@@ -574,7 +576,7 @@ const ANIMAL = {
       <circle cx="-3.5" cy="1" r="1.4" fill={C.noir} /><circle cx="3.5" cy="1" r="1.4" fill={C.noir} />
     </g>
   ),
-  bee: () => <g transform="translate(92 26)">
+  bee: () => <g>
     <ellipse cx="0" cy="0" rx="11" ry="8" fill={C.jaune} />
     <path d="M-4 -7 v14 M4 -7 v14" stroke={C.noir} strokeWidth="3" />
     <ellipse cx="-5" cy="-8" rx="5" ry="4" fill="#fff" opacity="0.8" /><ellipse cx="5" cy="-8" rx="5" ry="4" fill="#fff" opacity="0.8" />
@@ -589,7 +591,7 @@ const ANIMAL = {
       <circle cx="-5" cy="18" r="2" fill={C.noir} /><circle cx="5" cy="18" r="2" fill={C.noir} />
     </g>
   ),
-  butterfly: () => <g transform="translate(92 26)">
+  butterfly: () => <g>
     <ellipse cx="-5" cy="-4" rx="6" ry="7" fill={C.rose} /><ellipse cx="5" cy="-4" rx="6" ry="7" fill={C.violet} />
     <ellipse cx="-5" cy="6" rx="5" ry="5" fill={C.bleu} /><ellipse cx="5" cy="6" rx="5" ry="5" fill={C.vert} />
     <rect x="-1" y="-8" width="2" height="17" rx="1" fill={C.noir} />
@@ -622,12 +624,24 @@ const ANIMAL = {
   ),
   cow: () => ground(
     <g>
-      <ellipse cx="0" cy="16" rx="12" ry="10" fill="#fff" />
-      <circle cx="0" cy="3" r="9" fill="#fff" />
-      <path d="M-9 -2 q-5 -6 -9 -2 q4 2 6 5 Z M9 -2 q5 -6 9 -2 q-4 2 -6 5 Z" fill="#e6e6ee" />
-      <ellipse cx="-9" cy="2" rx="3" ry="4" fill={C.noir} /><circle cx="6" cy="-2" r="3" fill={C.noir} />
-      <circle cx="-3.5" cy="2" r="1.4" fill={C.noir} /><circle cx="3.5" cy="2" r="1.4" fill={C.noir} />
-      <ellipse cx="0" cy="8" rx="5" ry="3.5" fill={C.rose} />
+      {/* corps + tête */}
+      <ellipse cx="0" cy="16" rx="13" ry="11" fill="#fff" />
+      <circle cx="0" cy="2" r="9.5" fill="#fff" />
+      {/* cornes */}
+      <path d="M-8 -7 q-6 -2 -9 2 q5 0 7 3 Z M8 -7 q6 -2 9 2 q-5 0 -7 3 Z" fill="#d9c08a" />
+      {/* oreilles */}
+      <ellipse cx="-10" cy="0" rx="3.5" ry="2.5" fill="#fff" /><ellipse cx="10" cy="0" rx="3.5" ry="2.5" fill="#fff" />
+      {/* taches noires */}
+      <ellipse cx="-8" cy="17" rx="5.5" ry="4.5" fill={C.noir} />
+      <ellipse cx="7" cy="13" rx="4.5" ry="4" fill={C.noir} />
+      <circle cx="6" cy="-3" r="3.2" fill={C.noir} />
+      {/* museau */}
+      <ellipse cx="0" cy="7" rx="6.5" ry="5" fill={C.rose} />
+      <circle cx="-2.5" cy="7" r="1.1" fill="#c2628a" /><circle cx="2.5" cy="7" r="1.1" fill="#c2628a" />
+      {/* yeux */}
+      <circle cx="-4" cy="1" r="1.4" fill={C.noir} /><circle cx="4" cy="1" r="1.4" fill={C.noir} />
+      {/* pis */}
+      <path d="M-3 25 l-1 4 M0 26 l0 4 M3 25 l1 4" stroke={C.rose} strokeWidth="2.4" strokeLinecap="round" />
     </g>
   ),
   ghost: () => ground(
@@ -638,12 +652,12 @@ const ANIMAL = {
     </g>
   ),
   snake: () => (
-    <g fill="none" stroke={C.vert} strokeWidth="7" strokeLinecap="round">
-      <path d="M32 44 Q48 32 60 44 Q72 56 88 44" />
-      <g stroke="none">
-        <circle cx="90" cy="42" r="5" fill={C.vert} /><circle cx="92" cy="41" r="1.2" fill={C.noir} />
-        <path d="M94 43 l6 1 -6 1.5" stroke={C.rouge} strokeWidth="1.2" fill="none" />
-      </g>
+    <g>
+      <path d="M-9 10 q-5 -7 3 -8 q9 -1 4 8 q-3 6 4 6 q9 0 5 -9"
+        fill="none" stroke={C.vert} strokeWidth="5" strokeLinecap="round" />
+      <circle cx="12" cy="-4" r="4" fill={C.vert} />
+      <circle cx="13.5" cy="-5" r="1" fill={C.noir} />
+      <path d="M15 -2 l5 1 -5 1.5" stroke={C.rouge} strokeWidth="1.2" fill="none" />
     </g>
   ),
   parrot: () => shoulder(
@@ -663,46 +677,110 @@ const ANIMAL = {
     </g>
   ),
   dino: () => ground(
-    <g fill={C.vert}>
-      <ellipse cx="0" cy="14" rx="13" ry="10" />
-      <circle cx="7" cy="3" r="7" />
-      <path d="M-12 9 l-5 0 5 -5 Z M-11 14 l-6 3 6 1 Z" />
-      <path d="M-7 5 l2 -6 2 6 1 -6 2 6 2 -5 2 5" fill="#1f9d68" />
-      <circle cx="9" cy="2" r="1.4" fill={C.noir} />
+    <g>
+      {/* silhouette T-Rex : queue, corps, grosse tête, pattes */}
+      <path d="M-17 10 Q-12 6 -7 8 Q-12 -2 0 -3 Q2 -13 11 -11 Q19 -9 18 -1
+               Q18 7 11 8 Q12 15 5 17 L7 24 L1 24 L-1 18
+               Q-9 19 -10 11 L-9 24 L-15 24 L-15 12 Z"
+        fill={C.vert} stroke="#1f9d68" strokeWidth="1" />
+      {/* plaques dorsales */}
+      <path d="M-7 -2 l2 -5 2 5 2 -4 2 4 2 -4 2 4" fill="#2f8a5a" />
+      {/* dents */}
+      <path d="M6 5 l2 0 0 2 -2 0 M9 5 l2 0 0 2 -2 0 M12 5 l2 0 0 2 -2 0" fill="#fff" />
+      {/* oeil */}
+      <circle cx="12" cy="-3" r="1.7" fill={C.noir} />
     </g>
   ),
   alien: () => ground(
     <g>
-      <ellipse cx="0" cy="14" rx="9" ry="9" fill="#7ee787" />
-      <ellipse cx="0" cy="2" rx="9" ry="11" fill="#7ee787" />
-      <ellipse cx="-4" cy="2" rx="2.6" ry="4" fill={C.noir} transform="rotate(-12 -4 2)" />
-      <ellipse cx="4" cy="2" rx="2.6" ry="4" fill={C.noir} transform="rotate(12 4 2)" />
-      <line x1="-4" y1="-9" x2="-6" y2="-15" stroke="#5bbf63" strokeWidth="1.5" />
-      <line x1="4" y1="-9" x2="6" y2="-15" stroke="#5bbf63" strokeWidth="1.5" />
-      <circle cx="-6" cy="-15" r="2" fill={C.vert} /><circle cx="6" cy="-15" r="2" fill={C.vert} />
+      {/* corps fin */}
+      <ellipse cx="0" cy="18" rx="6" ry="8" fill="#7ee787" />
+      <path d="M-6 18 l-7 5 M6 18 l7 5" stroke="#7ee787" strokeWidth="2.5" strokeLinecap="round" />
+      {/* grand crâne */}
+      <ellipse cx="0" cy="2" rx="12" ry="14" fill="#7ee787" />
+      <ellipse cx="0" cy="-3" rx="12" ry="9" fill="#8ff196" />
+      {/* yeux immenses en amande */}
+      <ellipse cx="-5" cy="3" rx="4.2" ry="6.5" fill={C.noir} transform="rotate(-16 -5 3)" />
+      <ellipse cx="5" cy="3" rx="4.2" ry="6.5" fill={C.noir} transform="rotate(16 5 3)" />
+      <circle cx="-6" cy="0" r="1.3" fill="#fff" /><circle cx="4" cy="0" r="1.3" fill="#fff" />
+      {/* petite bouche */}
+      <path d="M-2 13 q2 2 4 0" stroke="#3a7a4a" strokeWidth="1.2" fill="none" />
+      {/* antennes */}
+      <line x1="-5" y1="-13" x2="-8" y2="-21" stroke="#5bbf63" strokeWidth="1.6" />
+      <line x1="5" y1="-13" x2="8" y2="-21" stroke="#5bbf63" strokeWidth="1.6" />
+      <circle cx="-8" cy="-22" r="2.4" fill={C.vert} /><circle cx="8" cy="-22" r="2.4" fill={C.vert} />
     </g>
   ),
-  dragon: () => shoulder(
+  dragon: () => ground(
     <g>
-      <ellipse cx="0" cy="8" rx="9" ry="12" fill={C.violet} />
-      <circle cx="0" cy="-4" r="7" fill={C.violet} />
-      <path d="M-5 -9 l-2 -6 5 3 Z M5 -9 l2 -6 -5 3 Z" fill="#5a1fd4" />
-      <path d="M7 8 q14 -2 12 -16 q-2 9 -12 9 Z" fill={C.rose} />
-      <circle cx="-2" cy="-5" r="1.5" fill={C.jaune} /><circle cx="3" cy="-5" r="1.5" fill={C.jaune} />
-      <path d="M-2 0 q2 2 4 0" stroke="#5a1fd4" strokeWidth="1.2" fill="none" />
+      {/* aile membranée */}
+      <path d="M2 2 Q20 -12 24 4 Q16 1 13 7 Q11 0 2 2 Z" fill="#5a1fd4" />
+      <path d="M24 4 L18 3 M24 4 L15 7" stroke="#3b1499" strokeWidth="1" />
+      {/* queue */}
+      <path d="M-9 14 Q-18 16 -18 8 Q-14 12 -10 10 Z" fill={C.vert} />
+      {/* corps + tête */}
+      <ellipse cx="0" cy="12" rx="11" ry="10" fill={C.vert} />
+      <circle cx="-3" cy="0" r="8.5" fill={C.vert} />
+      <ellipse cx="0" cy="14" rx="6" ry="6" fill="#bff0c8" />
+      {/* écailles dorsales */}
+      <path d="M-9 3 l2 -4 2 4 2 -4 2 4 2 -4 2 4" fill="#2f8a5a" />
+      {/* cornes */}
+      <path d="M-7 -7 l-1 -6 4 4 Z M-1 -8 l1 -6 3 5 Z" fill="#2f8a5a" />
+      {/* yeux + naseaux */}
+      <circle cx="-6" cy="-1" r="1.6" fill={C.jaune} /><circle cx="0" cy="-2" r="1.6" fill={C.jaune} />
+      <circle cx="-9" cy="2" r="0.9" fill={C.noir} />
+      {/* feu */}
+      <path d="M-11 2 Q-20 0 -25 3 Q-20 4 -22 6 Q-16 5 -18 8 Q-12 6 -11 2 Z" fill={C.orange} />
+      <path d="M-13 3 Q-19 2 -22 4 Q-17 4 -16 5 Z" fill={C.jaune} />
     </g>
   ),
   unicorn: () => ground(
     <g>
+      {/* crinière colorée (derrière) */}
+      <path d="M-4 -8 q-12 3 -11 18 q5 -6 10 -10 q-4 8 -2 14 q4 -7 5 -16 Z" fill={C.rose} />
+      <path d="M-2 -7 q-8 5 -6 16 q4 -5 7 -12 Z" fill={C.violet} />
+      {/* corps + tête */}
       <ellipse cx="0" cy="16" rx="11" ry="10" fill="#fff" />
-      <circle cx="0" cy="3" r="9" fill="#fff" />
-      <path d="M-7 -4 l-2 -7 5 4 Z" fill="#fff" />
-      <path d="M3 -5 l3 -12 3 3 Z" fill={C.or} />
-      <path d="M-5 -2 q-9 5 -7 15 q5 -5 9 -9 Z" fill={C.rose} />
-      <path d="M5 0 q9 3 9 14 q-5 -5 -9 -7 Z" fill={C.bleu} />
-      <circle cx="-1" cy="2" r="1.4" fill={C.noir} /><circle cx="5" cy="2" r="1.4" fill={C.noir} />
+      <circle cx="0" cy="3" r="9.5" fill="#fff" />
+      <path d="M-8 -4 l-2 -7 5 4 Z" fill="#fff" />
+      {/* corne arc-en-ciel segmentée */}
+      <path d="M4 -6 l3 -14 4 4 Z" fill="#ffd23f" />
+      <path d="M5.2 -9 l3.5 0" stroke={C.orange} strokeWidth="1.6" />
+      <path d="M5.9 -12 l3 0" stroke={C.rose} strokeWidth="1.6" />
+      <path d="M6.6 -15 l2.4 0" stroke={C.bleu} strokeWidth="1.6" />
+      {/* queue colorée */}
+      <path d="M10 14 q10 0 10 13 q-5 -4 -11 -6 Z" fill={C.bleu} />
+      <path d="M10 16 q7 2 8 11 q-4 -4 -9 -7 Z" fill={C.vert} />
+      {/* visage */}
+      <circle cx="-2" cy="3" r="1.5" fill={C.noir} /><circle cx="4" cy="3" r="1.5" fill={C.noir} />
+      <ellipse cx="1" cy="9" rx="4" ry="3" fill="#ffe3ef" />
+      <circle cx="0" cy="9" r="1" fill={C.rose} />
     </g>
   ),
+}
+
+// Position + échelle finales de chaque animal sur le bonhomme.
+//  - petits (épaule) ~ scale 0.95 ; moyens (à gauche) ~ 1.5 ;
+//  - grands (à droite, presque aussi grands que lui) ~ 2.2 ; volants près de la tête.
+const ANIMAL_MED = 'translate(24 112) scale(1.5)'
+const ANIMAL_PLACEMENT = {
+  // petits — sur l'épaule droite
+  owl: 'translate(90 40) scale(0.95)',
+  parrot: 'translate(90 40) scale(0.95)',
+  hamster: 'translate(92 42) scale(0.95)',
+  snake: 'translate(88 38) scale(1)',
+  // volants — près de la tête à droite
+  bee: 'translate(94 22) scale(0.9)',
+  butterfly: 'translate(94 22) scale(0.9)',
+  ladybug: 'translate(94 24) scale(0.85)',
+  fish: 'translate(22 92) scale(1.2)',
+  // grands — à droite, bien visibles
+  dragon: 'translate(84 78) scale(2.2)',
+  dino: 'translate(84 78) scale(2.2)',
+  unicorn: 'translate(84 78) scale(2.2)',
+  cow: 'translate(84 78) scale(2.2)',
+  alien: 'translate(84 78) scale(2.2)',
+  shark: 'translate(84 84) scale(2.2)',
 }
 
 // ---- Sélecteurs exportés ----
@@ -710,8 +788,12 @@ export function renderHat(id) { return HATS[id]?.() ?? null }
 export function renderGlasses(id) { return GLASSES[id]?.() ?? null }
 export function renderHair(id) { return HAIR[id]?.() ?? null }
 export function renderSport(id) { return SPORT[id]?.() ?? null }
-export function renderAnimal(id) { return ANIMAL[id]?.() ?? null }
 export function renderFace(id) { return FACE[id]?.() ?? null }
+export function renderAnimal(id) {
+  const draw = ANIMAL[id]?.()
+  if (!draw) return null
+  return <g transform={ANIMAL_PLACEMENT[id] ?? ANIMAL_MED}>{draw}</g>
+}
 
 // ----------------------------------------------------------------
 //  CHAPEAUX  (posés sur le crâne, centrés x=60 ; couvrent le haut des cheveux)
