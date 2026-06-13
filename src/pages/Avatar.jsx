@@ -49,11 +49,7 @@ export default function Avatar() {
       applyFree({ [tab]: item.id })
       return
     }
-    // Payant non possédé : assez de gemmes ? → popup de confirmation.
-    if (user.gemmes < item.price) {
-      flash("Tu n'as pas assez de gemmes 💎")
-      return
-    }
+    // Payant non possédé → popup d'aperçu (achat possible si assez de gemmes).
     setPending(item)
   }
 
@@ -128,7 +124,6 @@ export default function Avatar() {
                     locked ? 'acc--locked' : ''
                   }`}
                   onClick={() => pickItem(item)}
-                  disabled={locked}
                 >
                   <FallGuy
                     className="acc__preview"
@@ -152,36 +147,41 @@ export default function Avatar() {
         </section>
       </main>
 
-      {/* Popup de confirmation d'achat */}
+      {/* Popup d'aperçu d'un accessoire verrouillé */}
       {pending && (
         <div className="modal" onClick={() => !busy && setPending(null)}>
           <div className="modal__card" onClick={(e) => e.stopPropagation()}>
             <FallGuy
               className="modal__preview"
-              avatar={{ color: '#c9cde0', [tab]: pending.id }}
+              avatar={{ ...avatar, [tab]: pending.id }}
+              anim="idle"
             />
-            <h3 className="modal__title">Débloquer « {pending.label} » ?</h3>
+            <h3 className="modal__title">{pending.label}</h3>
             <p className="modal__cost">
-              Coût : <strong>💎 {pending.price}</strong>
+              Prix : <strong>💎 {pending.price}</strong>
             </p>
-            <p className="modal__after">
-              Il te restera 💎 {user.gemmes - pending.price} gemmes.
-            </p>
+            {user.gemmes >= pending.price && (
+              <p className="modal__after">
+                Il te restera 💎 {user.gemmes - pending.price} gemmes.
+              </p>
+            )}
             <div className="modal__actions">
               <button
                 className="modal__btn modal__btn--ghost"
                 onClick={() => setPending(null)}
                 disabled={busy}
               >
-                Annuler
+                Fermer
               </button>
-              <button
-                className="modal__btn"
-                onClick={confirmBuy}
-                disabled={busy}
-              >
-                {busy ? 'Achat…' : 'Acheter 🎉'}
-              </button>
+              {user.gemmes >= pending.price ? (
+                <button className="modal__btn" onClick={confirmBuy} disabled={busy}>
+                  {busy ? 'Achat…' : `Acheter pour ${pending.price} 💎`}
+                </button>
+              ) : (
+                <button className="modal__btn modal__btn--off" disabled>
+                  Pas assez de gemmes 💎
+                </button>
+              )}
             </div>
           </div>
         </div>

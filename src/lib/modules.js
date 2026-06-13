@@ -140,6 +140,16 @@ export async function getPendingActus(adminId) {
   const r = await rpc('get_pending_actus', { p_admin: adminId })
   return r.error ? [] : r.data
 }
+// Liste des actus d'un statut donné ('en_attente' | 'publie' | 'refuse') pour le panel admin.
+export async function getAdminActus(adminId, statut) {
+  const r = await rpc('get_admin_actus', { p_admin: adminId, p_statut: statut })
+  return r.error ? [] : r.data
+}
+// Change le rôle d'un utilisateur (superadmin only). new_role : 'user' | 'admin'.
+export async function setUserRole(adminId, targetId, newRole) {
+  const r = await rpc('set_user_role', { p_admin: adminId, p_target: targetId, p_role: newRole })
+  return r.error ? r : { status: r.data }
+}
 export async function moderateActu(adminId, actuId, statut) {
   const r = await rpc('moderate_actu', { p_admin: adminId, p_actu: actuId, p_statut: statut })
   return r.error ? r : { status: r.data }

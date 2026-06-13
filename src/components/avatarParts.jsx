@@ -736,6 +736,8 @@ const ANIMAL = {
   ),
   unicorn: () => ground(
     <g>
+      {/* aile (licorne ailée) */}
+      <path d="M6 8 Q20 -6 24 8 Q17 4 12 12 Q9 7 6 8 Z" fill="#dff1ff" stroke={C.bleu} strokeWidth="0.8" />
       {/* crinière colorée (derrière) */}
       <path d="M-4 -8 q-12 3 -11 18 q5 -6 10 -10 q-4 8 -2 14 q4 -7 5 -16 Z" fill={C.rose} />
       <path d="M-2 -7 q-8 5 -6 16 q4 -5 7 -12 Z" fill={C.violet} />
@@ -764,24 +766,34 @@ const ANIMAL = {
 //  - grands (à droite, presque aussi grands que lui) ~ 2.2 ; volants près de la tête.
 const ANIMAL_MED = 'translate(24 112) scale(1.5)'
 const ANIMAL_PLACEMENT = {
-  // petits — sur l'épaule droite
-  owl: 'translate(90 40) scale(0.95)',
-  parrot: 'translate(90 40) scale(0.95)',
+  // volants — au-dessus et légèrement à droite de la tête
+  dragon: 'translate(88 0) scale(1.4)',
+  unicorn: 'translate(88 -2) scale(1.4)',
+  ghost: 'translate(92 0) scale(1.3)',
+  owl: 'translate(92 2) scale(1.2)',
+  parrot: 'translate(92 2) scale(1.2)',
+  bee: 'translate(98 6) scale(0.95)',
+  butterfly: 'translate(98 6) scale(0.95)',
+  ladybug: 'translate(98 8) scale(0.9)',
+  // petits terrestres — posés sur l'épaule droite
+  cat: 'translate(92 42) scale(0.95)',
+  penguin: 'translate(92 40) scale(0.95)',
+  snake: 'translate(90 38) scale(1)',
   hamster: 'translate(92 42) scale(0.95)',
-  snake: 'translate(88 38) scale(1)',
-  // volants — près de la tête à droite
-  bee: 'translate(94 22) scale(0.9)',
-  butterfly: 'translate(94 22) scale(0.9)',
-  ladybug: 'translate(94 24) scale(0.85)',
+  // grands terrestres — à droite, au sol, aussi grands que le bonhomme (viewBox élargi)
+  dino: 'translate(156 76) scale(2.9)',
+  cow: 'translate(156 76) scale(2.9)',
+  alien: 'translate(156 70) scale(2.9)',
+  shark: 'translate(156 88) scale(2.7)',
+  dog: 'translate(156 78) scale(2.9)',
+  panda: 'translate(156 78) scale(2.9)',
+  // au sol à gauche
   fish: 'translate(22 92) scale(1.2)',
-  // grands — à droite, bien visibles
-  dragon: 'translate(84 78) scale(2.2)',
-  dino: 'translate(84 78) scale(2.2)',
-  unicorn: 'translate(84 78) scale(2.2)',
-  cow: 'translate(84 78) scale(2.2)',
-  alien: 'translate(84 78) scale(2.2)',
-  shark: 'translate(84 84) scale(2.2)',
 }
+
+// Animaux assez grands pour nécessiter un viewBox élargi (placés à droite du bonhomme).
+const WIDE_ANIMALS = new Set(['dino', 'cow', 'alien', 'shark', 'dog', 'panda'])
+export function animalWide(id) { return WIDE_ANIMALS.has(id) }
 
 // ---- Sélecteurs exportés ----
 export function renderHat(id) { return HATS[id]?.() ?? null }

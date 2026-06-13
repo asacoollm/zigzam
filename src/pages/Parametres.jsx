@@ -331,21 +331,20 @@ export default function Parametres() {
 
         {/* Durée max */}
         <div className="settings__field">
-          <label className="settings__label">Durée max par jour</label>
-          <select
-            className="settings__input settings__select"
-            value={duree === null ? 'null' : String(duree)}
+          <label className="settings__label">Durée max par jour (en minutes)</label>
+          <input
+            className="settings__input"
+            type="number"
+            min="1"
+            max="1440"
+            value={duree === null ? '' : duree}
+            placeholder="Laisse vide pour illimité"
             onChange={(e) => {
               const val = e.target.value
-              setDuree(val === 'null' ? null : Number(val))
+              setDuree(val === '' ? null : Math.min(1440, Math.max(1, Number(val))))
             }}
-          >
-            <option value="null">Illimité</option>
-            <option value="30">30 min</option>
-            <option value="60">1 h</option>
-            <option value="90">1 h 30</option>
-            <option value="120">2 h</option>
-          </select>
+          />
+          <span className="settings__example">ex : 60 pour 1 heure, 90 pour 1h30</span>
         </div>
 
         {/* Tranche horaire */}

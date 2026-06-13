@@ -152,6 +152,30 @@
   filter: grayscale(0.8);
   cursor: not-allowed;
 }
+.tile--soon {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+.tile--soon:hover {
+  transform: none;
+}
+
+.dash__toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 80;
+  background: rgba(43, 35, 80, 0.92);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px 20px;
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(43, 35, 80, 0.4);
+  max-width: 90vw;
+  text-align: center;
+}
 .tile__lock {
   position: absolute;
   top: 8px;

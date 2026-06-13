@@ -203,9 +203,8 @@
   box-shadow: 0 10px 20px rgba(124, 58, 255, 0.25);
 }
 .acc--locked {
-  opacity: 0.5;
+  opacity: 0.55;
   filter: grayscale(0.7);
-  cursor: not-allowed;
 }
 .acc__preview {
   width: 52px;
@@ -294,10 +293,11 @@
   }
 }
 .modal__preview {
-  width: 84px;
-  height: 116px;
+  width: 150px;
+  height: 200px;
   display: block;
   margin: 0 auto;
+  filter: drop-shadow(0 14px 20px rgba(124, 58, 255, 0.3));
 }
 .modal__title {
   font-size: 20px;
@@ -342,6 +342,12 @@
   background: rgba(124, 58, 255, 0.1);
   color: var(--violet-fonce);
   box-shadow: none;
+}
+.modal__btn--off {
+  background: #e5e3ef;
+  color: #9a93b5;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 /* Toast */

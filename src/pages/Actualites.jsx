@@ -241,6 +241,10 @@ export default function Actualites() {
         <span className="news__donuts">🍩 {user.donuts}</span>
       </header>
 
+      <p className="news__rules">
+        📰 2 actus gratuites, puis 10 🍩 par actu • 👁️ +2 🍩 par vue • 💬 +2 🍩 par commentaire
+      </p>
+
       {!showForm && (
         <button className="news__write" onClick={() => setShowForm(true)}>
           ✏️ Écrire une actu

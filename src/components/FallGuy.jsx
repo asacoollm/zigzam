@@ -1,6 +1,6 @@
 import { normalizeAvatar, resolveColor } from '../lib/avatar'
 import {
-  renderHat, renderGlasses, renderHair, renderSport, renderAnimal, renderFace,
+  renderHat, renderGlasses, renderHair, renderSport, renderAnimal, renderFace, animalWide,
 } from './avatarParts'
 import './FallGuy.css'
 
@@ -77,11 +77,14 @@ export default function FallGuy({ color = 'violet', avatar = null, anim = null, 
   const colorId = a?.color || color
   const { fill: bodyFill } = resolveColor(colorId)
   const cls = `fg ${anim ? 'fg--' + anim : ''} ${className}`.trim()
+  // Un grand animal terrestre prend place À DROITE → on élargit le viewBox.
+  const wide = a?.animal && animalWide(a.animal)
+  const viewBox = wide ? '0 -24 210 192' : '0 -24 120 192'
 
   return (
     <svg
       className={cls}
-      viewBox="0 -24 120 192"
+      viewBox={viewBox}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"

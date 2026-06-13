@@ -43,6 +43,20 @@
   color: var(--texte);
 }
 
+/* Bandeau des règles donuts */
+.news__rules {
+  margin: 14px 0 0;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 11px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--texte);
+  text-align: center;
+  line-height: 1.5;
+}
+
 /* Bouton « Écrire une actu » */
 .news__write {
   width: 100%;

@@ -15,19 +15,34 @@ const MODULES = [
   { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar' },
   { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
-  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)' },
+  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', soon: true },
 ]
 
 export default function Dashboard() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const [badges, setBadges] = useState({ discuter: 0, actus: 0 })
+  const [toast, setToast] = useState('')
 
   useEffect(() => {
     let on = true
     getBadges(user.id).then((b) => on && setBadges(b))
     return () => { on = false }
   }, [user.id])
+
+  const flash = (m) => {
+    setToast(m)
+    window.clearTimeout(flash._t)
+    flash._t = window.setTimeout(() => setToast(''), 2600)
+  }
+
+  const handleTile = (m, blocked) => {
+    if (m.soon) {
+      flash('🌋 Bientôt disponible ! Ce module est en cours de développement.')
+      return
+    }
+    if (!blocked && m.to) navigate(m.to)
+  }
 
   const modules = [...MODULES]
   if (user.role === 'admin' || user.role === 'superadmin') {
@@ -54,7 +69,7 @@ export default function Dashboard() {
         <div className="dash__counters">
           <span className="counter counter--donut">🍩 {user.donuts}</span>
           <span className="counter counter--gem">💎 {user.gemmes}</span>
-          <button className="dash__logout" onClick={signOut}>
+          <button className="dash__logout" onClick={() => signOut()}>
             Déconnexion
           </button>
         </div>
@@ -67,9 +82,9 @@ export default function Dashboard() {
           return (
             <button
               key={m.label}
-              className={`tile ${blocked ? 'tile--locked' : ''}`}
+              className={`tile ${blocked ? 'tile--locked' : ''} ${m.soon ? 'tile--soon' : ''}`}
               style={{ '--tile-color': m.color }}
-              onClick={() => !blocked && m.to && navigate(m.to)}
+              onClick={() => handleTile(m, blocked)}
               disabled={blocked}
             >
               {blocked && <span className="tile__lock">🔒</span>}
@@ -80,6 +95,8 @@ export default function Dashboard() {
           )
         })}
       </main>
+
+      {toast && <div className="dash__toast">{toast}</div>}
     </div>
   )
 }

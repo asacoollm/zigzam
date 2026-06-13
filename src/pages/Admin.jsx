@@ -6,8 +6,9 @@ import {
   adminCreateUser,
   adminSetBalance,
   adminDeleteUser,
-  getPendingActus,
+  getAdminActus,
   moderateActu,
+  setUserRole,
   createInviteCode,
   listInviteCodes,
   toggleInviteCode,
@@ -17,9 +18,15 @@ import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
 import './Admin.css'
 
-// --------------- Modération des actus ---------------
-function ActuCard({ actu, adminId, onAction }) {
-  const [loading, setLoading] = useState(null) // 'publie'|'refuse'
+// --------------- Modération des actus (3 onglets) ---------------
+const ONGLETS_ACTUS = [
+  { id: 'en_attente', label: 'En attente ⏳' },
+  { id: 'publie',     label: 'Publiées ✅'   },
+  { id: 'refuse',     label: 'Refusées ❌'   },
+]
+
+function ActuCard({ actu, onglet, adminId, onAction }) {
+  const [loading, setLoading] = useState(null) // statut en cours
 
   async function handle(statut) {
     setLoading(statut)
@@ -33,6 +40,11 @@ function ActuCard({ actu, adminId, onAction }) {
       <div className="actu-card__author">
         <FallGuy avatar={actu.auteur?.avatar ?? null} className="actu-card__avatar" />
         <span className="actu-card__pseudo">{actu.auteur?.pseudo ?? '—'}</span>
+        {actu.date && (
+          <span className="actu-card__date">
+            {new Date(actu.date).toLocaleDateString('fr-FR')}
+          </span>
+        )}
       </div>
       <div className="actu-card__body">
         <p className="actu-card__titre">{actu.titre}</p>
@@ -41,37 +53,77 @@ function ActuCard({ actu, adminId, onAction }) {
           <img className="actu-card__img" src={actu.image} alt="illustration" />
         )}
       </div>
-      <div className="actu-card__actions">
-        <button
-          className="admin-btn admin-btn--vert"
-          onClick={() => handle('publie')}
-          disabled={loading !== null}
-        >
-          {loading === 'publie' ? 'Publication…' : '✅ Valider'}
-        </button>
-        <button
-          className="admin-btn admin-btn--danger"
-          onClick={() => handle('refuse')}
-          disabled={loading !== null}
-        >
-          {loading === 'refuse' ? 'Refus…' : '❌ Refuser'}
-        </button>
-      </div>
+
+      {/* Boutons selon l'onglet */}
+      {onglet === 'en_attente' && (
+        <div className="actu-card__actions">
+          <button
+            className="admin-btn admin-btn--vert"
+            onClick={() => handle('publie')}
+            disabled={loading !== null}
+          >
+            {loading === 'publie' ? 'Publication…' : '✅ Valider'}
+          </button>
+          <button
+            className="admin-btn admin-btn--danger"
+            onClick={() => handle('refuse')}
+            disabled={loading !== null}
+          >
+            {loading === 'refuse' ? 'Refus…' : '❌ Refuser'}
+          </button>
+        </div>
+      )}
+
+      {onglet === 'publie' && (
+        <div className="actu-card__actions">
+          <button
+            className="admin-btn admin-btn--danger admin-btn--sm"
+            onClick={() => handle('refuse')}
+            disabled={loading !== null}
+          >
+            {loading === 'refuse' ? 'Refus…' : '❌ Refuser'}
+          </button>
+        </div>
+      )}
+
+      {onglet === 'refuse' && (
+        <div className="actu-card__actions">
+          <button
+            className="admin-btn admin-btn--vert"
+            onClick={() => handle('publie')}
+            disabled={loading !== null}
+          >
+            {loading === 'publie' ? 'Publication…' : '↩️ Changer d\'avis → Accepter'}
+          </button>
+        </div>
+      )}
     </article>
   )
 }
 
 function SectionActus({ adminId }) {
+  const [ongletActif, setOngletActif] = useState('en_attente')
   const [actus, setActus] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    let on = true
-    getPendingActus(adminId).then((data) => {
-      if (on) { setActus(data ?? []); setLoading(false) }
+  function loadActus(statut) {
+    setLoading(true)
+    getAdminActus(adminId, statut).then((data) => {
+      setActus(data ?? [])
+      setLoading(false)
     })
-    return () => { on = false }
-  }, [adminId])
+  }
+
+  useEffect(() => {
+    loadActus(ongletActif)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminId, ongletActif])
+
+  function handleChangeOnglet(id) {
+    if (id === ongletActif) return
+    setActus([])
+    setOngletActif(id)
+  }
 
   function removeActu(id) {
     setActus((prev) => prev.filter((a) => a.id !== id))
@@ -80,14 +132,41 @@ function SectionActus({ adminId }) {
   return (
     <section className="admin-card">
       <h2 className="admin-section-title">📰 Modération des actus</h2>
+
+      {/* Onglets */}
+      <div className="actus-tabs">
+        {ONGLETS_ACTUS.map((o) => (
+          <button
+            key={o.id}
+            className={`actus-tab${ongletActif === o.id ? ' actus-tab--actif' : ''}`}
+            onClick={() => handleChangeOnglet(o.id)}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Contenu de l'onglet */}
       {loading && <p className="admin-loading">Chargement…</p>}
       {!loading && actus.length === 0 && (
-        <p className="admin-empty">Aucune actu en attente 🎉</p>
+        <p className="admin-empty">
+          {ongletActif === 'en_attente'
+            ? 'Aucune actu en attente 🎉'
+            : ongletActif === 'publie'
+            ? 'Aucune actu publiée.'
+            : 'Aucune actu refusée.'}
+        </p>
       )}
       {!loading && actus.length > 0 && (
         <div className="actus-list">
           {actus.map((a) => (
-            <ActuCard key={a.id} actu={a} adminId={adminId} onAction={removeActu} />
+            <ActuCard
+              key={a.id}
+              actu={a}
+              onglet={ongletActif}
+              adminId={adminId}
+              onAction={removeActu}
+            />
           ))}
         </div>
       )}
@@ -153,12 +232,14 @@ function SectionCreerCompte({ adminId, onUserCreated }) {
 }
 
 // --------------- Utilisateurs ---------------
-function UserRow({ u, adminId, onDelete }) {
+function UserRow({ u, adminId, onDelete, onRoleChange }) {
   const [donuts, setDonuts] = useState(String(u.donuts ?? 0))
   const [gemmes, setGemmes] = useState(String(u.gemmes ?? 0))
   const [savMsg, setSavMsg] = useState(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [roleLoading, setRoleLoading] = useState(false)
+  const [roleMsg, setRoleMsg] = useState(null)
 
   async function handleSave() {
     setSaving(true)
@@ -188,6 +269,26 @@ function UserRow({ u, adminId, onDelete }) {
       return
     }
     onDelete(u.id)
+  }
+
+  async function handleRoleChange() {
+    const newRole = u.role === 'admin' ? 'user' : 'admin'
+    setRoleLoading(true)
+    setRoleMsg(null)
+    const res = await setUserRole(adminId, u.id, newRole)
+    setRoleLoading(false)
+    if (res?.status === 'ok') {
+      onRoleChange(u.id, newRole)
+    } else if (res?.status === 'forbidden') {
+      setRoleMsg({ type: 'err', text: 'Permission refusée.' })
+      setTimeout(() => setRoleMsg(null), 3000)
+    } else if (res?.status === 'cannot_modify_superadmin') {
+      setRoleMsg({ type: 'err', text: 'Impossible de modifier un superadmin.' })
+      setTimeout(() => setRoleMsg(null), 3000)
+    } else {
+      setRoleMsg({ type: 'err', text: res?.error ?? 'Erreur inconnue.' })
+      setTimeout(() => setRoleMsg(null), 3000)
+    }
   }
 
   return (
@@ -233,6 +334,27 @@ function UserRow({ u, adminId, onDelete }) {
           <span className={`admin-inline-msg admin-inline-msg--${savMsg.type}`}>{savMsg.text}</span>
         )}
       </div>
+
+      {/* Bouton de gestion du rôle — uniquement si pas superadmin */}
+      {u.role !== 'superadmin' && (
+        <div className="user-row__role-actions">
+          <button
+            className={`admin-btn admin-btn--sm ${u.role === 'admin' ? 'admin-btn--role-revoke' : 'admin-btn--role-promote'}`}
+            onClick={handleRoleChange}
+            disabled={roleLoading}
+          >
+            {roleLoading
+              ? '…'
+              : u.role === 'admin'
+              ? '🔽 Révoquer admin'
+              : '🛡️ Nommer admin'}
+          </button>
+          {roleMsg && (
+            <span className={`admin-inline-msg admin-inline-msg--${roleMsg.type}`}>{roleMsg.text}</span>
+          )}
+        </div>
+      )}
+
       <button
         className="admin-btn admin-btn--danger admin-btn--sm"
         onClick={handleDelete}
@@ -269,6 +391,12 @@ function SectionUtilisateurs({ adminId, refreshTrigger }) {
     setUsers((prev) => prev.filter((u) => u.id !== id))
   }
 
+  function updateUserRole(id, newRole) {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, role: newRole } : u))
+    )
+  }
+
   return (
     <section className="admin-card">
       <h2 className="admin-section-title">👥 Utilisateurs ({loading ? '…' : users.length})</h2>
@@ -280,7 +408,13 @@ function SectionUtilisateurs({ adminId, refreshTrigger }) {
       {!loading && !error && users.length > 0 && (
         <div className="users-list">
           {users.map((u) => (
-            <UserRow key={u.id} u={u} adminId={adminId} onDelete={removeUser} />
+            <UserRow
+              key={u.id}
+              u={u}
+              adminId={adminId}
+              onDelete={removeUser}
+              onRoleChange={updateUserRole}
+            />
           ))}
         </div>
       )}
