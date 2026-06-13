@@ -209,6 +209,17 @@ export const CATEGORIES = [
       { id: 'goldteeth', label: 'Dents en or', price: 5 },
     ],
   },
+  {
+    id: 'special', label: 'Spécial', emoji: '⭐',
+    items: [
+      {
+        id: 'skin',
+        label: '🎨 Skin sur mesure',
+        price: 20,
+        desc: 'Fais créer un skin EXCLUSIVEMENT pour toi par Asacool !',
+      },
+    ],
+  },
 ]
 
 // Avatar par défaut (corps violet, aucun accessoire).

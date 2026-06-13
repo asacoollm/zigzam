@@ -288,14 +288,14 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
       </div>
 
       {confirmLeave && (
-        <div className="disc__modal" onClick={() => setConfirmLeave(false)}>
-          <div className="disc__modal-card" onClick={(e) => e.stopPropagation()}>
-            <span className="disc__modal-emoji">🚪</span>
-            <h3 className="disc__modal-title">Quitter définitivement cette discussion ?</h3>
-            <p className="disc__modal-text">
+        <div className="disc__leave-overlay" onClick={() => setConfirmLeave(false)}>
+          <div className="disc__leave-card" onClick={(e) => e.stopPropagation()}>
+            <span className="disc__leave-emoji">🚪</span>
+            <h3 className="disc__leave-title">Quitter définitivement cette discussion ?</h3>
+            <p className="disc__leave-text">
               Es-tu sûr ? Tu ne pourras plus lire les messages de cette discussion.
             </p>
-            <div className="disc__modal-actions">
+            <div className="disc__leave-actions">
               <button className="disc__btn disc__btn--ghost" type="button" onClick={() => setConfirmLeave(false)}>
                 Annuler
               </button>

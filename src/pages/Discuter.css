@@ -308,28 +308,33 @@
 .disc__modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
-  background: rgba(43, 35, 80, 0.35);
-  backdrop-filter: blur(4px);
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 18px;
 }
 
+/* Carte centrée, fond blanc opaque, bordure colorée Zigzam */
 .disc__modal {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.97);
+  border: 2.5px solid var(--violet);
   border-radius: 28px;
-  box-shadow: 0 24px 60px rgba(124, 58, 255, 0.28);
+  box-shadow: 0 24px 60px rgba(43, 35, 80, 0.5);
   padding: 28px 24px;
-  width: 100%;
+  width: calc(100% - 36px);
   max-width: 440px;
+  max-height: 88vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  color: var(--texte);
 }
 
 .disc__modal-titre {
@@ -550,43 +555,43 @@
 }
 
 /* ── Popup de confirmation « quitter » ── */
-.disc__modal {
+.disc__leave-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 300;
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(43, 35, 80, 0.45);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.5);
 }
-.disc__modal-card {
+.disc__leave-card {
   width: 100%;
   max-width: 340px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.97);
+  border: 2.5px solid var(--rose);
   border-radius: 24px;
   padding: 26px 22px;
-  box-shadow: 0 30px 70px rgba(43, 35, 80, 0.4);
+  box-shadow: 0 30px 70px rgba(43, 35, 80, 0.5);
 }
-.disc__modal-emoji {
+.disc__leave-emoji {
   font-size: 46px;
 }
-.disc__modal-title {
+.disc__leave-title {
   font-size: 19px;
   margin: 8px 0 6px;
   color: var(--texte);
 }
-.disc__modal-text {
+.disc__leave-text {
   margin: 0 0 18px;
   font-size: 15px;
   color: var(--texte-doux);
 }
-.disc__modal-actions {
+.disc__leave-actions {
   display: flex;
   gap: 12px;
 }
-.disc__modal-actions .disc__btn {
+.disc__leave-actions .disc__btn {
   flex: 1;
 }
 

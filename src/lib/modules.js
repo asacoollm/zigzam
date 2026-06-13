@@ -114,6 +114,18 @@ export async function addComment(actuId, auteurId, contenu) {
   return r.error ? r : { comment: r.data }
 }
 
+// Achat du « Skin sur mesure » : débite 20 💎, ouvre une discussion avec Asacool
+// et y poste un message « Achat vérifié ». Tout est fait côté serveur (anti-triche).
+export async function buyCustomSkin(userId) {
+  const r = await rpc('buy_custom_skin', { p_user: userId })
+  if (r.error) return r
+  const e = r.data?.error
+  if (e === 'not_enough') return { error: 'Pas assez de gemmes 💎 (il en faut 20)' }
+  if (e === 'asacool_introuvable') return { error: 'Asacool est introuvable, réessaie plus tard.' }
+  if (e) return { error: ERR }
+  return { ok: true, gemmes: r.data.gemmes, discussionId: r.data.discussion_id }
+}
+
 // ---------------- ADMIN ----------------
 export async function adminListUsers(adminId) {
   const r = await rpc('admin_list_users', { p_admin: adminId })

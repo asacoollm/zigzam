@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { saveAvatar, buyAccessory } from '../lib/auth'
+import { buyCustomSkin } from '../lib/modules'
 import { CATEGORIES, normalizeAvatar, isUnlocked, accKey } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
@@ -55,6 +56,23 @@ export default function Avatar() {
 
   const confirmBuy = async () => {
     if (!pending) return
+
+    // Cas spécial : skin sur mesure → débit + ouverture d'une discussion avec Asacool.
+    if (tab === 'special') {
+      setBusy(true)
+      const res = await buyCustomSkin(user.id)
+      setBusy(false)
+      if (res.error) {
+        flash(res.error)
+        setPending(null)
+        return
+      }
+      updateUser({ gemmes: res.gemmes })
+      setPending(null)
+      flash('🎉 Ta demande est envoyée ! Asacool a reçu ta demande officielle dans Discuter. Décris-lui ton skin de rêve !')
+      return
+    }
+
     setBusy(true)
     const res = await buyAccessory(user.id, tab, pending.id, pending.price)
     setBusy(false)
@@ -157,6 +175,7 @@ export default function Avatar() {
               anim="idle"
             />
             <h3 className="modal__title">{pending.label}</h3>
+            {pending.desc && <p className="modal__desc">{pending.desc}</p>}
             <p className="modal__cost">
               Prix : <strong>💎 {pending.price}</strong>
             </p>
