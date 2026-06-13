@@ -351,8 +351,10 @@ Implémentés (pages `src/pages/`, helpers `src/lib/modules.js`) :
 
 - 💬 **Discuter** — discussions privées/groupe/publiques, temps réel (broadcast),
   messages persistants, suppression par le créateur, on ne peut que quitter.
-- 📰 **Actualités** — post (2 gratuites puis 10 🍩), validation admin, +2 🍩/vue
-  unique à l'auteur, commentaires.
+- 📰 **Actualités** — fil type réseau social ; post (2 gratuites puis 10 🍩) avec
+  **photo uploadée sur Supabase Storage** (bucket public `actualites`), validation admin,
+  +2 🍩/vue unique à l'auteur, commentaires (suppression par admin), badge « en attente »
+  visible par l'auteur (`get_my_actus`).
 - 👥 **Contacts** — ajout par numéro (récupère pseudo+avatar), recherche, lancer une
   discussion (`navigate('/discuter', { state: { startNumero } })`).
 - 🍩 **Économie** — solde, échange 5🍩↔1💎, dons par numéro, historique (`transactions`).

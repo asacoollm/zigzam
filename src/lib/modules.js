@@ -75,6 +75,22 @@ export async function getActus() {
   const r = await rpc('get_actus')
   return r.error ? [] : r.data
 }
+// Mes actus (tous statuts) — pour afficher le badge « en attente » à l'auteur.
+export async function getMyActus(userId) {
+  const r = await rpc('get_my_actus', { p_user: userId })
+  return r.error ? [] : r.data
+}
+// Upload d'une photo vers le bucket Storage "actualites". Renvoie { url } public.
+export async function uploadActuImage(userId, file) {
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+  const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const { error } = await supabase.storage
+    .from('actualites')
+    .upload(path, file, { cacheControl: '3600', upsert: false })
+  if (error) return { error: "Impossible d'envoyer la photo, réessaie 📷" }
+  const { data } = supabase.storage.from('actualites').getPublicUrl(path)
+  return { url: data.publicUrl }
+}
 export async function createActu(auteurId, titre, contenu, image) {
   const r = await rpc('create_actu', {
     p_auteur: auteurId, p_titre: titre, p_contenu: contenu, p_image: image || '',
