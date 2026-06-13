@@ -1,0 +1,40 @@
+/* Animations du compagnon Fall Guys */
+.fg {
+  transform-origin: center bottom;
+  will-change: transform;
+}
+
+/* Oscillation douce en boucle (idle) */
+.fg--idle {
+  animation: fg-idle 2.6s ease-in-out infinite;
+}
+@keyframes fg-idle {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-6%) rotate(1.5deg); }
+}
+
+/* Saut de joie (déclenché ponctuellement) */
+.fg--jump {
+  animation: fg-jump 0.9s ease-in-out;
+}
+@keyframes fg-jump {
+  0% { transform: translateY(0) scaleY(1); }
+  20% { transform: translateY(0) scaleY(0.82) scaleX(1.08); }
+  45% { transform: translateY(-26%) scaleY(1.1) scaleX(0.95); }
+  70% { transform: translateY(0) scaleY(0.9) scaleX(1.05); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+
+/* Marche / dandinement (déclenché à la navigation) */
+.fg--walk {
+  animation: fg-walk 0.7s ease-in-out;
+}
+@keyframes fg-walk {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  25% { transform: rotate(-6deg) translateY(-4%); }
+  75% { transform: rotate(6deg) translateY(-4%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg--idle, .fg--jump, .fg--walk { animation: none; }
+}

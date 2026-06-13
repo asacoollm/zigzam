@@ -2,13 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { saveAvatar, buyAccessory } from '../lib/auth'
-import {
-  BODY_COLORS,
-  CATEGORIES,
-  normalizeAvatar,
-  isUnlocked,
-  accKey,
-} from '../lib/avatar'
+import { CATEGORIES, normalizeAvatar, isUnlocked, accKey } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -44,12 +38,10 @@ export default function Avatar() {
     if (res.error) flash(res.error)
   }
 
-  const pickColor = (value) => applyFree({ color: value })
-
   const pickItem = (item) => {
-    // Retirer l'accessoire déjà équipé.
+    // Retirer l'accessoire déjà équipé (sauf la couleur, toujours présente).
     if (avatar[tab] === item.id) {
-      applyFree({ [tab]: null })
+      if (tab !== 'color') applyFree({ [tab]: null })
       return
     }
     // Gratuit ou déjà acheté → on équipe directement.
@@ -99,26 +91,11 @@ export default function Avatar() {
       <main className="av__main">
         {/* Bonhomme en grand, mis à jour en temps réel */}
         <section className="av__stage">
-          <FallGuy className="av__hero" avatar={avatar} />
+          <FallGuy className="av__hero" avatar={avatar} anim="idle" />
           <p className="av__name">{user.pseudo}</p>
         </section>
 
         <section className="av__panel">
-          {/* Sélecteur de couleur de corps */}
-          <h2 className="av__heading">🎨 Couleur</h2>
-          <div className="av__colors">
-            {BODY_COLORS.map((c) => (
-              <button
-                key={c.id}
-                className={`swatch ${avatar.color === c.value ? 'swatch--on' : ''}`}
-                style={{ background: c.value }}
-                onClick={() => pickColor(c.value)}
-                aria-label={c.label}
-                title={c.label}
-              />
-            ))}
-          </div>
-
           {/* Onglets de catégories */}
           <div className="av__tabs" role="tablist">
             {CATEGORIES.map((c) => (

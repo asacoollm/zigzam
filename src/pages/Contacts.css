@@ -1,0 +1,272 @@
+/* ============================================================
+   Contacts — page Zigzam
+   ============================================================ */
+
+.contacts {
+  position: relative;
+  z-index: 0;
+  min-height: 100svh;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px;
+}
+
+/* ----- Barre du haut ----- */
+.contacts__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  padding: 12px 18px;
+  box-shadow:
+    0 16px 36px rgba(124, 58, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  margin-bottom: 18px;
+}
+
+.contacts__back {
+  background: rgba(124, 58, 255, 0.1);
+  color: var(--violet);
+  border-radius: 14px;
+  padding: 9px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: background 0.15s;
+}
+.contacts__back:hover {
+  background: rgba(124, 58, 255, 0.2);
+}
+
+/* ----- Flash message ----- */
+.contacts__flash {
+  border-radius: 16px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  text-align: center;
+  animation: contacts-fade-in 0.2s ease;
+}
+.contacts__flash--ok {
+  background: rgba(61, 214, 140, 0.18);
+  color: #1a7a4d;
+  border: 1.5px solid rgba(61, 214, 140, 0.45);
+}
+.contacts__flash--err {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--erreur, #ef4444);
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
+}
+
+@keyframes contacts-fade-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ----- Carte glassmorphism ----- */
+.contacts__card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(124, 58, 255, 0.22);
+  padding: 20px 22px;
+  margin-bottom: 18px;
+}
+
+.contacts__section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--texte);
+  margin-bottom: 14px;
+}
+
+/* ----- Formulaire ajout ----- */
+.contacts__add-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ----- Inputs ----- */
+.contacts__input {
+  background: rgba(255, 255, 255, 0.7);
+  border: 2.5px solid rgba(124, 58, 255, 0.18);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--texte);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 180px;
+}
+.contacts__input--full {
+  width: 100%;
+}
+.contacts__input::placeholder {
+  color: var(--texte-doux);
+}
+.contacts__input:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(124, 58, 255, 0.18);
+}
+
+/* ----- Boutons ----- */
+.contacts__btn {
+  background: var(--degrade-zigzam);
+  color: #fff;
+  border-radius: 16px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  transition: opacity 0.15s, transform 0.12s;
+  white-space: nowrap;
+}
+.contacts__btn:hover:not(:disabled) {
+  opacity: 0.88;
+  transform: translateY(-2px);
+}
+.contacts__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.contacts__btn--sm {
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 12px;
+}
+
+.contacts__btn--discuss {
+  background: var(--degrade-zigzam);
+}
+
+.contacts__btn--remove {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--erreur, #ef4444);
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+}
+.contacts__btn--remove:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.22);
+  transform: none;
+}
+
+/* ----- Liste des contacts ----- */
+.contacts__list,
+.contacts__search-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contacts__item,
+.contacts__search-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  border-radius: 18px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 12px rgba(124, 58, 255, 0.1);
+  transition: box-shadow 0.14s, transform 0.14s;
+}
+.contacts__item:hover,
+.contacts__search-item:hover {
+  box-shadow: 0 8px 20px rgba(124, 58, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+/* ----- Avatar ----- */
+.contacts__av {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 6px rgba(124, 58, 255, 0.28));
+}
+
+/* ----- Infos pseudo/numéro ----- */
+.contacts__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.contacts__pseudo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--texte);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.contacts__numero {
+  font-size: 13px;
+  color: var(--texte-doux);
+}
+
+/* ----- Actions dans chaque ligne contact ----- */
+.contacts__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ----- Tag "déjà ami" ----- */
+.contacts__tag {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--vert);
+  background: rgba(61, 214, 140, 0.14);
+  border: 1.5px solid rgba(61, 214, 140, 0.4);
+  border-radius: 10px;
+  padding: 5px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ----- États vide / chargement ----- */
+.contacts__empty {
+  text-align: center;
+  color: var(--texte-doux);
+  font-size: 15px;
+  padding: 12px 0 4px;
+  margin: 0;
+}
+.contacts__hint {
+  color: var(--texte-doux);
+  font-size: 14px;
+  margin: 8px 0 0;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 480px) {
+  .contacts__add-form {
+    flex-direction: column;
+  }
+  .contacts__input {
+    width: 100%;
+  }
+  .contacts__item,
+  .contacts__search-item {
+    flex-wrap: wrap;
+  }
+  .contacts__actions {
+    width: 100%;
+    margin-top: 4px;
+  }
+}

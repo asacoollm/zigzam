@@ -86,6 +86,12 @@ supabase/
 | `/onboarding` | connecté **et** `premiere_connexion = true` | `Onboarding` |
 | `/dashboard` | connecté **et** onboarding terminé | `Dashboard` |
 | `/avatar` | connecté **et** onboarding terminé | `Avatar` |
+| `/discuter` | connecté + onboarding | `Discuter` (messagerie temps réel) |
+| `/actualites` | connecté + onboarding | `Actualites` |
+| `/contacts` | connecté + onboarding | `Contacts` |
+| `/economie` | connecté + onboarding | `Economie` (donuts/gemmes) |
+| `/parametres` | connecté + onboarding | `Parametres` |
+| `/admin` | connecté + onboarding + **`role === 'admin'`** | `Admin` |
 | `*` | — | redirige selon l'état (`home`) |
 
 La destination « maison » est calculée dans `App.jsx` :
@@ -138,6 +144,27 @@ non connecté → `/login` ; `premiere_connexion` → `/onboarding` ; sinon → 
 Toutes sont `security definer` avec `set search_path` (incluant `extensions` quand
 `pgcrypto` est utilisé) et `grant execute … to anon, authenticated`.
 
+### Tables des modules (migration `…_modules.sql`)
+
+Toutes en RLS sans policy ; accès via RPC `SECURITY DEFINER` uniquement.
+
+| Table | Rôle |
+|-------|------|
+| `discussions` | fil de discussion (titre, type `prive`/`public`, créateur) |
+| `participants` | membres d'une discussion (+ `lu_le` pour le non-lu) |
+| `messages` | messages persistants |
+| `actualites` | actus (statut `en_attente`/`publie`/`refuse`) |
+| `vues_actualites` | 1 vue par (actu, user) — anti-double-comptage |
+| `commentaires` | commentaires d'actus |
+| `transactions` | historique donuts/gemmes (échanges, dons, gains) |
+| `contacts` | carnet de contacts (user → contact) |
+
+~30 fonctions RPC associées (cf. `src/lib/modules.js` côté client). Les fonctions
+admin (`admin_*`, `moderate_actu`, `get_pending_actus`) **vérifient `role='admin'`
+côté serveur** via l'`p_admin` passé. **Temps réel du chat** : Supabase Realtime en
+mode **broadcast** (canal `discussion:<id>`) — ne nécessite pas de policy RLS ;
+l'historique vient de `get_messages`.
+
 > **Pour appliquer une évolution du schéma** : Supabase → SQL Editor → coller
 > `supabase/schema.sql` → Run. Les `create or replace function` sont idempotents.
 
@@ -188,14 +215,29 @@ Page `/avatar`, accessible depuis la tuile **Avatar** du dashboard.
 
 ```jsonc
 {
-  "color": "#7c3aff",     // couleur de corps (hex)
-  "hat": "crown" | null,   // id d'accessoire équipé par catégorie…
+  "color": "violet",       // id de couleur (uni, dégradé, motif ou effet) ou hex legacy
+  "hat": "crown" | null,
   "glasses": "sun" | null,
   "hair": "spiky" | null,
   "sport": "foot" | null,
-  "owned": ["hat:crown", "glasses:star"]  // accessoires PAYANTS achetés ("catégorie:id")
+  "animal": "dragon" | null,
+  "face": "vampire" | null,
+  "owned": ["hat:crown", "color:gold"]  // items PAYANTS achetés ("catégorie:id")
 }
 ```
+
+**7 catégories** (`src/lib/avatar.js`), prix **1 à 5 💎** : **Couleur** (unies gratuites
+rose/violet/bleu/vert + premium : dégradés rainbow/sunset/galaxy/ocean, motifs
+stars/dots/stripes/camo, effets gold/silver/holo — rendus via `<defs>` gradients/patterns
+dans `FallGuy`), **Chapeau**, **Lunettes**, **Cheveux** (dessinés sous les chapeaux),
+**Sport**, **Animaux** (compagnon au sol ou sur l'épaule), **Visage** (bouches). Tous
+**dessinés en SVG** dans `src/components/avatarParts.jsx` ; le sélecteur montre un
+mini-`FallGuy` réel. `viewBox="0 -24 120 192"`.
+
+**Animations** (`FallGuy` prop `anim` + `FallGuy.css`) : `idle` (oscillation), `jump`
+(saut de joie), `walk` (dandinement). Le composant **`Buddy`** = le bonhomme de l'élève
+animé, qui saute quand son solde augmente et se dandine à chaque navigation — utilisé
+comme « compagnon » dans le dashboard (≥88px) et les pages.
 
 `normalizeAvatar()` (dans `src/lib/avatar.js`) fusionne toujours avec `DEFAULT_AVATAR`
 (corps violet, aucun accessoire) pour tolérer un `{}` venant de la base.
@@ -243,13 +285,15 @@ Chaque item = `{ id, label, glyph, price }`. `glyph` = icône (emoji) du sélect
 
 ## 8. Dashboard
 
-En-tête glassmorphism : bonhomme de l'élève (`<FallGuy avatar={user.avatar} />`),
+En-tête glassmorphism : **compagnon `Buddy`** (bonhomme animé de l'élève),
 pseudo, numéro, compteurs 🍩/💎, déconnexion. Puis une grille de **tuiles-modules**
-(liseré coloré par module). Seule **Avatar** est active (`to: '/avatar'`) ; les autres
-sont des emplacements réservés (voir roadmap).
+(liseré coloré par module) avec **pastilles de notification** (rouge) sur Discuter et
+Actualités, alimentées par `get_badges` (messages non lus / actus non vues).
 
-Modules affichés : Discuter 💬, Actualités 📰, Floor is Lava 🌋, **Avatar 🎨**,
-Donuts & Gemmes 🍩, Contrôle parental 🛡️, Agenda 📖, Paramètres ⚙️.
+Tuiles : Discuter 💬 → `/discuter`, Actualités 📰 → `/actualites`, Contacts 👥 →
+`/contacts`, Avatar 🎨 → `/avatar`, Donuts & Gemmes 🍩 → `/economie`, Paramètres ⚙️ →
+`/parametres`, Floor is Lava 🌋 (placeholder), et **Admin 🛡️ → `/admin`** (uniquement
+si `role === 'admin'`).
 
 ---
 
@@ -279,17 +323,21 @@ Donuts & Gemmes 🍩, Contrôle parental 🛡️, Agenda 📖, Paramètres ⚙�
 
 ---
 
-## 11. Roadmap (modules à venir)
+## 11. Modules implémentés & roadmap
 
-Emplacements déjà visibles sur le Dashboard, non encore implémentés :
+Implémentés (pages `src/pages/`, helpers `src/lib/modules.js`) :
 
-- 💬 **Discuter** — messagerie entre élèves (via le numéro à 4 chiffres).
-- 📰 **Actualités** — fil d'infos de la classe.
-- 🌋 **Floor is Lava** — mini-jeu.
-- 🍩 **Donuts & Gemmes** — économie : gains, boutique.
-- 🛡️ **Contrôle parental** — supervision.
-- 📖 **Agenda** — devoirs / événements.
-- ⚙️ **Paramètres**.
+- 💬 **Discuter** — discussions privées/groupe/publiques, temps réel (broadcast),
+  messages persistants, suppression par le créateur, on ne peut que quitter.
+- 📰 **Actualités** — post (2 gratuites puis 10 🍩), validation admin, +2 🍩/vue
+  unique à l'auteur, commentaires.
+- 👥 **Contacts** — ajout par numéro (récupère pseudo+avatar), recherche, lancer une
+  discussion (`navigate('/discuter', { state: { startNumero } })`).
+- 🍩 **Économie** — solde, échange 5🍩↔1💎, dons par numéro, historique (`transactions`).
+- ⚙️ **Paramètres** — mot de passe, pseudo, numéro (lecture seule), contrôle parental (placeholder).
+- 🛡️ **Admin** — création de comptes, liste users, modération d'actus, édition soldes, suppression.
 
-À chaque nouveau module : ajouter la route gardée dans `App.jsx`, brancher la tuile
-(`to`) dans `Dashboard.jsx`, et respecter la charte visuelle (§6).
+À venir : 🌋 **Floor is Lava** (mini-jeu, placeholder), section **contrôle parental**.
+
+À chaque nouveau module : route gardée dans `App.jsx`, tuile dans `Dashboard.jsx`,
+helpers RPC dans `src/lib/modules.js`, charte visuelle (§6).

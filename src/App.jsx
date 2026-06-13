@@ -4,6 +4,12 @@ import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import Avatar from './pages/Avatar'
+import Discuter from './pages/Discuter'
+import Actualites from './pages/Actualites'
+import Contacts from './pages/Contacts'
+import Economie from './pages/Economie'
+import Parametres from './pages/Parametres'
+import Admin from './pages/Admin'
 
 export default function App() {
   const { user } = useAuth()
@@ -50,6 +56,48 @@ export default function App() {
             <Navigate to={home} replace />
           ) : (
             <Avatar />
+          )
+        }
+      />
+      <Route
+        path="/discuter"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Discuter />
+        }
+      />
+      <Route
+        path="/actualites"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Actualites />
+        }
+      />
+      <Route
+        path="/contacts"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Contacts />
+        }
+      />
+      <Route
+        path="/economie"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Economie />
+        }
+      />
+      <Route
+        path="/parametres"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Parametres />
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          !user || user.premiere_connexion ? (
+            <Navigate to={home} replace />
+          ) : user.role !== 'admin' ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Admin />
           )
         }
       />

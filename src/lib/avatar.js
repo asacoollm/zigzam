@@ -1,191 +1,240 @@
 // ============================================================
 //  Catalogue de personnalisation de l'avatar (bonhomme Fall Guys)
-//  Source de vérité partagée par la page Avatar et le composant FallGuy.
-//  Tous les accessoires sont DESSINÉS en SVG (voir components/avatarParts.jsx).
+//  Source de vérité partagée par la page Avatar et FallGuy / avatarParts.
+//  Tout est dessiné en SVG. Prix entre 1 et 5 gemmes.
 // ============================================================
 
-// 8 couleurs de corps (palette Zigzam + rouge/jaune/blanc)
-export const BODY_COLORS = [
-  { id: 'rose', value: '#ff4d8d', label: 'Rose' },
-  { id: 'orange', value: '#ff8c42', label: 'Orange' },
-  { id: 'jaune', value: '#fbbf24', label: 'Jaune' },
-  { id: 'vert', value: '#3dd68c', label: 'Vert' },
-  { id: 'bleu', value: '#00bfff', label: 'Bleu' },
-  { id: 'violet', value: '#7c3aff', label: 'Violet' },
-  { id: 'rouge', value: '#ef4444', label: 'Rouge' },
-  { id: 'blanc', value: '#f1f1f7', label: 'Blanc' },
+// Couleurs de corps "unies" : id -> hex
+export const SOLID_COLORS = {
+  rose: '#ff4d8d', violet: '#7c3aff', bleu: '#00bfff', vert: '#3dd68c',
+  orange: '#ff8c42', jaune: '#fbbf24', rouge: '#ef4444', blanc: '#f1f1f7',
+  noir: '#3a3357', turquoise: '#22d3ee',
+}
+// Couleurs "spéciales" (dégradés / motifs / effets) rendues via un <def> dans FallGuy.
+export const SPECIAL_COLORS = [
+  'rainbow', 'sunset', 'galaxy', 'ocean',
+  'stars', 'dots', 'stripes', 'camo', 'flames',
+  'gold', 'silver', 'holo',
 ]
 
-// 5 catégories, 20 accessoires chacune (5 gratuits + 15 payants).
-// Chaque item = { id, label, price }. Le rendu visuel est dans avatarParts.jsx
-// (la clé = l'id de l'item).
+// Résout une couleur (id ou hex legacy) en remplissage SVG.
+export function resolveColor(colorId) {
+  if (typeof colorId === 'string' && colorId.startsWith('#')) return { fill: colorId }
+  if (SOLID_COLORS[colorId]) return { fill: SOLID_COLORS[colorId] }
+  if (SPECIAL_COLORS.includes(colorId)) return { fill: `url(#body-${colorId})`, special: true }
+  return { fill: SOLID_COLORS.violet }
+}
+
 export const CATEGORIES = [
   {
-    id: 'hat',
-    label: 'Chapeau',
-    emoji: '🎩',
+    id: 'color', label: 'Couleur', emoji: '🎨',
+    items: [
+      { id: 'rose', label: 'Rose', price: 0 },
+      { id: 'violet', label: 'Violet', price: 0 },
+      { id: 'bleu', label: 'Bleu', price: 0 },
+      { id: 'vert', label: 'Vert', price: 0 },
+      { id: 'orange', label: 'Orange', price: 1 },
+      { id: 'jaune', label: 'Jaune', price: 1 },
+      { id: 'rouge', label: 'Rouge', price: 1 },
+      { id: 'blanc', label: 'Blanc', price: 1 },
+      { id: 'noir', label: 'Noir', price: 1 },
+      { id: 'turquoise', label: 'Turquoise', price: 2 },
+      { id: 'ocean', label: 'Océan', price: 3 },
+      { id: 'sunset', label: 'Coucher de soleil', price: 3 },
+      { id: 'dots', label: 'Pois', price: 3 },
+      { id: 'stripes', label: 'Rayures', price: 3 },
+      { id: 'rainbow', label: 'Arc-en-ciel', price: 4 },
+      { id: 'galaxy', label: 'Galaxie', price: 4 },
+      { id: 'stars', label: 'Étoiles', price: 4 },
+      { id: 'camo', label: 'Camouflage', price: 4 },
+      { id: 'flames', label: 'Flammes', price: 4 },
+      { id: 'silver', label: 'Argenté', price: 4 },
+      { id: 'gold', label: 'Doré brillant', price: 5 },
+      { id: 'holo', label: 'Holographique', price: 5 },
+    ],
+  },
+  {
+    id: 'hat', label: 'Chapeau', emoji: '🎩',
     items: [
       { id: 'cap', label: 'Casquette', price: 0 },
       { id: 'beanie', label: 'Bonnet', price: 0 },
       { id: 'beret', label: 'Béret', price: 0 },
       { id: 'bandana', label: 'Bandana', price: 0 },
-      { id: 'party', label: 'Cotillon', price: 0 },
-      { id: 'grad', label: 'Diplôme', price: 5 },
-      { id: 'straw', label: 'Paille', price: 6 },
-      { id: 'cowboy', label: 'Cowboy', price: 8 },
-      { id: 'chef', label: 'Chef', price: 8 },
-      { id: 'helmet', label: 'Casque vélo', price: 10 },
-      { id: 'sombrero', label: 'Sombrero', price: 12 },
-      { id: 'witch', label: 'Sorcière', price: 14 },
-      { id: 'crown', label: 'Couronne', price: 15 },
-      { id: 'tophat', label: 'Haut-de-forme', price: 15 },
-      { id: 'pirate', label: 'Pirate', price: 16 },
-      { id: 'flower', label: 'Fleurs', price: 18 },
-      { id: 'santa', label: 'Bonnet de Noël', price: 18 },
-      { id: 'police', label: 'Képi', price: 20 },
-      { id: 'viking', label: 'Viking', price: 22 },
-      { id: 'halo', label: 'Auréole', price: 25 },
+      { id: 'party', label: 'Chapeau de fête', price: 0 },
+      { id: 'grad', label: 'Diplôme', price: 1 },
+      { id: 'straw', label: 'Paille', price: 1 },
+      { id: 'chef', label: 'Chef', price: 2 },
+      { id: 'helmet', label: 'Casque vélo', price: 2 },
+      { id: 'police', label: 'Képi', price: 2 },
+      { id: 'santa', label: 'Bonnet de Noël', price: 2 },
+      { id: 'flower', label: 'Fleurs', price: 2 },
+      { id: 'cowboy', label: 'Cowboy géant', price: 3 },
+      { id: 'sombrero', label: 'Sombrero', price: 3 },
+      { id: 'cactus', label: 'Cactus', price: 3 },
+      { id: 'pizza', label: 'Pizza', price: 3 },
+      { id: 'witch', label: 'Sorcière', price: 4 },
+      { id: 'pirate', label: 'Pirate', price: 4 },
+      { id: 'viking', label: 'Viking', price: 4 },
+      { id: 'tophat', label: 'Haut-de-forme', price: 4 },
+      { id: 'astronaut', label: 'Astronaute', price: 5 },
+      { id: 'crown', label: 'Couronne royale', price: 5 },
+      { id: 'halo', label: 'Auréole', price: 5 },
     ],
   },
   {
-    id: 'glasses',
-    label: 'Lunettes',
-    emoji: '🕶️',
+    id: 'glasses', label: 'Lunettes', emoji: '🕶️',
     items: [
       { id: 'round', label: 'Rondes', price: 0 },
       { id: 'square', label: 'Carrées', price: 0 },
       { id: 'sun', label: 'Soleil', price: 0 },
       { id: 'nerd', label: 'Nerd', price: 0 },
       { id: 'eyemask', label: 'Loup', price: 0 },
-      { id: 'star', label: 'Étoiles', price: 6 },
-      { id: 'heart', label: 'Cœurs', price: 8 },
-      { id: 'aviator', label: 'Aviateur', price: 8 },
-      { id: 'cateye', label: 'Œil de chat', price: 10 },
-      { id: 'cyber', label: 'Lunettes 3D', price: 10 },
-      { id: 'sportband', label: 'Bandeau sport', price: 10 },
-      { id: 'pixel', label: 'Pixel', price: 12 },
-      { id: 'rainbow', label: 'Arc-en-ciel', price: 12 },
-      { id: 'monocle', label: 'Monocle', price: 12 },
-      { id: 'swim', label: 'Natation', price: 12 },
-      { id: 'ski', label: 'Masque de ski', price: 14 },
-      { id: 'halfmoon', label: 'Demi-lune', price: 14 },
-      { id: 'led', label: 'LED', price: 18 },
-      { id: 'diamond', label: 'Diamant', price: 20 },
-      { id: 'gold', label: 'Dorées', price: 22 },
+      { id: 'sportband', label: 'Bandeau', price: 1 },
+      { id: 'halfmoon', label: 'Demi-lune', price: 1 },
+      { id: 'star', label: 'Étoiles', price: 2 },
+      { id: 'heart', label: 'Cœurs roses', price: 2 },
+      { id: 'aviator', label: 'Aviateur', price: 2 },
+      { id: 'swim', label: 'Plongée', price: 2 },
+      { id: 'cateye', label: 'Œil de chat', price: 3 },
+      { id: 'cyber', label: 'Lunettes 3D', price: 3 },
+      { id: 'pixel', label: 'Pixel', price: 3 },
+      { id: 'monocle', label: 'Monocle', price: 3 },
+      { id: 'ski', label: 'Masque de ski', price: 3 },
+      { id: 'rainbow', label: 'Arc-en-ciel', price: 4 },
+      { id: 'gold', label: 'Dorées', price: 4 },
+      { id: 'led', label: 'LED', price: 4 },
+      { id: 'diamond', label: 'Diamant', price: 5 },
+      { id: 'stargiant', label: 'Étoiles géantes', price: 5 },
+      { id: 'laser', label: 'Laser', price: 5 },
     ],
   },
   {
-    id: 'hair',
-    label: 'Cheveux',
-    emoji: '💇',
+    id: 'hair', label: 'Cheveux', emoji: '💇',
     items: [
       { id: 'short', label: 'Courts', price: 0 },
       { id: 'spiky', label: 'Piquants', price: 0 },
       { id: 'side', label: 'Mèche', price: 0 },
       { id: 'bowl', label: 'Au bol', price: 0 },
       { id: 'fringe', label: 'Frange', price: 0 },
-      { id: 'buzz', label: 'Rasés', price: 5 },
-      { id: 'wavy', label: 'Ondulés', price: 6 },
-      { id: 'curly', label: 'Bouclés', price: 8 },
-      { id: 'ponytail', label: 'Queue de cheval', price: 8 },
-      { id: 'pigtails', label: 'Couettes', price: 10 },
-      { id: 'bun', label: 'Chignon', price: 10 },
-      { id: 'braid', label: 'Tresse', price: 12 },
-      { id: 'mohawk', label: 'Crête', price: 12 },
-      { id: 'afro', label: 'Afro', price: 14 },
-      { id: 'topknot', label: 'Macaron', price: 14 },
-      { id: 'dreads', label: 'Dreads', price: 16 },
-      { id: 'emo', label: 'Emo', price: 16 },
-      { id: 'spacebuns', label: 'Macarons', price: 18 },
-      { id: 'long', label: 'Longs', price: 18 },
-      { id: 'rainbow', label: 'Arc-en-ciel', price: 25 },
+      { id: 'buzz', label: 'Rasés', price: 1 },
+      { id: 'wavy', label: 'Ondulés', price: 1 },
+      { id: 'curly', label: 'Bouclés', price: 2 },
+      { id: 'ponytail', label: 'Queue de cheval', price: 2 },
+      { id: 'pigtails', label: 'Couettes', price: 2 },
+      { id: 'bun', label: 'Chignon', price: 2 },
+      { id: 'fro', label: 'Mini afro', price: 2 },
+      { id: 'braid', label: 'Tresse', price: 3 },
+      { id: 'mohawk', label: 'Crête', price: 3 },
+      { id: 'topknot', label: 'Macaron', price: 3 },
+      { id: 'emo', label: 'Emo', price: 3 },
+      { id: 'dreads', label: 'Dreads', price: 4 },
+      { id: 'spacebuns', label: 'Macarons', price: 4 },
+      { id: 'afro', label: 'Afro géant', price: 4 },
+      { id: 'long', label: 'Longs', price: 4 },
+      { id: 'rainbow', label: 'Arc-en-ciel', price: 5 },
     ],
   },
   {
-    id: 'sport',
-    label: 'Sport',
-    emoji: '⚽',
+    id: 'sport', label: 'Sport', emoji: '⚽',
     items: [
       { id: 'foot', label: 'Football', price: 0 },
       { id: 'basket', label: 'Basket', price: 0 },
       { id: 'tennis', label: 'Tennis', price: 0 },
       { id: 'pingpong', label: 'Ping-pong', price: 0 },
       { id: 'volley', label: 'Volley', price: 0 },
-      { id: 'baseball', label: 'Baseball', price: 6 },
-      { id: 'rugby', label: 'Rugby', price: 8 },
-      { id: 'golf', label: 'Golf', price: 8 },
-      { id: 'bowling', label: 'Bowling', price: 10 },
-      { id: 'dumbbell', label: 'Haltère', price: 10 },
-      { id: 'boxe', label: 'Boxe', price: 12 },
-      { id: 'hockey', label: 'Hockey', price: 12 },
-      { id: 'medal', label: 'Médaille', price: 14 },
-      { id: 'skate', label: 'Skateboard', price: 15 },
-      { id: 'surf', label: 'Surf', price: 16 },
-      { id: 'ski', label: 'Ski', price: 16 },
-      { id: 'scooter', label: 'Trottinette', price: 18 },
-      { id: 'bike', label: 'Vélo', price: 20 },
-      { id: 'cup', label: 'Coupe', price: 22 },
-      { id: 'trophy', label: 'Trophée', price: 25 },
+      { id: 'baseball', label: 'Baseball', price: 1 },
+      { id: 'rugby', label: 'Rugby', price: 1 },
+      { id: 'golf', label: 'Golf', price: 2 },
+      { id: 'bowling', label: 'Bowling', price: 2 },
+      { id: 'dumbbell', label: 'Haltère', price: 2 },
+      { id: 'boxe', label: 'Boxe', price: 2 },
+      { id: 'hockey', label: 'Hockey', price: 3 },
+      { id: 'medal', label: 'Médaille', price: 3 },
+      { id: 'skate', label: 'Skateboard', price: 3 },
+      { id: 'ski', label: 'Ski', price: 3 },
+      { id: 'shield', label: 'Bouclier', price: 4 },
+      { id: 'surf', label: 'Planche de surf', price: 4 },
+      { id: 'scooter', label: 'Trottinette', price: 4 },
+      { id: 'bike', label: 'Vélo', price: 4 },
+      { id: 'guitar', label: 'Guitare', price: 5 },
+      { id: 'lightsaber', label: 'Épée laser', price: 5 },
+      { id: 'trophy', label: 'Trophée', price: 5 },
     ],
   },
   {
-    id: 'animal',
-    label: 'Animaux',
-    emoji: '🐾',
+    id: 'animal', label: 'Animaux', emoji: '🐾',
     items: [
       { id: 'cat', label: 'Chat', price: 0 },
       { id: 'dog', label: 'Chien', price: 0 },
       { id: 'bird', label: 'Oiseau', price: 0 },
       { id: 'fish', label: 'Poisson', price: 0 },
       { id: 'rabbit', label: 'Lapin', price: 0 },
-      { id: 'frog', label: 'Grenouille', price: 6 },
-      { id: 'turtle', label: 'Tortue', price: 8 },
-      { id: 'fox', label: 'Renard', price: 8 },
-      { id: 'panda', label: 'Panda', price: 10 },
-      { id: 'penguin', label: 'Pingouin', price: 10 },
-      { id: 'hamster', label: 'Hamster', price: 10 },
-      { id: 'bee', label: 'Abeille', price: 12 },
-      { id: 'butterfly', label: 'Papillon', price: 12 },
-      { id: 'ladybug', label: 'Coccinelle', price: 12 },
-      { id: 'owl', label: 'Hibou', price: 14 },
-      { id: 'parrot', label: 'Perroquet', price: 15 },
-      { id: 'snake', label: 'Serpent', price: 15 },
-      { id: 'dino', label: 'Dino', price: 18 },
-      { id: 'dragon', label: 'Dragon', price: 22 },
-      { id: 'unicorn', label: 'Licorne', price: 25 },
+      { id: 'frog', label: 'Grenouille', price: 1 },
+      { id: 'turtle', label: 'Tortue', price: 1 },
+      { id: 'hamster', label: 'Hamster', price: 2 },
+      { id: 'fox', label: 'Renard', price: 2 },
+      { id: 'bee', label: 'Abeille', price: 2 },
+      { id: 'ladybug', label: 'Coccinelle', price: 2 },
+      { id: 'butterfly', label: 'Papillon', price: 2 },
+      { id: 'panda', label: 'Panda', price: 3 },
+      { id: 'penguin', label: 'Pingouin', price: 3 },
+      { id: 'owl', label: 'Hibou', price: 3 },
+      { id: 'cow', label: 'Vache', price: 3 },
+      { id: 'ghost', label: 'Fantôme', price: 3 },
+      { id: 'snake', label: 'Serpent', price: 3 },
+      { id: 'parrot', label: 'Perroquet', price: 4 },
+      { id: 'shark', label: 'Requin', price: 4 },
+      { id: 'dino', label: 'Dino', price: 4 },
+      { id: 'alien', label: 'Alien', price: 4 },
+      { id: 'dragon', label: 'Dragon', price: 5 },
+      { id: 'unicorn', label: 'Licorne', price: 5 },
+    ],
+  },
+  {
+    id: 'face', label: 'Visage', emoji: '👄',
+    items: [
+      { id: 'smile', label: 'Sourire', price: 0 },
+      { id: 'grin', label: 'Grand sourire', price: 0 },
+      { id: 'tongue', label: 'Langue tirée', price: 0 },
+      { id: 'surprised', label: 'Surpris', price: 1 },
+      { id: 'kiss', label: 'Bisou', price: 1 },
+      { id: 'tooth', label: 'Petite dent', price: 1 },
+      { id: 'buckteeth', label: 'Dents de lapin', price: 2 },
+      { id: 'moustache', label: 'Moustache', price: 2 },
+      { id: 'moustachecurly', label: 'Moustache chic', price: 3 },
+      { id: 'clown', label: 'Clown', price: 3 },
+      { id: 'ninja', label: 'Ninja', price: 3 },
+      { id: 'vampire', label: 'Dents de vampire', price: 4 },
+      { id: 'beard', label: 'Barbe de pirate', price: 4 },
+      { id: 'goldteeth', label: 'Dents en or', price: 5 },
     ],
   },
 ]
 
 // Avatar par défaut (corps violet, aucun accessoire).
 export const DEFAULT_AVATAR = {
-  color: '#7c3aff',
-  hat: null,
-  glasses: null,
-  hair: null,
-  sport: null,
-  animal: null,
+  color: 'violet',
+  hat: null, glasses: null, hair: null,
+  sport: null, animal: null, face: null,
   owned: [],
 }
 
-// Clé d'un accessoire payant dans la liste `owned`, ex : "hat:crown".
 export function accKey(categoryId, itemId) {
   return `${categoryId}:${itemId}`
 }
 
-// Fusionne un avatar brut (depuis Supabase / localStorage) avec les défauts.
 export function normalizeAvatar(raw) {
-  return { ...DEFAULT_AVATAR, ...(raw || {}), owned: raw?.owned ?? [] }
+  const a = { ...DEFAULT_AVATAR, ...(raw || {}), owned: raw?.owned ?? [] }
+  // compat : ancienne couleur stockée en hex -> on la garde telle quelle (resolveColor gère)
+  return a
 }
 
-// Retrouve un item du catalogue par catégorie + id.
 export function getItem(categoryId, itemId) {
   if (!itemId) return null
   const cat = CATEGORIES.find((c) => c.id === categoryId)
   return cat?.items.find((i) => i.id === itemId) ?? null
 }
 
-// Un accessoire est-il débloqué ? (gratuit ou déjà acheté)
 export function isUnlocked(avatar, categoryId, item) {
   return item.price === 0 || (avatar.owned ?? []).includes(accKey(categoryId, item.id))
 }

@@ -1,0 +1,356 @@
+/* ============================================================
+   Economie.css — page économie Zigzam
+   ============================================================ */
+
+.eco {
+  position: relative;
+  z-index: 0;
+  min-height: 100svh;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px;
+}
+
+/* ---- Barre du haut ---- */
+.eco__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  padding: 14px 18px;
+  box-shadow:
+    0 16px 36px rgba(124, 58, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+}
+
+.eco__retour {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--violet);
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+.eco__retour:hover {
+  background: rgba(124, 58, 255, 0.1);
+}
+
+/* ---- Titre de page ---- */
+.eco__titre {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  background: var(--degrade-zigzam);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 24px;
+}
+
+/* ---- Pastilles de solde ---- */
+.eco__solde {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.eco__pastille {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 28px;
+  border-radius: 24px;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.eco__pastille--orange {
+  background: linear-gradient(135deg, var(--orange), #ffb347);
+}
+
+.eco__pastille--bleu {
+  background: linear-gradient(135deg, var(--bleu), var(--violet));
+}
+
+.eco__pastille-valeur {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.eco__pastille-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---- Cartes glassmorphism ---- */
+.eco__carte {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(124, 58, 255, 0.22);
+  padding: 22px 20px;
+  margin-bottom: 20px;
+}
+
+.eco__carte-titre {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--texte);
+  margin: 0 0 14px;
+}
+
+/* ---- Taux ---- */
+.eco__taux {
+  font-size: 0.95rem;
+  color: var(--texte-doux);
+  margin: 0 0 16px;
+  text-align: center;
+}
+
+.eco__taux strong {
+  color: var(--violet);
+}
+
+/* ---- Boutons d'échange ---- */
+.eco__exchange-btns {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---- Bouton principal ---- */
+.eco__btn {
+  background: var(--degrade-zigzam);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 12px 22px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.eco__btn:hover:not(:disabled) {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.eco__btn:active:not(:disabled) {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.eco__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.eco__btn--full {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* ---- Messages feedback ---- */
+.eco__msg {
+  margin: 12px 0 0;
+  font-size: 0.93rem;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.eco__msg--ok {
+  background: rgba(61, 214, 140, 0.18);
+  color: #1a9e5f;
+  border: 1.5px solid rgba(61, 214, 140, 0.4);
+}
+
+.eco__msg--err {
+  background: rgba(255, 77, 77, 0.12);
+  color: #c0392b;
+  border: 1.5px solid rgba(255, 77, 77, 0.3);
+}
+
+/* ---- Formulaire d'envoi ---- */
+.eco__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eco__label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--texte-doux);
+  margin-bottom: -4px;
+}
+
+.eco__input {
+  border: 2.5px solid rgba(124, 58, 255, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  padding: 11px 14px;
+  font-size: 1rem;
+  color: var(--texte);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.eco__input:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(124, 58, 255, 0.13);
+}
+
+.eco__input::placeholder {
+  color: var(--texte-doux);
+  opacity: 0.6;
+}
+
+/* ---- Choix devise ---- */
+.eco__devise-choix {
+  display: flex;
+  gap: 10px;
+}
+
+.eco__devise-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2.5px solid rgba(124, 58, 255, 0.18);
+  border-radius: 14px;
+  padding: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--texte);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.eco__devise-btn:hover {
+  border-color: var(--violet);
+  background: rgba(124, 58, 255, 0.07);
+}
+
+.eco__devise-btn--actif {
+  border-color: var(--violet);
+  background: rgba(124, 58, 255, 0.12);
+  color: var(--violet);
+}
+
+/* ---- Historique ---- */
+.eco__histo-vide {
+  text-align: center;
+  color: var(--texte-doux);
+  font-size: 0.95rem;
+  padding: 12px 0;
+}
+
+.eco__histo-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eco__histo-item {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 2px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.eco__histo-icone {
+  font-size: 1.3rem;
+  grid-row: 1 / 3;
+  align-self: center;
+}
+
+.eco__histo-desc {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texte);
+  grid-column: 2;
+  grid-row: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eco__histo-montant {
+  font-size: 1rem;
+  font-weight: 800;
+  grid-column: 3;
+  grid-row: 1;
+  text-align: right;
+}
+
+.eco__histo-montant--positif {
+  color: var(--vert);
+}
+
+.eco__histo-montant--negatif {
+  color: #e74c3c;
+}
+
+.eco__histo-date {
+  font-size: 0.75rem;
+  color: var(--texte-doux);
+  grid-column: 2 / 4;
+  grid-row: 2;
+}
+
+/* ---- Responsive mobile ---- */
+@media (max-width: 480px) {
+  .eco__pastille {
+    min-width: 130px;
+    padding: 14px 18px;
+  }
+
+  .eco__pastille-valeur {
+    font-size: 1.8rem;
+  }
+
+  .eco__exchange-btns {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .eco__titre {
+    font-size: 1.35rem;
+  }
+}
