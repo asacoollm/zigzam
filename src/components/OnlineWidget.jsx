@@ -51,7 +51,7 @@ export default function OnlineWidget() {
   const total = others.length + 1 // + moi
 
   return (
-    <div className={`online ${open ? 'online--open' : 'online--closed'}`}>
+    <div className={`online ${open ? 'online--open' : 'online--closed'}`} data-tut="online">
       <button
         className="online__head"
         onClick={() => setOpen((v) => !v)}

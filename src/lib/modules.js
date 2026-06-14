@@ -310,6 +310,12 @@ export function broadcastPresence(channel) {
   channel.send({ type: 'broadcast', event: 'ping', payload: {} })
 }
 
+// ---------------- TUTORIEL ----------------
+// Marque le tutoriel de bienvenue comme vu (ne se relance plus automatiquement).
+export async function markTutorialDone(userId) {
+  return rpc('mark_tutorial_done', { p_user: userId })
+}
+
 // ---------------- DASHBOARD ----------------
 export async function getBadges(userId) {
   const r = await rpc('get_badges', { p_user: userId })
