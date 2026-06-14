@@ -1,0 +1,150 @@
+/* Tutoriel de bienvenue — overlay + projecteur + bulle (signature Zigzam) */
+.tut {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+}
+
+/* Couche qui capte/bloque les clics sur l'appli pendant le tutoriel */
+.tut__catch {
+  position: fixed;
+  inset: 0;
+  pointer-events: auto;
+  background: transparent;
+}
+.tut__catch--dim {
+  background: rgba(20, 16, 40, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+/* Projecteur : la zone pointée reste claire, tout le reste est assombri */
+.tut__hole {
+  position: fixed;
+  border-radius: 18px;
+  box-shadow: 0 0 0 9999px rgba(20, 16, 40, 0.72);
+  outline: 3px solid var(--rose, #ff4d8d);
+  outline-offset: 2px;
+  pointer-events: none;
+  transition: top 0.25s, left 0.25s, width 0.25s, height 0.25s;
+  animation: tut-glow 1.2s ease-in-out infinite;
+}
+@keyframes tut-glow {
+  0%, 100% { outline-color: rgba(255, 77, 141, 0.9); }
+  50% { outline-color: rgba(124, 58, 255, 0.95); }
+}
+
+/* Bulle d'explication */
+.tut__bubble {
+  position: fixed;
+  width: min(86vw, 320px);
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  padding: 18px 20px;
+  box-shadow: 0 24px 60px rgba(43, 35, 80, 0.45);
+  text-align: center;
+  animation: tut-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tut-pop {
+  from { opacity: 0; transform: scale(0.9); }
+}
+/* La transform de placement est définie en inline ; on annule l'anim qui l'écrase
+   en n'animant que l'opacité via une classe dédiée si besoin. */
+.tut__bubble--below, .tut__bubble--above, .tut__bubble--center { animation: tut-fade 0.28s ease; }
+@keyframes tut-fade { from { opacity: 0; } }
+
+/* Petite flèche de la bulle vers l'élément */
+.tut__bubble--below::before,
+.tut__bubble--above::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 10px solid transparent;
+}
+.tut__bubble--below::before {
+  top: -18px;
+  border-bottom-color: rgba(255, 255, 255, 0.96);
+}
+.tut__bubble--above::before {
+  bottom: -18px;
+  border-top-color: rgba(255, 255, 255, 0.96);
+}
+
+.tut__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.tut__progress-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--violet-fonce, #5a1fd4);
+}
+.tut__progress-bar {
+  height: 7px;
+  border-radius: 99px;
+  background: rgba(124, 58, 255, 0.15);
+  overflow: hidden;
+}
+.tut__progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--degrade-zigzam);
+  transition: width 0.3s ease;
+}
+
+.tut__buddy {
+  width: 84px;
+  height: auto;
+  display: block;
+  margin: 2px auto 8px;
+  filter: drop-shadow(0 8px 10px rgba(124, 58, 255, 0.35));
+  animation: tut-jump 0.7s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+@keyframes tut-jump {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-14px); }
+}
+
+.tut__text {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--texte);
+  font-weight: 600;
+}
+
+.tut__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tut__skip {
+  background: transparent;
+  border: none;
+  color: var(--texte-doux);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.tut__next {
+  background: var(--degrade-zigzam);
+  background-size: 160% 100%;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  padding: 11px 20px;
+  border-radius: 14px;
+  box-shadow: 0 9px 20px rgba(124, 58, 255, 0.4);
+  transition: transform 0.1s, background-position 0.4s;
+}
+.tut__next:hover { background-position: 100% 0; transform: translateY(-2px); }

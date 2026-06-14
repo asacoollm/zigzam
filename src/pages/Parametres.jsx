@@ -411,6 +411,18 @@ export default function Parametres() {
         <p className="settings__pseudo">{user.pseudo}</p>
       </div>
 
+      {/* Section : Revoir le tutoriel */}
+      <div className="settings__card">
+        <h2 className="settings__section-title">Tutoriel de bienvenue</h2>
+        <p className="settings__note">Tu veux revoir comment fonctionne Zigzam ?</p>
+        <button
+          className="settings__btn"
+          onClick={() => navigate('/dashboard', { state: { revoirTuto: true } })}
+        >
+          Revoir le tutoriel 🎓
+        </button>
+      </div>
+
       {/* Section : Mon numéro */}
       <div className="settings__card">
         <h2 className="settings__section-title">Mon numéro</h2>

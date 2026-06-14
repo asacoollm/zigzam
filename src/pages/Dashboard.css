@@ -194,3 +194,54 @@
   font-weight: 600;
   color: var(--texte);
 }
+
+/* Encadré « Règles de bonne conduite » — glassmorphism, rétractable */
+.rules {
+  width: 100%;
+  max-width: 760px;
+  margin: 22px auto 0;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 14px 34px rgba(43, 35, 80, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+.rules__head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+.rules__head:hover { background: rgba(255, 255, 255, 0.25); }
+.rules__title {
+  flex: 1;
+  font-size: 19px;
+  font-weight: 800;
+  background: var(--degrade-zigzam);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.rules__chevron { font-size: 14px; color: var(--violet); opacity: 0.7; }
+.rules__list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.rules__list li {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--texte);
+  line-height: 1.35;
+}
