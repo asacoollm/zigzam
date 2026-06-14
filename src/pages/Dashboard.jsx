@@ -23,6 +23,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [badges, setBadges] = useState({ discuter: 0, actus: 0 })
   const [toast, setToast] = useState('')
+  const [rulesOpen, setRulesOpen] = useState(true)
 
   useEffect(() => {
     let on = true
@@ -95,6 +96,28 @@ export default function Dashboard() {
           )
         })}
       </main>
+
+      <section className={`rules ${rulesOpen ? 'rules--open' : 'rules--closed'}`}>
+        <button
+          className="rules__head"
+          onClick={() => setRulesOpen((v) => !v)}
+          aria-expanded={rulesOpen}
+        >
+          <span className="rules__title">Règles de bonne conduite 🤝</span>
+          <span className="rules__chevron">{rulesOpen ? '▾' : '▸'}</span>
+        </button>
+
+        {rulesOpen && (
+          <ul className="rules__list">
+            <li>🤝 Respecte tous tes camarades</li>
+            <li>💬 Écris des messages gentils et bienveillants</li>
+            <li>🚫 Pas d'insultes, de moqueries ou de méchancetés</li>
+            <li>📰 Poste des actus positives et intéressantes</li>
+            <li>🔒 Ne partage jamais ton mot de passe</li>
+            <li>⭐ Aide les autres et sois sympa !</li>
+          </ul>
+        )}
+      </section>
 
       {toast && <div className="dash__toast">{toast}</div>}
     </div>
