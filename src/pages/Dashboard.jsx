@@ -15,7 +15,7 @@ const MODULES = [
   { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar' },
   { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
-  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', soon: true },
+  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava' },
 ]
 
 export default function Dashboard() {

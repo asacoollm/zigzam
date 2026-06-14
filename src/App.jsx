@@ -10,6 +10,7 @@ import Contacts from './pages/Contacts'
 import Economie from './pages/Economie'
 import Parametres from './pages/Parametres'
 import Admin from './pages/Admin'
+import FloorIsLava from './pages/FloorIsLava'
 import ParentalGuard from './components/ParentalGuard'
 import OnlineWidget from './components/OnlineWidget'
 
@@ -91,6 +92,12 @@ export default function App() {
         path="/parametres"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Parametres />
+        }
+      />
+      <Route
+        path="/floor-is-lava"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <FloorIsLava />
         }
       />
       <Route
