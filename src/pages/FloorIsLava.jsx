@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { getFlavaLevel, flavaWin } from '../lib/modules'
 import {
   SIZE, ROCK, ZONE, makeLevel, stepLava, isLava, inBoard,
 } from '../lib/floorislava'
@@ -9,9 +10,18 @@ import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import './FloorIsLava.css'
 
-const TICK_MS = 900       // cadence de déplacement de la vague de lave (lent = plus facile)
 const AIRBORNE_MS = 1500  // durée du saut (immunité à la lave en l'air) ~1,5 s
-const JUMP_CD = 800       // temps de recharge du saut (court = plus facile)
+const JUMP_CD = 800       // temps de recharge du saut
+
+// Confettis de victoire (positions/couleurs déterministes).
+const CONFETTI_COLORS = ['#ff4d8d', '#ff8c42', '#fbbf24', '#3dd68c', '#00bfff', '#7c3aff']
+const CONFETTI = Array.from({ length: 20 }, (_, i) => ({
+  left: (5 + i * 4.8) % 96,
+  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+  delay: (i % 7) * 0.12,
+  dur: 1.7 + (i % 4) * 0.35,
+  size: 7 + (i % 3) * 3,
+}))
 
 // Mort si le joueur est sur de la lave et pas en l'air.
 function resolve(state, airborne) {
@@ -22,7 +32,7 @@ function resolve(state, airborne) {
 }
 
 function reducer(state, action) {
-  if (action.type === 'RESTART') return makeLevel()
+  if (action.type === 'NEW_GAME') return makeLevel(action.level)
   if (state.status !== 'playing') return state
 
   switch (action.type) {
@@ -38,8 +48,8 @@ function reducer(state, action) {
       return next
     }
     case 'TICK': {
-      const { lava, wave, cooldown } = stepLava(state)
-      return resolve({ ...state, lava, wave, cooldown, ticks: state.ticks + 1 }, action.airborne)
+      const { lava, waves, cooldown } = stepLava(state)
+      return resolve({ ...state, lava, waves, cooldown, ticks: state.ticks + 1 }, action.airborne)
     }
     case 'LAND':
       return resolve(state, false)
@@ -49,18 +59,42 @@ function reducer(state, action) {
 }
 
 export default function FloorIsLava() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const navigate = useNavigate()
-  const [state, dispatch] = useReducer(reducer, undefined, makeLevel)
+  const [state, dispatch] = useReducer(reducer, 1, makeLevel)
   const [airborne, setAirborne] = useState(false)
-  const [started, setStarted] = useState(false) // écran d'intro tant que false
+  const [started, setStarted] = useState(false)   // écran d'intro tant que false
+  const [loadedLevel, setLoadedLevel] = useState(1) // niveau sauvegardé (Supabase)
+  const [reward, setReward] = useState(null)        // donuts gagnés à la victoire
 
   // Refs pour les handlers (évite les closures périmées).
   const airborneRef = useRef(false)
   const jumpReadyRef = useRef(0)
   const playingRef = useRef(false)
   const landTimer = useRef(null)
+  const awardedRef = useRef(0) // niveau déjà récompensé (anti-double crédit)
   useEffect(() => { playingRef.current = started && state.status === 'playing' }, [started, state.status])
+
+  // Charge le niveau sauvegardé au montage (le joueur reprend où il en était).
+  useEffect(() => {
+    let on = true
+    getFlavaLevel(user.id).then((lv) => { if (on) setLoadedLevel(lv) })
+    return () => { on = false }
+  }, [user.id])
+
+  // Crédite les donuts à chaque victoire (barème serveur), une seule fois par niveau.
+  useEffect(() => {
+    if (!started || state.status !== 'won' || awardedRef.current === state.level) return
+    awardedRef.current = state.level
+    flavaWin(user.id, state.level).then((res) => {
+      if (res.ok) {
+        setReward(res.reward)
+        updateUser({ donuts: res.donuts })
+        setLoadedLevel((lv) => Math.max(lv, res.niveau))
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, state.status, state.level])
 
   const move = useCallback((dr, dc) => {
     if (!playingRef.current) return
@@ -82,20 +116,23 @@ export default function FloorIsLava() {
     }, AIRBORNE_MS)
   }, [])
 
-  const restart = useCallback(() => {
+  const resetTransient = () => {
     clearTimeout(landTimer.current)
     airborneRef.current = false
     setAirborne(false)
     jumpReadyRef.current = 0
-    dispatch({ type: 'RESTART' })
-  }, [])
+    setReward(null)
+  }
+  const startGame = () => { resetTransient(); dispatch({ type: 'NEW_GAME', level: loadedLevel }); setStarted(true) }
+  const nextLevel = () => { resetTransient(); dispatch({ type: 'NEW_GAME', level: state.level + 1 }) }
+  const retry = () => { resetTransient(); dispatch({ type: 'NEW_GAME', level: state.level }) }
 
-  // Boucle de la vague de lave (ne tourne qu'une fois le jeu lancé).
+  // Boucle de la lave (cadence selon le niveau).
   useEffect(() => {
     if (!started || state.status !== 'playing') return
-    const id = setInterval(() => dispatch({ type: 'TICK', airborne: airborneRef.current }), TICK_MS)
+    const id = setInterval(() => dispatch({ type: 'TICK', airborne: airborneRef.current }), state.config.tickMs)
     return () => clearInterval(id)
-  }, [started, state.status])
+  }, [started, state.status, state.config.tickMs])
 
   // Clavier : flèches = déplacement, espace = saut.
   useEffect(() => {
@@ -125,7 +162,10 @@ export default function FloorIsLava() {
       <header className="flava__top">
         <button className="flava__back" onClick={() => navigate('/dashboard')}>⬅️ Retour</button>
         <ZigzamLogo size="sm" />
-        <span className="flava__zones-hud">Zones activées : {zonesOn}/{zonesTotal}</span>
+        <div className="flava__hud">
+          <span className="flava__level-hud">Niveau {state.level}</span>
+          <span className="flava__zones-hud">Zones : {zonesOn}/{zonesTotal}</span>
+        </div>
       </header>
 
       <h1 className="flava__title">Floor is Lava 🌋</h1>
@@ -134,7 +174,6 @@ export default function FloorIsLava() {
       </p>
 
       <div className="flava__stage" style={{ '--size': SIZE }}>
-        {/* Grille du plateau (cases) */}
         <div className="flava__board">
           {state.terrain.map((row, r) =>
             row.map((cell, c) => {
@@ -163,7 +202,6 @@ export default function FloorIsLava() {
             className={`flava__player ${airborne ? 'flava__player--air' : ''}`}
             style={{ gridColumn: state.player.c + 1, gridRow: state.player.r + 1 }}
           >
-            {/* repère de case (cercle coloré au sol) + aura + flèche au-dessus de la tête */}
             <span className="flava__player-shadow" />
             <span className="flava__player-aura" />
             <span className="flava__player-arrow" />
@@ -194,34 +232,61 @@ export default function FloorIsLava() {
               Active toutes les <strong>zones jaunes</strong> pour gagner&nbsp;!<br />
               Les rochers <strong>🪨</strong> sont des abris sûrs.
             </p>
+            {loadedLevel > 1 && (
+              <p className="flava__resume">Tu reprends au <strong>niveau {loadedLevel}</strong> 🚀</p>
+            )}
             <div className="flava__panel-actions">
-              <button className="flava__btn" onClick={() => setStarted(true)}>C'est parti&nbsp;! 🚀</button>
+              <button className="flava__btn" onClick={startGame}>C'est parti&nbsp;! 🚀</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Fin de partie */}
-      {started && state.status !== 'playing' && (
+      {/* Victoire — célébration + niveau suivant */}
+      {started && state.status === 'won' && (
+        <div className="flava__overlay">
+          <div className="flava__confetti-layer" aria-hidden="true">
+            {CONFETTI.map((p, i) => (
+              <span
+                key={i}
+                className="flava__confetti"
+                style={{
+                  left: `${p.left}%`, background: p.color,
+                  width: p.size, height: p.size,
+                  animationDelay: `${p.delay}s`, animationDuration: `${p.dur}s`,
+                }}
+              />
+            ))}
+          </div>
+          <div className="flava__panel flava__panel--win">
+            <h2 className="flava__panel-title">🎉 Niveau {state.level} terminé&nbsp;!</h2>
+            <FallGuy className="flava__win-buddy" avatar={user?.avatar} role={user?.role} anim="jump" />
+            <p className="flava__panel-text">
+              {reward != null
+                ? <>Bravo&nbsp;! Tu gagnes <strong>{reward} 🍩</strong> donuts&nbsp;!</>
+                : 'Bravo, niveau réussi&nbsp;!'}
+            </p>
+            <div className="flava__panel-actions">
+              <button className="flava__btn" onClick={nextLevel}>Niveau suivant →</button>
+              <button className="flava__btn flava__btn--ghost" onClick={() => navigate('/dashboard')}>
+                Retour
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Défaite */}
+      {started && state.status === 'lost' && (
         <div className="flava__overlay">
           <div className="flava__panel">
-            {state.status === 'won' ? (
-              <>
-                <h2 className="flava__panel-title">🎉 Bravo, gagné&nbsp;!</h2>
-                <p className="flava__panel-text">
-                  Tu as activé les {zonesTotal} zones malgré la lave. Quel champion&nbsp;! 🏆
-                </p>
-              </>
-            ) : (
-              <>
-                <h2 className="flava__panel-title">🌋 Aïe, la lave&nbsp;!</h2>
-                <p className="flava__panel-text">
-                  Tu as activé {zonesOn}/{zonesTotal} zones. Réessaie, tu vas y arriver&nbsp;! 💪
-                </p>
-              </>
-            )}
+            <h2 className="flava__panel-title">🌋 Aïe, la lave&nbsp;!</h2>
+            <p className="flava__panel-text">
+              Niveau {state.level} — tu as activé {zonesOn}/{zonesTotal} zones.
+              Réessaie, tu vas y arriver&nbsp;! 💪
+            </p>
             <div className="flava__panel-actions">
-              <button className="flava__btn" onClick={restart}>Rejouer 🔁</button>
+              <button className="flava__btn" onClick={retry}>Rejouer 🔁</button>
               <button className="flava__btn flava__btn--ghost" onClick={() => navigate('/dashboard')}>
                 Retour
               </button>

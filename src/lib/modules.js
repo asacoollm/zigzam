@@ -310,6 +310,19 @@ export function broadcastPresence(channel) {
   channel.send({ type: 'broadcast', event: 'ping', payload: {} })
 }
 
+// ---------------- FLOOR IS LAVA 🌋 ----------------
+// Niveau sauvegardé (plus haut niveau atteint), défaut 1.
+export async function getFlavaLevel(userId) {
+  const r = await rpc('get_flava_level', { p_user: userId })
+  return r.error ? 1 : (r.data || 1)
+}
+// Victoire d'un niveau : crédite la récompense (barème serveur) + sauvegarde.
+export async function flavaWin(userId, level) {
+  const r = await rpc('flava_win', { p_user: userId, p_level: level })
+  if (r.error || r.data?.error) return { error: ERR }
+  return { ok: true, donuts: r.data.donuts, reward: r.data.reward, niveau: r.data.niveau }
+}
+
 // ---------------- DASHBOARD ----------------
 export async function getBadges(userId) {
   const r = await rpc('get_badges', { p_user: userId })
