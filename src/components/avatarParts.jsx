@@ -15,67 +15,195 @@ const C = {
 }
 
 // ----------------------------------------------------------------
-//  CHEVEUX  (épousent le crâne ~ y 6..40, rendus derrière le visage,
-//  couverts par les chapeaux)
+//  CHEVEUX
+//  Le crâne du bonhomme est un demi-cercle : centre (60,58), rayon ~42,
+//  sommet à y=16. Les cheveux sont dessinés en DEUX couches :
+//   - couche ARRIÈRE (renderHairBack) : longueurs qui tombent dans le dos,
+//     rendues derrière le corps → seul ce qui dépasse la silhouette est visible.
+//   - couche AVANT (renderHair) : la calotte qui épouse le crâne + la frange
+//     sur le front, rendue par-dessus le corps et le visage (mais sous les yeux).
+//  Teintes 100% naturelles (jamais rose/violet, réservés au premium « rainbow »).
 // ----------------------------------------------------------------
+
+// Palette cheveux : { base, ombre, reflet } par teinte naturelle.
+const H = {
+  noir:  { base: '#26222f', dark: '#15121d', light: '#46415a' },
+  jet:   { base: '#1b1925', dark: '#0d0c13', light: '#3b3650' },
+  brunF: { base: '#3b2a1c', dark: '#261910', light: '#5e4631' }, // brun foncé
+  brun:  { base: '#5b3a24', dark: '#3d2716', light: '#7f5638' }, // brun moyen
+  chat:  { base: '#714a28', dark: '#4d301a', light: '#9a6a39' }, // châtain
+  blond: { base: '#dca94a', dark: '#b3842f', light: '#f4d585' },
+  roux:  { base: '#b5532a', dark: '#8a3b1c', light: '#d77c46' }, // roux
+}
+
+// Calotte qui épouse le crâne (demi-cercle centre 60,58).
+//  - midY    : niveau de la frange au centre du front (grand = plus bas, ~y58 frôle les yeux à y60)
+//  - templeY : niveau de la naissance des cheveux sur les tempes
+const skull = (midY = 48, templeY = 50) =>
+  `M16 ${templeY} Q10 13 60 11 Q110 13 104 ${templeY} Q60 ${midY} 16 ${templeY} Z`
+
+// Calotte texturée réutilisable (helper, pas un composant) :
+// base + mèches + reflet + ombre de frange.
+const cap = (c, midY = 48, templeY = 50, extra = null) => (
+  <g>
+    <path d={skull(midY, templeY)} fill={c.base} />
+    {/* mèches (texture) : fines lignes partant du sommet */}
+    <g stroke={c.dark} strokeWidth="1.1" fill="none" opacity="0.4" strokeLinecap="round">
+      <path d="M60 13 Q42 30 30 46" />
+      <path d="M60 13 Q54 30 49 48" />
+      <path d="M60 13 Q66 30 71 48" />
+      <path d="M60 13 Q78 28 92 46" />
+    </g>
+    {/* reflet sur le haut-gauche */}
+    <path d="M33 25 Q49 14 69 16 Q53 22 42 39 Z" fill={c.light} opacity="0.5" />
+    {/* ombre le long de la naissance des cheveux */}
+    <path d={`M16 ${templeY} Q60 ${midY} 104 ${templeY} Q60 ${midY - 6} 16 ${templeY} Z`} fill={c.dark} opacity="0.3" />
+    {extra}
+  </g>
+)
+
 const HAIR = {
-  short: () => <path d="M22 36 Q22 8 60 8 Q98 8 98 36 Q92 22 60 22 Q28 22 22 36 Z" fill={C.brunF} />,
+  // — Courts : calotte nette, naissance haute, aucune longueur (châtain).
+  short: () => cap(H.chat, 45, 48),
+
+  // — Piquants : calotte + pics qui dépassent du sommet (noir).
   spiky: () => (
-    <path d="M24 30 L30 6 L40 22 L49 2 L60 20 L71 2 L80 22 L90 6 L96 30 Q60 18 24 30 Z" fill={C.brunF} />
-  ),
-  side: () => (
-    <path d="M22 32 Q22 6 60 7 Q98 8 98 28 Q90 16 60 16 Q40 16 30 24 Q26 28 22 32 Z" fill={C.brun} />
-  ),
-  bowl: () => <path d="M20 34 Q20 2 60 2 Q100 2 100 34 Q60 20 20 34 Z" fill="#3a2a1a" />,
-  fringe: () => (
-    <g fill={C.brun}>
-      <path d="M22 34 Q22 6 60 6 Q98 6 98 34 Q60 20 22 34 Z" />
-      <path d="M30 30 l4 13 5 -12 5 13 5 -12 5 13 5 -12 5 13 5 -13 Q60 26 30 30 Z" />
-    </g>
-  ),
-  buzz: () => <path d="M24 32 Q24 12 60 12 Q96 12 96 32 Q90 24 60 24 Q30 24 24 32 Z" fill="#8a6a4a" opacity="0.9" />,
-  wavy: () => (
-    <path d="M22 30 q10 -12 19 -3 q10 -13 19 -3 q10 -13 19 -3 q10 -11 19 -1 Q60 12 22 30 Z" fill={C.brun} />
-  ),
-  curly: () => (
-    <g fill={C.brunF}>
-      {[26, 38, 50, 60, 70, 82, 94].map((x, i) => <circle key={i} cx={x} cy={i % 2 ? 14 : 9} r="9" />)}
-      <path d="M22 30 Q60 18 98 30 Q60 22 22 30 Z" />
-    </g>
-  ),
-  ponytail: () => (
-    <g fill={C.brun}>
-      <path d="M22 32 Q22 6 60 6 Q98 6 98 30 Q60 18 22 32 Z" />
-      <path d="M94 16 q18 4 16 28 q-3 14 -13 18 q9 -18 3 -30 q-3 -10 -12 -10 Z" />
-    </g>
-  ),
-  pigtails: () => (
-    <g fill={C.brun}>
-      <path d="M22 32 Q22 6 60 6 Q98 6 98 32 Q60 18 22 32 Z" />
-      <circle cx="18" cy="44" r="10" /><circle cx="102" cy="44" r="10" />
-    </g>
-  ),
-  bun: () => (
-    <g fill={C.brunF}>
-      <path d="M22 32 Q22 8 60 8 Q98 8 98 32 Q60 18 22 32 Z" />
-      <circle cx="60" cy="-2" r="10" />
-    </g>
-  ),
-  fro: () => (
-    <g fill="#2f2016">
-      <circle cx="60" cy="14" r="22" />
-      <circle cx="36" cy="22" r="11" /><circle cx="84" cy="22" r="11" />
-    </g>
-  ),
-  braid: () => (
-    <g fill={C.brun}>
-      <path d="M22 32 Q22 8 60 8 Q98 8 98 30 Q60 18 22 32 Z" />
-      <g transform="translate(100 24)">
-        <ellipse cx="0" cy="8" rx="6" ry="6" /><ellipse cx="0" cy="20" rx="7" ry="6" />
-        <ellipse cx="0" cy="32" rx="6" ry="6" /><path d="M0 38 l-4 7 4 -1 4 1 Z" />
+    <g>
+      <path d={skull(44)} fill={H.noir.base} />
+      <path d="M24 26 L30 2 L40 20 L49 -2 L60 18 L71 -2 L80 20 L90 2 L96 26 Q60 14 24 26 Z" fill={H.noir.base} />
+      <g fill={H.noir.light} opacity="0.4">
+        <path d="M49 0 l3 15 -6 0 Z" /><path d="M71 0 l3 15 -6 0 Z" />
       </g>
     </g>
   ),
+
+  // — Mèche : raie sur le côté + mèche balayée vers la droite (blond).
+  side: () => (
+    <g>
+      <path d={skull(46)} fill={H.blond.base} />
+      <path d="M28 28 Q48 18 78 22 Q98 26 98 44 Q88 30 60 30 Q42 30 34 40 Q30 33 28 28 Z" fill={H.blond.dark} opacity="0.4" />
+      <path d="M34 22 Q54 16 74 20 Q56 23 44 35 Z" fill={H.blond.light} opacity="0.6" />
+    </g>
+  ),
+
+  // — Au bol : coupe lourde, naissance basse et bien ronde tout autour (brun foncé).
+  bowl: () => (
+    <g>
+      <path d={skull(57, 55)} fill={H.brunF.base} />
+      <path d="M18 54 Q60 64 102 54 Q60 60 18 54 Z" fill={H.brunF.dark} opacity="0.3" />
+      <path d="M33 25 Q49 14 69 16 Q53 22 42 39 Z" fill={H.brunF.light} opacity="0.45" />
+    </g>
+  ),
+
+  // — Frange : franges droites en pointes qui descendent sur le front (châtain).
+  fringe: () => (
+    <g>
+      <path d={skull(52)} fill={H.chat.base} />
+      <path d="M22 48 l5 11 4 -10 5 12 5 -11 5 12 5 -11 5 12 5 -11 5 12 5 -12 Q60 44 22 48 Z" fill={H.chat.base} />
+      <path d="M30 47 q30 -7 60 0" stroke={H.chat.light} strokeWidth="2" fill="none" opacity="0.4" />
+    </g>
+  ),
+
+  // — Rasés : très court, près du crâne, texture en grains (brun foncé).
+  buzz: () => (
+    <g>
+      <path d={skull(42, 46)} fill={H.brunF.base} opacity="0.85" />
+      <g fill={H.brunF.dark} opacity="0.5">
+        {[[34, 24], [44, 18], [56, 15], [68, 16], [80, 20], [90, 28], [40, 34], [60, 30], [78, 34]].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="1.4" />
+        ))}
+      </g>
+    </g>
+  ),
+
+  // — Ondulés : calotte + mèches ondulées sur le front, mi-longueur (brun).
+  wavy: () => (
+    <g>
+      <path d={skull(48)} fill={H.brun.base} />
+      <path d="M20 46 q8 11 16 2 q8 11 16 2 q8 11 16 2 q8 11 16 2 q6 6 12 0 Q60 40 20 46 Z" fill={H.brun.base} />
+      <g stroke={H.brun.light} strokeWidth="1.6" fill="none" opacity="0.45">
+        <path d="M26 30 q8 8 16 0 q8 8 16 0 q8 8 16 0" />
+      </g>
+    </g>
+  ),
+
+  // — Bouclés : grappes de boucles donnant du volume et de la texture (noir).
+  curly: () => (
+    <g>
+      <path d={skull(50)} fill={H.noir.base} />
+      <g fill={H.noir.base}>
+        {[[26, 30], [34, 18], [46, 12], [60, 10], [74, 12], [86, 18], [94, 30], [30, 44], [44, 41], [60, 41], [76, 41], [90, 44]].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="9" />
+        ))}
+      </g>
+      <g fill={H.noir.light} opacity="0.45">
+        {[[34, 15], [60, 7], [86, 15]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3.5" />)}
+      </g>
+    </g>
+  ),
+
+  // — Queue de cheval : calotte + élastique (la queue est dans la couche arrière) (blond).
+  ponytail: () => (
+    <g>
+      <path d={skull(46)} fill={H.blond.base} />
+      <ellipse cx="95" cy="30" rx="6" ry="5" fill={H.blond.dark} />
+    </g>
+  ),
+
+  // — Couettes : calotte + 2 élastiques (les couettes sont dans la couche arrière) (châtain).
+  pigtails: () => (
+    <g>
+      <path d={skull(46)} fill={H.chat.base} />
+      <ellipse cx="22" cy="40" rx="5.5" ry="5" fill={H.chat.dark} />
+      <ellipse cx="98" cy="40" rx="5.5" ry="5" fill={H.chat.dark} />
+    </g>
+  ),
+
+  // — Chignon : calotte + chignon bien posé en haut/arrière (brun foncé).
+  bun: () => (
+    <g>
+      <path d={skull(46)} fill={H.brunF.base} />
+      <ellipse cx="60" cy="2" rx="14" ry="12" fill={H.brunF.base} />
+      <g stroke={H.brunF.dark} strokeWidth="1.5" fill="none" opacity="0.55">
+        <path d="M48 2 Q60 -6 72 2" /><path d="M50 6 Q60 0 70 6" /><path d="M52 -4 Q60 2 68 -4" />
+      </g>
+      <ellipse cx="55" cy="-2" rx="4" ry="3" fill={H.brunF.light} opacity="0.5" />
+    </g>
+  ),
+
+  // — Mini afro : boule ronde et bombée, taille moyenne (noir).
+  fro: () => (
+    <g>
+      <circle cx="60" cy="20" r="26" fill={H.noir.base} />
+      <circle cx="34" cy="30" r="13" fill={H.noir.base} /><circle cx="86" cy="30" r="13" fill={H.noir.base} />
+      <g fill={H.noir.dark} opacity="0.4">
+        <circle cx="46" cy="16" r="6" /><circle cx="74" cy="18" r="6" /><circle cx="60" cy="30" r="6" />
+      </g>
+      <g fill={H.noir.light} opacity="0.4">
+        <circle cx="48" cy="10" r="4" /><circle cx="70" cy="9" r="4" />
+      </g>
+    </g>
+  ),
+
+  // — Tresse : calotte + une tresse à droite, entrelacements visibles (brun).
+  braid: () => (
+    <g>
+      <path d={skull(46)} fill={H.brun.base} />
+      <g transform="translate(99 38)">
+        <path d="M-7 0 Q-9 22 -4 44 Q0 52 4 44 Q9 22 7 0 Z" fill={H.brun.base} />
+        <g fill={H.brun.light} opacity="0.5">
+          <path d="M-7 2 Q-2 10 -7 16 Z" /><path d="M7 12 Q2 20 7 26 Z" /><path d="M-6 24 Q-1 31 -6 37 Z" />
+        </g>
+        <g stroke={H.brun.dark} strokeWidth="2" fill="none" opacity="0.7">
+          <path d="M-7 6 Q0 12 7 6" /><path d="M-7 16 Q0 22 7 16" />
+          <path d="M-6 26 Q0 32 6 26" /><path d="M-5 36 Q0 41 5 36" />
+        </g>
+        <path d="M-3 50 l3 9 3 -9 Z" fill={H.brun.dark} />
+      </g>
+    </g>
+  ),
+
+  // — Crête : INCHANGÉE (style premium coloré, exclu de la refonte).
   mohawk: () => (
     <g>
       <path d="M53 20 L56 -8 L60 20 Z" fill={C.rose} />
@@ -84,46 +212,127 @@ const HAIR = {
       <path d="M40 26 Q60 18 80 26 Q60 22 40 26 Z" fill={C.violet} />
     </g>
   ),
+
+  // — Macaron : calotte + petit chignon samouraï au sommet (noir).
   topknot: () => (
-    <g fill={C.noir}>
-      <path d="M24 30 Q24 8 60 8 Q96 8 96 30 Q60 20 24 30 Z" />
-      <rect x="54" y="-4" width="12" height="12" rx="5" />
+    <g>
+      <path d={skull(44)} fill={H.noir.base} />
+      <rect x="53" y="-9" width="14" height="15" rx="6" fill={H.noir.base} />
+      <path d="M53 -2 q7 -5 14 0" stroke={H.noir.dark} strokeWidth="1.5" fill="none" opacity="0.6" />
+      <ellipse cx="60" cy="-4" rx="4" ry="2.5" fill={H.noir.light} opacity="0.5" />
     </g>
   ),
+
+  // — Emo : longue frange balayée couvrant le front gauche (noir de jais).
   emo: () => (
-    <g fill={C.noir}>
-      <path d="M20 34 Q20 4 60 4 Q100 4 100 34 Q60 18 20 34 Z" />
-      <path d="M28 28 Q42 56 66 52 Q44 46 40 26 Z" />
+    <g>
+      <path d={skull(50)} fill={H.jet.base} />
+      <path d="M26 22 Q30 54 56 58 Q40 50 38 30 Q34 22 26 22 Z" fill={H.jet.base} />
+      <path d="M30 25 Q34 48 52 55 Q40 47 38 31 Z" fill={H.jet.light} opacity="0.35" />
     </g>
   ),
+
+  // — Dreads : locks segmentés qui tombent de chaque côté (brun foncé).
   dreads: () => (
-    <g fill="#3a2a1a">
-      <path d="M22 30 Q22 6 60 6 Q98 6 98 30 Q60 20 22 30 Z" />
-      {[24, 34, 46, 60, 74, 86, 96].map((x, i) => (
-        <rect key={i} x={x - 3} y="18" width="6" height={26 + (i % 3) * 8} rx="3" />
+    <g>
+      <path d={skull(48)} fill={H.brunF.base} />
+      {[16, 27, 93, 104].map((x, k) => (
+        <g key={k}>
+          <rect x={x - 4} y="44" width="8" height="56" rx="4" fill={H.brunF.dark} />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <ellipse key={i} cx={x} cy={52 + i * 12} rx="5" ry="6.5" fill={H.brunF.base} />
+          ))}
+        </g>
       ))}
     </g>
   ),
+
+  // — Macarons (spacebuns) : calotte + 2 chignons en haut sur les côtés (roux).
   spacebuns: () => (
-    <g fill={C.brunF}>
-      <path d="M22 32 Q22 6 60 6 Q98 6 98 32 Q60 18 22 32 Z" />
-      <circle cx="34" cy="0" r="11" /><circle cx="86" cy="0" r="11" />
+    <g>
+      <path d={skull(46)} fill={H.roux.base} />
+      {[34, 86].map((x, i) => (
+        <g key={i}>
+          <circle cx={x} cy="-2" r="12" fill={H.roux.base} />
+          <g stroke={H.roux.dark} strokeWidth="1.4" fill="none" opacity="0.6">
+            <path d={`M${x - 9} -2 Q${x} -10 ${x + 9} -2`} /><path d={`M${x - 8} 2 Q${x} -5 ${x + 8} 2`} />
+          </g>
+          <circle cx={x - 3} cy="-6" r="3.5" fill={H.roux.light} opacity="0.5" />
+        </g>
+      ))}
     </g>
   ),
+
+  // — Afro géant : grand demi-cercle bien rond autour de la tête (noir).
   afro: () => (
-    <g fill="#2f2016">
-      <circle cx="60" cy="8" r="32" />
-      <circle cx="26" cy="24" r="16" /><circle cx="94" cy="24" r="16" />
+    <g>
+      <circle cx="60" cy="22" r="40" fill={H.noir.base} />
+      <g fill={H.noir.base}>
+        <circle cx="22" cy="34" r="14" /><circle cx="98" cy="34" r="14" />
+        <circle cx="34" cy="2" r="13" /><circle cx="86" cy="2" r="13" />
+        <circle cx="60" cy="-16" r="14" />
+      </g>
+      <g fill={H.noir.dark} opacity="0.35">
+        <circle cx="44" cy="14" r="7" /><circle cx="76" cy="16" r="7" /><circle cx="60" cy="36" r="8" />
+      </g>
+      <g fill={H.noir.light} opacity="0.4">
+        <circle cx="46" cy="6" r="5" /><circle cx="74" cy="6" r="5" />
+      </g>
     </g>
   ),
+
+  // — Longs : calotte + mèches qui tombent devant les deux côtés (châtain).
+  //   La masse arrière (dans le dos) est dans renderHairBack.
   long: () => (
-    <g fill={C.brun}>
-      <path d="M20 30 Q20 4 60 4 Q100 4 100 30 Q60 18 20 30 Z" />
-      <path d="M20 26 Q6 70 16 116 L30 116 Q24 70 30 34 Z" />
-      <path d="M100 26 Q114 70 104 116 L90 116 Q96 70 90 34 Z" />
+    <g>
+      <path d={skull(47)} fill={H.chat.base} />
+      <g fill={H.chat.base}>
+        <path d="M18 44 Q10 80 18 112 Q24 116 30 112 Q26 78 32 46 Z" />
+        <path d="M102 44 Q110 80 102 112 Q96 116 90 112 Q94 78 88 46 Z" />
+      </g>
+      <g stroke={H.chat.dark} strokeWidth="1.4" fill="none" opacity="0.45">
+        <path d="M24 50 Q20 80 24 108" /><path d="M96 50 Q100 80 96 108" />
+      </g>
+      <g stroke={H.chat.light} strokeWidth="1.4" fill="none" opacity="0.4">
+        <path d="M28 52 Q26 80 28 104" /><path d="M92 52 Q94 80 92 104" />
+      </g>
     </g>
   ),
-  rainbow: () => <path d="M20 34 Q20 2 60 2 Q100 2 100 34 Q60 20 20 34 Z" fill="url(#fg-rainbow)" />,
+
+  // — Arc-en-ciel : PREMIUM coloré (on garde le dégradé, mais il épouse le crâne).
+  rainbow: () => (
+    <g>
+      <path d={skull(48)} fill="url(#fg-rainbow)" />
+      <path d="M33 25 Q49 14 69 16 Q53 22 42 39 Z" fill="#fff" opacity="0.25" />
+    </g>
+  ),
+}
+
+// Couche ARRIÈRE (derrière le corps) : longueurs qui tombent dans le dos / sur les côtés.
+const HAIR_BACK = {
+  long: () => (
+    <g>
+      {/* masse arrière, plus large que le corps → un liseré de cheveux dépasse dans le dos */}
+      <path d="M20 34 Q60 22 100 34 Q104 60 100 92 Q60 80 20 92 Q16 60 20 34 Z" fill={H.chat.dark} />
+      <path d="M12 44 Q4 86 14 118 L34 118 Q26 84 28 46 Z" fill={H.chat.dark} />
+      <path d="M108 44 Q116 86 106 118 L86 118 Q94 84 92 46 Z" fill={H.chat.dark} />
+    </g>
+  ),
+  ponytail: () => (
+    <g fill={H.blond.base}>
+      <path d="M96 26 Q120 40 112 84 Q108 100 98 104 Q108 84 100 56 Q96 40 90 34 Z" />
+      <path d="M100 40 Q112 60 104 92" stroke={H.blond.dark} strokeWidth="1.5" fill="none" opacity="0.5" />
+    </g>
+  ),
+  pigtails: () => (
+    <g fill={H.chat.base}>
+      <path d="M22 38 Q2 52 8 92 Q10 100 18 100 Q12 78 26 50 Z" />
+      <path d="M98 38 Q118 52 112 92 Q110 100 102 100 Q108 78 94 50 Z" />
+      <g stroke={H.chat.dark} strokeWidth="1.4" fill="none" opacity="0.45">
+        <path d="M14 54 Q10 78 15 96" /><path d="M106 54 Q110 78 105 96" />
+      </g>
+    </g>
+  ),
 }
 
 // ----------------------------------------------------------------
@@ -799,6 +1008,7 @@ export function animalWide(id) { return WIDE_ANIMALS.has(id) }
 export function renderHat(id) { return HATS[id]?.() ?? null }
 export function renderGlasses(id) { return GLASSES[id]?.() ?? null }
 export function renderHair(id) { return HAIR[id]?.() ?? null }
+export function renderHairBack(id) { return HAIR_BACK[id]?.() ?? null }
 export function renderSport(id) { return SPORT[id]?.() ?? null }
 export function renderFace(id) { return FACE[id]?.() ?? null }
 export function renderAnimal(id) {

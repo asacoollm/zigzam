@@ -1,6 +1,6 @@
 import { normalizeAvatar, resolveColor } from '../lib/avatar'
 import {
-  renderHat, renderGlasses, renderHair, renderSport, renderAnimal, renderFace, animalWide,
+  renderHat, renderGlasses, renderHair, renderHairBack, renderSport, renderAnimal, renderFace, animalWide,
 } from './avatarParts'
 import './FallGuy.css'
 
@@ -127,8 +127,8 @@ export default function FallGuy({ color = 'violet', avatar = null, anim = null, 
       <rect x="4" y="58" width="15" height="46" rx="7.5" fill={bodyFill} />
       <rect x="101" y="58" width="15" height="46" rx="7.5" fill={bodyFill} />
 
-      {/* Cheveux (derrière le corps/visage, sous le chapeau) */}
-      {a?.hair && renderHair(a.hair)}
+      {/* Cheveux — couche ARRIÈRE : longueurs qui tombent dans le dos (derrière le corps) */}
+      {a?.hair && renderHairBack(a.hair)}
 
       {/* Corps en haricot + reflet */}
       <rect x="18" y="16" width="84" height="116" rx="42" fill={bodyFill} />
@@ -136,6 +136,10 @@ export default function FallGuy({ color = 'violet', avatar = null, anim = null, 
 
       {/* Panneau visage */}
       <rect x="33" y="42" width="54" height="36" rx="18" fill="#fff" opacity="0.96" />
+
+      {/* Cheveux — couche AVANT : épouse le crâne + frange sur le front (par-dessus le visage, sous les yeux) */}
+      {a?.hair && renderHair(a.hair)}
+
       {/* Yeux */}
       <circle cx="49" cy="60" r="6.5" fill="#2b2350" />
       <circle cx="71" cy="60" r="6.5" fill="#2b2350" />
