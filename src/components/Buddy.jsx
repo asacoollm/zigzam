@@ -33,5 +33,5 @@ export default function Buddy({ className = '' }) {
 
   useEffect(() => () => clearTimeout(timer.current), [])
 
-  return <FallGuy className={className} avatar={user?.avatar} anim={anim} />
+  return <FallGuy className={className} avatar={user?.avatar} anim={anim} role={user?.role} />
 }

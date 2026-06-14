@@ -407,7 +407,7 @@ export default function Parametres() {
 
       {/* En-tête avatar + pseudo */}
       <div className="settings__card settings__header">
-        <FallGuy avatar={user.avatar} className="settings__av" anim="idle" />
+        <FallGuy avatar={user.avatar} className="settings__av" anim="idle" role={user.role} />
         <p className="settings__pseudo">{user.pseudo}</p>
       </div>
 

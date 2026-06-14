@@ -68,11 +68,36 @@ function ColorDefs() {
   )
 }
 
+// Badge de rôle affiché sur le ventre du bonhomme (admin / superadmin).
+function RoleBadge({ role }) {
+  if (role === 'superadmin') {
+    return (
+      <g className="fg__badge">
+        <circle cx="60" cy="100" r="12" fill="#f5b800" stroke="#fff" strokeWidth="2.5" />
+        <text x="60" y="101" textAnchor="middle" dominantBaseline="central" fontSize="14" fill="#fff">★</text>
+      </g>
+    )
+  }
+  if (role === 'admin') {
+    return (
+      <g className="fg__badge">
+        <circle cx="60" cy="100" r="12" fill="#7c3aff" stroke="#fff" strokeWidth="2.5" />
+        <text
+          x="60" y="101" textAnchor="middle" dominantBaseline="central"
+          fontSize="14" fontWeight="700" fill="#fff" fontFamily="Fredoka, sans-serif"
+        >A</text>
+      </g>
+    )
+  }
+  return null
+}
+
 // Petit bonhomme « Fall Guys » (haricot) en SVG, personnalisable.
 // - `avatar` : objet { color, hat, glasses, hair, sport, animal, face } (prioritaire)
 // - `color`  : couleur simple (id ou hex) pour les usages décoratifs
 // - `anim`   : 'idle' | 'jump' | 'walk' (animations du compagnon)
-export default function FallGuy({ color = 'violet', avatar = null, anim = null, className = '' }) {
+// - `role`   : 'admin' | 'superadmin' → affiche un badge sur le ventre
+export default function FallGuy({ color = 'violet', avatar = null, anim = null, className = '', role = null }) {
   const a = avatar ? normalizeAvatar(avatar) : null
   const colorId = a?.color || color
   const { fill: bodyFill } = resolveColor(colorId)
@@ -134,6 +159,9 @@ export default function FallGuy({ color = 'violet', avatar = null, anim = null, 
 
       {/* Animal de compagnie */}
       {a?.animal && renderAnimal(a.animal)}
+
+      {/* Badge de rôle (admin / superadmin), par-dessus tout, sur le ventre */}
+      <RoleBadge role={role} />
     </svg>
   )
 }

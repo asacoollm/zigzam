@@ -70,7 +70,7 @@ function Commentaires({ actuId, user }) {
       ) : (
         comments.map((c) => (
           <div key={c.id} className="news__comment">
-            <FallGuy className="news__comment-av" avatar={c.auteur.avatar} />
+            <FallGuy className="news__comment-av" avatar={c.auteur.avatar} role={c.auteur.role} />
             <div className="news__comment-body">
               <span className="news__comment-pseudo">{c.auteur.pseudo}</span>
               <span className="news__comment-text">{c.contenu}</span>
@@ -118,7 +118,7 @@ function CarteActu({ actu, user }) {
   return (
     <article className="news__card">
       <header className="news__head">
-        <FallGuy className="news__av" avatar={actu.auteur.avatar} anim="idle" />
+        <FallGuy className="news__av" avatar={actu.auteur.avatar} anim="idle" role={actu.auteur.role} />
         <div className="news__meta">
           <span className="news__pseudo">{actu.auteur.pseudo}</span>
           <span className="news__date">{formatDate(actu.date)}</span>
@@ -242,7 +242,7 @@ export default function Actualites() {
       </header>
 
       <p className="news__rules">
-        📰 2 actus gratuites, puis 10 🍩 par actu • 👁️ +2 🍩 par vue • 💬 +2 🍩 par commentaire
+        📰 2 actus gratuites, puis 10 🍩 par actu • 👁️ +2 🍩 par vue (1 fois) • 💬 +2 🍩 par commentaire (illimité)
       </p>
 
       {!showForm && (

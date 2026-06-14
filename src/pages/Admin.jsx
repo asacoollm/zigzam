@@ -38,7 +38,7 @@ function ActuCard({ actu, onglet, adminId, onAction }) {
   return (
     <article className="actu-card">
       <div className="actu-card__author">
-        <FallGuy avatar={actu.auteur?.avatar ?? null} className="actu-card__avatar" />
+        <FallGuy avatar={actu.auteur?.avatar ?? null} className="actu-card__avatar" role={actu.auteur?.role} />
         <span className="actu-card__pseudo">{actu.auteur?.pseudo ?? '—'}</span>
         {actu.date && (
           <span className="actu-card__date">
@@ -294,7 +294,7 @@ function UserRow({ u, adminId, onDelete, onRoleChange }) {
   return (
     <div className="user-row">
       <div className="user-row__info">
-        <FallGuy avatar={u.avatar ?? null} className="user-row__avatar" />
+        <FallGuy avatar={u.avatar ?? null} className="user-row__avatar" role={u.role} />
         <div className="user-row__meta">
           <span className="user-row__pseudo">{u.pseudo}</span>
           <span className="user-row__num">#{u.numero}</span>

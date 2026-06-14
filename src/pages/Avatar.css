@@ -356,6 +356,39 @@
   cursor: not-allowed;
 }
 
+/* Formulaire skin sur mesure */
+.skin-form {
+  max-width: 400px;
+}
+.skin-form__textarea,
+.skin-form__input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--texte);
+  background: rgba(124, 58, 255, 0.07);
+  border: 1.5px solid rgba(124, 58, 255, 0.18);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  resize: vertical;
+  transition: border-color 0.15s, background 0.15s;
+}
+.skin-form__textarea::placeholder,
+.skin-form__input::placeholder {
+  color: var(--texte-doux);
+}
+.skin-form__textarea:focus,
+.skin-form__input:focus {
+  outline: none;
+  border-color: var(--violet, #7c3aff);
+  background: rgba(124, 58, 255, 0.04);
+}
+.skin-form .modal__cost {
+  margin: 6px 0 16px;
+}
+
 /* Toast */
 .av__toast {
   position: fixed;

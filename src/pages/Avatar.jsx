@@ -18,6 +18,9 @@ export default function Avatar() {
   const [pending, setPending] = useState(null) // accessoire payant en attente de confirmation
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
+  const [skinForm, setSkinForm] = useState(false) // formulaire de demande de skin sur mesure
+  const [skinDesc, setSkinDesc] = useState('')
+  const [skinRef, setSkinRef] = useState('')
 
   const activeCategory = useMemo(
     () => CATEGORIES.find((c) => c.id === tab),
@@ -57,19 +60,12 @@ export default function Avatar() {
   const confirmBuy = async () => {
     if (!pending) return
 
-    // Cas spécial : skin sur mesure → débit + ouverture d'une discussion avec Asacool.
+    // Cas spécial : skin sur mesure → on demande d'abord la description du skin de rêve.
     if (tab === 'special') {
-      setBusy(true)
-      const res = await buyCustomSkin(user.id)
-      setBusy(false)
-      if (res.error) {
-        flash(res.error)
-        setPending(null)
-        return
-      }
-      updateUser({ gemmes: res.gemmes })
       setPending(null)
-      flash('🎉 Ta demande est envoyée ! Asacool a reçu ta demande officielle dans Discuter. Décris-lui ton skin de rêve !')
+      setSkinDesc('')
+      setSkinRef('')
+      setSkinForm(true)
       return
     }
 
@@ -88,6 +84,25 @@ export default function Avatar() {
     updateUser({ avatar: nextAvatar, gemmes: res.gemmes })
     setPending(null)
     flash(`${pending.label} débloqué ! 🎉`)
+  }
+
+  // Envoi de la demande de skin sur mesure (débit 20 💎 + message à Asacool avec la description).
+  const submitSkinRequest = async (e) => {
+    e.preventDefault()
+    if (!skinDesc.trim()) {
+      flash('Décris ton skin de rêve avant d’envoyer 🎨')
+      return
+    }
+    setBusy(true)
+    const res = await buyCustomSkin(user.id, skinDesc.trim(), skinRef.trim())
+    setBusy(false)
+    if (res.error) {
+      flash(res.error)
+      return
+    }
+    updateUser({ gemmes: res.gemmes })
+    setSkinForm(false)
+    flash('🎉 Ta demande est envoyée ! Asacool l’a reçue dans Discuter avec ta description.')
   }
 
   return (
@@ -203,6 +218,51 @@ export default function Avatar() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Formulaire de demande de skin sur mesure */}
+      {skinForm && (
+        <div className="modal" onClick={() => !busy && setSkinForm(false)}>
+          <form
+            className="modal__card skin-form"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={submitSkinRequest}
+          >
+            <h3 className="modal__title">🎨 Décris ton skin de rêve !</h3>
+            <textarea
+              className="skin-form__textarea"
+              value={skinDesc}
+              onChange={(e) => setSkinDesc(e.target.value)}
+              placeholder="Décris ton skin en détail : couleurs, accessoires, style, personnage inspirant…"
+              rows={5}
+              maxLength={800}
+              autoFocus
+            />
+            <input
+              className="skin-form__input"
+              value={skinRef}
+              onChange={(e) => setSkinRef(e.target.value)}
+              placeholder="Une référence image ? (colle un lien)"
+              maxLength={400}
+            />
+            <p className="modal__cost">
+              Coût : <strong>💎 20</strong> — débité à l’envoi.
+            </p>
+            <div className="modal__actions">
+              <button
+                type="button"
+                className="modal__btn modal__btn--ghost"
+                onClick={() => setSkinForm(false)}
+                disabled={busy}
+              >
+                Annuler
+              </button>
+              <button className="modal__btn" type="submit" disabled={busy}>
+                {busy ? 'Envoi…' : 'Envoyer ma demande 🚀'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
