@@ -1,22 +1,91 @@
 // ============================================================
 //  Logique du mini-jeu « Floor is Lava 🌋 » (100% client, pur).
-//  Monde en grille de cubes arrondis. La lave arrive de certains
-//  bords et se propage. Les rochers sont des abris (jamais de lave,
-//  on peut s'y tenir). Activer toutes les zones colorées = victoire.
+//  Monde en grille de cubes arrondis. La lave est une VAGUE qui
+//  traverse le plateau d'un côté à l'autre puis s'en va, avant
+//  qu'une nouvelle vague n'arrive d'un autre côté. Les rochers et
+//  les zones ne sont jamais recouverts → le joueur n'est jamais
+//  encerclé définitivement. Activer toutes les zones = victoire.
 // ============================================================
 
 export const SIZE = 8
 export const FLOOR = 0
 export const ROCK = 1
 export const ZONE = 2
+export const WAVE_WIDTH = 3      // largeur de la bande de lave (en cases)
+export const WAVE_COOLDOWN = 4   // ticks de répit entre deux vagues
 
-const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]]
 const inBounds = (r, c) => r >= 0 && r < SIZE && c >= 0 && c < SIZE
-
-const ZONE_COLORS = ['#ff4d8d', '#00bfff', '#3dd68c', '#ffcf3f', '#7c3aff']
-
-const grid = (v) => Array.from({ length: SIZE }, () => Array.from({ length: SIZE }, () => v))
+export const inBoard = inBounds
 const randInt = (n) => Math.floor(Math.random() * n)
+const grid = (v) => Array.from({ length: SIZE }, () => Array.from({ length: SIZE }, () => v))
+
+export function emptyLava() { return grid(false) }
+
+// Les 4 vagues possibles (côté d'arrivée + sens de déplacement).
+const WAVES = [
+  { axis: 'col', dir: 1 },   // de la gauche vers la droite
+  { axis: 'col', dir: -1 },  // de la droite vers la gauche
+  { axis: 'row', dir: 1 },   // du haut vers le bas
+  { axis: 'row', dir: -1 },  // du bas vers le haut
+]
+
+// Nouvelle vague, d'un côté différent de la précédente.
+export function newWave(prev) {
+  let pick
+  do {
+    pick = WAVES[randInt(WAVES.length)]
+  } while (prev && pick.axis === prev.axis && pick.dir === prev.dir)
+  return { axis: pick.axis, dir: pick.dir, width: WAVE_WIDTH, lead: 0 }
+}
+
+// Colonnes (ou lignes) actuellement couvertes par la bande de lave.
+export function bandIndices(wave) {
+  const out = []
+  for (let k = 0; k < wave.width; k++) {
+    const pos = wave.dir === 1 ? wave.lead - k : (SIZE - 1) - (wave.lead - k)
+    if (pos >= 0 && pos < SIZE) out.push(pos)
+  }
+  return out
+}
+
+// La vague est-elle entièrement sortie du plateau ?
+export function waveExited(wave) { return bandIndices(wave).length === 0 }
+
+// Grille de lave booléenne pour une vague (rochers et zones épargnés).
+export function lavaFromWave(wave, terrain) {
+  const lava = grid(false)
+  const idx = new Set(bandIndices(wave))
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const onBand = wave.axis === 'col' ? idx.has(c) : idx.has(r)
+      if (onBand && terrain[r][c] === FLOOR) lava[r][c] = true
+    }
+  }
+  return lava
+}
+
+// Avance d'un tick : déplace la vague, gère le répit entre deux vagues.
+// Renvoie { wave, cooldown, lava }.
+export function stepLava(state) {
+  let { wave, cooldown } = state
+  const { terrain } = state
+
+  if (cooldown > 0) {
+    cooldown -= 1
+    if (cooldown === 0) {
+      const w = newWave(wave)
+      return { wave: w, cooldown: 0, lava: lavaFromWave(w, terrain) }
+    }
+    return { wave, cooldown, lava: emptyLava() }
+  }
+
+  const candidate = { ...wave, lead: wave.lead + 1 }
+  if (waveExited(candidate)) {
+    // La vague est passée → répit, puis une nouvelle vague arrivera d'un autre côté.
+    return { wave, cooldown: WAVE_COOLDOWN, lava: emptyLava() }
+  }
+  return { wave: candidate, cooldown: 0, lava: lavaFromWave(candidate, terrain) }
+}
 
 // Génère un niveau jouable, avec une part d'aléatoire pour la rejouabilité.
 export function makeLevel() {
@@ -27,15 +96,8 @@ export function makeLevel() {
   const nearStart = (r, c) => Math.abs(r - start.r) <= 1 && Math.abs(c - start.c) <= 1
   const interior = (r, c) => r > 0 && r < SIZE - 1 && c > 0 && c < SIZE - 1
 
-  // Bords d'où arrive la lave : 1 ou 2 côtés au hasard.
-  const pool = ['top', 'bottom', 'left', 'right']
-  const lavaEdges = []
-  const nEdges = 1 + randInt(2)
-  for (let i = 0; i < nEdges; i++) lavaEdges.push(pool.splice(randInt(pool.length), 1)[0])
-
   // Rochers (abris) : répartis, jamais au centre.
-  const nRocks = SIZE
-  for (let placed = 0, tries = 0; placed < nRocks && tries < 500; tries++) {
+  for (let placed = 0, tries = 0; placed < SIZE && tries < 500; tries++) {
     const r = randInt(SIZE)
     const c = randInt(SIZE)
     const k = `${r},${c}`
@@ -45,47 +107,25 @@ export function makeLevel() {
     placed++
   }
 
-  // Zones colorées à activer : en intérieur pour rester atteignables tôt.
+  // Zones à activer : en intérieur, atteignables.
   const zones = []
-  const nZones = 4
-  for (let placed = 0, tries = 0; placed < nZones && tries < 500; tries++) {
+  for (let placed = 0, tries = 0; placed < 4 && tries < 500; tries++) {
     const r = randInt(SIZE)
     const c = randInt(SIZE)
     const k = `${r},${c}`
     if (taken.has(k) || nearStart(r, c) || !interior(r, c)) continue
     terrain[r][c] = ZONE
-    zones.push({ r, c, color: ZONE_COLORS[placed % ZONE_COLORS.length], active: false })
+    zones.push({ r, c, active: false })
     taken.add(k)
     placed++
   }
 
-  // Lave initiale : les cases FLOOR des bords choisis.
-  const lava = grid(false)
-  const seed = (r, c) => { if (terrain[r][c] === FLOOR) lava[r][c] = true }
-  if (lavaEdges.includes('top')) for (let c = 0; c < SIZE; c++) seed(0, c)
-  if (lavaEdges.includes('bottom')) for (let c = 0; c < SIZE; c++) seed(SIZE - 1, c)
-  if (lavaEdges.includes('left')) for (let r = 0; r < SIZE; r++) seed(r, 0)
-  if (lavaEdges.includes('right')) for (let r = 0; r < SIZE; r++) seed(r, SIZE - 1)
-
-  return { terrain, lava, zones, player: { ...start }, lavaEdges, status: 'playing', ticks: 0 }
-}
-
-// Propagation d'un anneau : la lave gagne les cases FLOOR voisines
-// (jamais les rochers ni les zones).
-export function spread(lava, terrain) {
-  const next = lava.map((row) => row.slice())
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      if (!lava[r][c]) continue
-      for (const [dr, dc] of DIRS) {
-        const nr = r + dr
-        const nc = c + dc
-        if (inBounds(nr, nc) && terrain[nr][nc] === FLOOR && !next[nr][nc]) next[nr][nc] = true
-      }
-    }
+  // On démarre par un court répit (le temps de s'orienter), puis la 1re vague.
+  return {
+    terrain, zones, player: { ...start },
+    wave: newWave(null), cooldown: 2, lava: emptyLava(),
+    status: 'playing', ticks: 0,
   }
-  return next
 }
 
 export function isLava(lava, r, c) { return !!(lava[r] && lava[r][c]) }
-export const inBoard = inBounds

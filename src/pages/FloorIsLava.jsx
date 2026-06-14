@@ -2,14 +2,14 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-  SIZE, ROCK, ZONE, makeLevel, spread, isLava, inBoard,
+  SIZE, ROCK, ZONE, makeLevel, stepLava, isLava, inBoard,
 } from '../lib/floorislava'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import './FloorIsLava.css'
 
-const TICK_MS = 1300      // cadence de propagation de la lave
+const TICK_MS = 500       // cadence de déplacement de la vague de lave
 const AIRBORNE_MS = 850   // durée du saut (immunité à la lave en l'air)
 const JUMP_CD = 1200      // temps de recharge du saut
 
@@ -38,8 +38,8 @@ function reducer(state, action) {
       return next
     }
     case 'TICK': {
-      const lava = spread(state.lava, state.terrain)
-      return resolve({ ...state, lava, ticks: state.ticks + 1 }, action.airborne)
+      const { lava, wave, cooldown } = stepLava(state)
+      return resolve({ ...state, lava, wave, cooldown, ticks: state.ticks + 1 }, action.airborne)
     }
     case 'LAND':
       return resolve(state, false)
@@ -53,21 +53,22 @@ export default function FloorIsLava() {
   const navigate = useNavigate()
   const [state, dispatch] = useReducer(reducer, undefined, makeLevel)
   const [airborne, setAirborne] = useState(false)
+  const [started, setStarted] = useState(false) // écran d'intro tant que false
 
   // Refs pour les handlers (évite les closures périmées).
   const airborneRef = useRef(false)
   const jumpReadyRef = useRef(0)
-  const statusRef = useRef(state.status)
+  const playingRef = useRef(false)
   const landTimer = useRef(null)
-  useEffect(() => { statusRef.current = state.status }, [state.status])
+  useEffect(() => { playingRef.current = started && state.status === 'playing' }, [started, state.status])
 
   const move = useCallback((dr, dc) => {
-    if (statusRef.current !== 'playing') return
+    if (!playingRef.current) return
     dispatch({ type: 'MOVE', dr, dc, airborne: airborneRef.current })
   }, [])
 
   const jump = useCallback(() => {
-    if (statusRef.current !== 'playing') return
+    if (!playingRef.current) return
     const now = Date.now()
     if (now < jumpReadyRef.current) return
     jumpReadyRef.current = now + JUMP_CD
@@ -89,12 +90,12 @@ export default function FloorIsLava() {
     dispatch({ type: 'RESTART' })
   }, [])
 
-  // Boucle de propagation de la lave.
+  // Boucle de la vague de lave (ne tourne qu'une fois le jeu lancé).
   useEffect(() => {
-    if (state.status !== 'playing') return
+    if (!started || state.status !== 'playing') return
     const id = setInterval(() => dispatch({ type: 'TICK', airborne: airborneRef.current }), TICK_MS)
     return () => clearInterval(id)
-  }, [state.status])
+  }, [started, state.status])
 
   // Clavier : flèches = déplacement, espace = saut.
   useEffect(() => {
@@ -124,39 +125,39 @@ export default function FloorIsLava() {
       <header className="flava__top">
         <button className="flava__back" onClick={() => navigate('/dashboard')}>⬅️ Retour</button>
         <ZigzamLogo size="sm" />
-        <span className="flava__zones-hud">🎨 {zonesOn}/{zonesTotal}</span>
+        <span className="flava__zones-hud">Zones activées : {zonesOn}/{zonesTotal}</span>
       </header>
 
       <h1 className="flava__title">Floor is Lava 🌋</h1>
       <p className="flava__hint">
-        Flèches = bouger • Espace = sauter par-dessus la lave • Active toutes les zones colorées !
+        Flèches = bouger • Espace = sauter par-dessus la lave • Active toutes les zones jaunes !
       </p>
 
-      <div className="flava__stage">
-        <div className="flava__board" style={{ '--size': SIZE }}>
+      <div className="flava__stage" style={{ '--size': SIZE }}>
+        {/* Grille du plateau (cases) */}
+        <div className="flava__board">
           {state.terrain.map((row, r) =>
             row.map((cell, c) => {
               const lava = isLava(state.lava, r, c)
-              const zone = cell === ZONE ? state.zones.find((z) => z.r === r && z.c === c) : null
+              const isZone = cell === ZONE
+              const zone = isZone ? state.zones.find((z) => z.r === r && z.c === c) : null
               let cls = 'flava__tile'
               if (lava) cls += ' flava__tile--lava'
               else if (cell === ROCK) cls += ' flava__tile--rock'
               else if (zone) cls += zone.active ? ' flava__tile--zone-on' : ' flava__tile--zone'
               return (
-                <div
-                  key={`${r}-${c}`}
-                  className={cls}
-                  style={zone ? { '--zone-color': zone.color } : undefined}
-                >
+                <div key={`${r}-${c}`} className={cls}>
                   {cell === ROCK && !lava && <span className="flava__rock">🪨</span>}
-                  {zone && zone.active && <span className="flava__check">✓</span>}
+                  {zone && zone.active && <span className="flava__check">✅</span>}
                   {lava && <span className="flava__bubble" />}
                 </div>
               )
             }),
           )}
+        </div>
 
-          {/* Joueur (avatar Fall Guys) — placé sur sa case, remonté en l'air pendant le saut */}
+        {/* Grille superposée identique : ne contient QUE le joueur → aucune case n'est déformée ni décalée */}
+        <div className="flava__grid-overlay">
           <div
             key={`${state.player.r}-${state.player.c}`}
             className={`flava__player ${airborne ? 'flava__player--air' : ''}`}
@@ -178,14 +179,33 @@ export default function FloorIsLava() {
         <button className="flava__jump" onClick={jump}>SAUT<br />⤴</button>
       </div>
 
-      {state.status !== 'playing' && (
+      {/* Écran d'intro / instructions */}
+      {!started && (
+        <div className="flava__overlay">
+          <div className="flava__panel flava__panel--intro">
+            <h2 className="flava__panel-title">🌋 Floor is Lava !</h2>
+            <p className="flava__panel-text">
+              Utilise les flèches <strong>⬆️ ⬇️ ⬅️ ➡️</strong> pour te déplacer,{' '}
+              <strong>ESPACE</strong> pour sauter par-dessus la lave.<br />
+              Active toutes les <strong>zones jaunes</strong> pour gagner&nbsp;!<br />
+              Les rochers <strong>🪨</strong> sont des abris sûrs.
+            </p>
+            <div className="flava__panel-actions">
+              <button className="flava__btn" onClick={() => setStarted(true)}>C'est parti&nbsp;! 🚀</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fin de partie */}
+      {started && state.status !== 'playing' && (
         <div className="flava__overlay">
           <div className="flava__panel">
             {state.status === 'won' ? (
               <>
                 <h2 className="flava__panel-title">🎉 Bravo, gagné&nbsp;!</h2>
                 <p className="flava__panel-text">
-                  Tu as activé les {zonesTotal} zones avant la lave. Quel champion&nbsp;! 🏆
+                  Tu as activé les {zonesTotal} zones malgré la lave. Quel champion&nbsp;! 🏆
                 </p>
               </>
             ) : (
