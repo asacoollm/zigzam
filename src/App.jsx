@@ -11,7 +11,7 @@ import Economie from './pages/Economie'
 import Parametres from './pages/Parametres'
 import Admin from './pages/Admin'
 import ParentalGuard from './components/ParentalGuard'
-import ConnectionStatus from './components/ConnectionStatus'
+import OnlineWidget from './components/OnlineWidget'
 
 export default function App() {
   const { user } = useAuth()
@@ -107,7 +107,7 @@ export default function App() {
       />
       <Route path="*" element={<Navigate to={home} replace />} />
     </Routes>
-    <ConnectionStatus />
+    <OnlineWidget />
     </>
   )
 }

@@ -287,6 +287,29 @@ export async function updateParental(userId, code, duree, debut, fin, modules, a
   return { ok: true }
 }
 
+// ---------------- PRÉSENCE « QUI EST EN LIGNE ? » ----------------
+// Heartbeat : marque l'utilisateur comme actif maintenant.
+export async function pingActivity(userId) {
+  return rpc('ping_activity', { p_user: userId })
+}
+// Liste des utilisateurs actifs dans les 5 dernières minutes.
+export async function getOnlineUsers() {
+  const r = await rpc('get_online_users')
+  return r.error ? [] : r.data
+}
+// Canal Realtime partagé : un client diffuse un "ping" à chaque heartbeat,
+// les autres clients rafraîchissent alors leur liste sans recharger la page.
+export function subscribeToPresence(onPing) {
+  const channel = supabase.channel('zigzam:online', {
+    config: { broadcast: { self: false } },
+  })
+  channel.on('broadcast', { event: 'ping' }, () => onPing()).subscribe()
+  return channel
+}
+export function broadcastPresence(channel) {
+  channel.send({ type: 'broadcast', event: 'ping', payload: {} })
+}
+
 // ---------------- DASHBOARD ----------------
 export async function getBadges(userId) {
   const r = await rpc('get_badges', { p_user: userId })
