@@ -9,9 +9,9 @@ import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import './FloorIsLava.css'
 
-const TICK_MS = 500       // cadence de déplacement de la vague de lave
-const AIRBORNE_MS = 850   // durée du saut (immunité à la lave en l'air)
-const JUMP_CD = 1200      // temps de recharge du saut
+const TICK_MS = 900       // cadence de déplacement de la vague de lave (lent = plus facile)
+const AIRBORNE_MS = 1500  // durée du saut (immunité à la lave en l'air) ~1,5 s
+const JUMP_CD = 800       // temps de recharge du saut (court = plus facile)
 
 // Mort si le joueur est sur de la lave et pas en l'air.
 function resolve(state, airborne) {
@@ -163,6 +163,10 @@ export default function FloorIsLava() {
             className={`flava__player ${airborne ? 'flava__player--air' : ''}`}
             style={{ gridColumn: state.player.c + 1, gridRow: state.player.r + 1 }}
           >
+            {/* repère de case (cercle coloré au sol) + aura + flèche au-dessus de la tête */}
+            <span className="flava__player-shadow" />
+            <span className="flava__player-aura" />
+            <span className="flava__player-arrow" />
             <FallGuy avatar={user?.avatar} role={user?.role} anim={airborne ? 'jump' : 'idle'} />
           </div>
         </div>

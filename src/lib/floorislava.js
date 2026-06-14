@@ -11,8 +11,8 @@ export const SIZE = 8
 export const FLOOR = 0
 export const ROCK = 1
 export const ZONE = 2
-export const WAVE_WIDTH = 3      // largeur de la bande de lave (en cases)
-export const WAVE_COOLDOWN = 4   // ticks de répit entre deux vagues
+export const WAVE_WIDTH = 2      // largeur de la bande de lave (en cases) — fine = plus facile
+export const WAVE_COOLDOWN = 8   // ticks de répit entre deux vagues (long = plus facile)
 
 const inBounds = (r, c) => r >= 0 && r < SIZE && c >= 0 && c < SIZE
 export const inBoard = inBounds
@@ -120,10 +120,10 @@ export function makeLevel() {
     placed++
   }
 
-  // On démarre par un court répit (le temps de s'orienter), puis la 1re vague.
+  // On démarre par un répit d'environ 5 s (le temps de comprendre), puis la 1re vague.
   return {
     terrain, zones, player: { ...start },
-    wave: newWave(null), cooldown: 2, lava: emptyLava(),
+    wave: newWave(null), cooldown: 6, lava: emptyLava(),
     status: 'playing', ticks: 0,
   }
 }
