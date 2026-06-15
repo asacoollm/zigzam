@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   pokerJoin, pokerStart, pokerSave, pokerFinish, pokerState, pokerLeave,
-  subscribePoker, broadcastPoker,
-  normPlayers, place, startBid, raise, pass, flipCard, nextRound,
+  pokerAddBot, pokerRemoveBot, subscribePoker, broadcastPoker,
+  normPlayers, place, startBid, raise, pass, flipCard, nextRound, botAction,
   flowersLeft, skullLeft, totalPlaced, playerCardCount,
 } from '../lib/poker'
 import Backdrop from '../components/Backdrop'
@@ -92,6 +92,43 @@ export default function PokerDonuts() {
     setBusy(false)
   }
 
+  // Pilote des bots : seul l'hôte (1er joueur humain) joue les coups des bots.
+  const botTimer = useRef(null)
+  useEffect(() => {
+    const e = data?.etat && data.etat.players ? normPlayers(data.etat) : null
+    if (!e || data?.session?.statut !== 'playing') return
+    const host = e.players.find((p) => !p.is_bot)
+    if (!host || host.user_id !== user.id) return
+    let actorIdx = -1
+    if (e.phase === 'placing' || e.phase === 'bidding' || e.phase === 'round_end') actorIdx = e.turn
+    else if (e.phase === 'flipping' && e.flip) actorIdx = e.flip.flipper
+    if (actorIdx < 0) return
+    const actor = e.players[actorIdx]
+    if (!actor || !actor.is_bot || (actor.out && e.phase !== 'round_end')) return
+    clearTimeout(botTimer.current)
+    botTimer.current = setTimeout(() => {
+      const next = botAction(e, actorIdx)
+      if (next !== e) push(next)
+    }, 1000)
+    return () => clearTimeout(botTimer.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, user.id])
+
+  const addBot = async () => {
+    setBusy(true)
+    const st = await pokerAddBot(sessionRef.current?.id)
+    sync(st)
+    if (channelRef.current) broadcastPoker(channelRef.current)
+    setBusy(false)
+  }
+  const removeBot = async () => {
+    setBusy(true)
+    const st = await pokerRemoveBot(sessionRef.current?.id)
+    sync(st)
+    if (channelRef.current) broadcastPoker(channelRef.current)
+    setBusy(false)
+  }
+
   const start = async () => {
     setBusy(true)
     const sid = sessionRef.current?.id
@@ -143,6 +180,16 @@ export default function PokerDonuts() {
           ))}
         </div>
         <p className="poker__count">{joueurs.length}/6 joueurs</p>
+        <div className="poker__bot-btns">
+          <button className="poker__btn poker__btn--sm" disabled={joueurs.length >= 6 || busy} onClick={addBot}>
+            🤖 Ajouter un bot
+          </button>
+          {joueurs.some((j) => j.is_bot) && (
+            <button className="poker__btn poker__btn--sm poker__btn--ghost" disabled={busy} onClick={removeBot}>
+              ❌ Retirer un bot
+            </button>
+          )}
+        </div>
         <button className="poker__btn" disabled={joueurs.length < 3 || busy} onClick={start}>
           {joueurs.length < 3 ? 'Il manque des joueurs…' : 'Démarrer la partie 🚀'}
         </button>

@@ -159,6 +159,41 @@ export function nextRound(etat) {
   return { ...etat, phase: 'placing', flip: null, bid: null, passed: [] }
 }
 
+// ---------- Stratégie des bots 🤖 (simple) ----------
+// Renvoie le prochain état après UNE action du bot `idx` (ou l'état inchangé).
+export function botAction(etat, idx) {
+  const p = etat.players[idx]
+  if (etat.phase === 'placing') {
+    const placed = totalPlaced(etat)
+    if (placed >= 1 && Math.random() < 0.25) {
+      return startBid(etat, idx, Math.max(1, Math.min(placed, 1 + Math.floor(Math.random() * 2))))
+    }
+    if (flowersLeft(p) > 0 && (skullLeft(p) <= 0 || Math.random() < 0.82)) return place(etat, idx, 'flower')
+    if (skullLeft(p) > 0) return place(etat, idx, 'skull')
+    return place(etat, idx, 'flower')
+  }
+  if (etat.phase === 'bidding') {
+    const placed = totalPlaced(etat)
+    if (etat.bid && etat.bid.amount < placed && Math.random() < 0.3) {
+      return raise(etat, idx, etat.bid.amount + 1)
+    }
+    return pass(etat, idx)
+  }
+  if (etat.phase === 'flipping' && etat.flip && etat.flip.flipper === idx) {
+    const f = etat.flip
+    const ownRevealed = f.revealed.filter((r) => r.owner === idx).length
+    if (ownRevealed < etat.players[idx].stack.length) return flipCard(etat, idx)
+    const candidates = etat.players
+      .map((pl, i) => ({ i, left: pl.stack.length - f.revealed.filter((r) => r.owner === i).length }))
+      .filter((c) => c.i !== idx && c.left > 0)
+    if (candidates.length === 0) return etat
+    const pick = candidates[Math.floor(Math.random() * candidates.length)]
+    return flipCard(etat, pick.i)
+  }
+  if (etat.phase === 'round_end') return nextRound(etat)
+  return etat
+}
+
 // ---------- RPC ----------
 async function rpc(fn, params) {
   const { data, error } = await supabase.rpc(fn, params)
@@ -187,6 +222,14 @@ export async function pokerState(sessionId) {
 }
 export async function pokerLeave(sessionId, userId) {
   return rpc('poker_leave', { p_session: sessionId, p_user: userId })
+}
+export async function pokerAddBot(sessionId) {
+  const r = await rpc('poker_add_bot', { p_session: sessionId })
+  return r.error ? r : r.data
+}
+export async function pokerRemoveBot(sessionId) {
+  const r = await rpc('poker_remove_bot', { p_session: sessionId })
+  return r.error ? r : r.data
 }
 
 export function subscribePoker(sessionId, onPing) {

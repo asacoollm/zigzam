@@ -171,6 +171,10 @@
 .poker__btn:disabled { opacity: 0.5; }
 .poker__btn--sm { min-height: 44px; padding: 0 14px; font-size: 14.5px; }
 .poker__btn--accent { background: linear-gradient(90deg, #ff8c42, #ef4444); }
+.poker__btn--ghost { background: rgba(124, 58, 255, 0.12); color: var(--violet-fonce); box-shadow: none; }
+
+/* Boutons bots dans la salle d'attente */
+.poker__bot-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
 
 /* ----- Overlay résultats ----- */
 .poker__overlay {
