@@ -49,7 +49,7 @@ begin
   if v_u.id is null then return jsonb_build_object('error', 'no_user'); end if;
 
   select * into s from public.flava_sessions
-    where statut = 'waiting' order by date desc limit 1 for update;
+    where statut = 'waiting' order by started_at desc limit 1 for update;
   if s.id is null then
     insert into public.flava_sessions(seed, taille, statut, zones_active)
       values ((floor(random() * 2000000000))::bigint, 10, 'waiting', '{}')
