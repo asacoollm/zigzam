@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   ROCK, ZONE, TICK_MS, LAVA_DELAY_MS, buildBoard, lavaAtTick, isLavaCell, emptyLavaGrid, botStep,
-  flavaJoin, flavaState, flavaMove, flavaActivate, flavaEliminate, flavaLeave,
+  flavaJoin, flavaState, flavaMove, flavaActivate, flavaBurn, flavaLeave,
   flavaStart, flavaAddBot, flavaRemoveBot, flavaSetBots,
   subscribeFlava, broadcastFlava,
 } from '../lib/flavaMulti'
@@ -13,7 +13,9 @@ import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 
 const AIRBORNE_MS = 1500
-const JUMP_CD = 800
+const JUMP_CD = 1000          // recharge du saut APRÈS l'atterrissage
+const BURN_MS = 5000          // durée « brûlé » avant résurrection
+const REVIVE_GRACE_MS = 1500  // immunité brève après la résurrection
 
 // Un avatar est-il « large » (animal terrestre) → recentrage spécifique.
 function isWide(avatar) {
@@ -30,6 +32,8 @@ export default function FloorMulti({ onBack }) {
   const [airborne, setAirborne] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const [activeAt, setActiveAt] = useState(null) // instant LOCAL de démarrage (chrono lave)
+  const [burnedUntil, setBurnedUntil] = useState(0) // brûlé jusqu'à (ms) — résurrection
+  const [jumpReadyAt, setJumpReadyAt] = useState(0) // saut prêt à (ms) — barre/recharge
   const [error, setError] = useState('')
 
   const channelRef = useRef(null)
@@ -37,10 +41,11 @@ export default function FloorMulti({ onBack }) {
   const jumpReadyRef = useRef(0)
   const landTimer = useRef(null)
   const posRef = useRef(null)
-  const eliminatedRef = useRef(false)
   const sessionRef = useRef(null)
   const startedRef = useRef(false)
   const activeAtRef = useRef(null) // instant LOCAL où ce client voit la partie active
+  const burnedUntilRef = useRef(0)
+  const reviveImmuneRef = useRef(0)
 
   const session = data?.session || null
   const players = data?.players || []
@@ -143,19 +148,44 @@ export default function FloorMulti({ onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.id])
 
-  // Détection d'élimination : sur la lave, pas en l'air, encore vivant.
+  // Brûlure (résurrection) : toucher la lave (pas en l'air) → brûlé 5 s, pas mort.
   useEffect(() => {
-    if (!lava || !pos || finished || eliminatedRef.current || !myAlive) return
+    if (!lava || !pos || finished || session?.statut !== 'active') return
+    const nowMs = Date.now()
+    if (burnedUntilRef.current > nowMs || reviveImmuneRef.current > nowMs) return
     if (isLavaCell(lava, pos.r, pos.c) && !airborneRef.current) {
-      eliminatedRef.current = true
+      const until = nowMs + BURN_MS
+      burnedUntilRef.current = until
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBurnedUntil(until)
       const sid = sessionRef.current?.id
-      if (sid) flavaEliminate(sid, user.id).then((s) => {
-        applyState(s)
+      if (sid) flavaBurn(sid, user.id).then(() => {
         if (channelRef.current) broadcastFlava(channelRef.current)
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lava, pos, finished, myAlive])
+  }, [lava, pos, finished, session?.statut])
+
+  // Résurrection : quand la brûlure se termine, on revit au centre (case de départ)
+  // avec une courte immunité.
+  useEffect(() => {
+    if (burnedUntil <= 0 || now < burnedUntil) return
+    const sess = sessionRef.current
+    const center = sess ? sess.taille >> 1 : 0
+    const safe = { r: center, c: center }
+    posRef.current = safe
+    burnedUntilRef.current = 0
+    reviveImmuneRef.current = Date.now() + REVIVE_GRACE_MS
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPos(safe)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setBurnedUntil(0)
+    if (sess?.id) {
+      flavaMove(sess.id, user.id, safe.r, safe.c)
+      if (channelRef.current) broadcastFlava(channelRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [now, burnedUntil])
 
   // Crédite les donuts gagnés (victoire commune) une seule fois.
   const wonRef = useRef(false)
@@ -198,7 +228,7 @@ export default function FloorMulti({ onBack }) {
   }, [board, session?.id, session?.statut, hostId, user.id])
 
   const move = useCallback((dr, dc) => {
-    if (finished || eliminatedRef.current || sessionRef.current?.statut !== 'active') return
+    if (finished || burnedUntilRef.current > Date.now() || sessionRef.current?.statut !== 'active') return
     const cur = posRef.current
     if (!cur || !board) return
     const nr = cur.r + dr
@@ -224,17 +254,19 @@ export default function FloorMulti({ onBack }) {
   }, [board, finished, session, user.id, applyState])
 
   const jump = useCallback(() => {
-    if (finished || eliminatedRef.current) return
-    const now = Date.now()
-    if (now < jumpReadyRef.current) return
-    jumpReadyRef.current = now + JUMP_CD
+    if (finished || burnedUntilRef.current > Date.now()) return
+    const t = Date.now()
+    if (t < jumpReadyRef.current) return // en recharge
+    // Prêt de nouveau après l'immunité (saut) + la recharge.
+    jumpReadyRef.current = t + AIRBORNE_MS + JUMP_CD
+    setJumpReadyAt(jumpReadyRef.current)
     airborneRef.current = true
     setAirborne(true)
     clearTimeout(landTimer.current)
     landTimer.current = setTimeout(() => {
       airborneRef.current = false
       setAirborne(false)
-      setNow(Date.now()) // force une réévaluation d'élimination à l'atterrissage
+      setNow(Date.now())
     }, AIRBORNE_MS)
   }, [finished])
 
@@ -312,8 +344,12 @@ export default function FloorMulti({ onBack }) {
   const zonesActive = session.zones_active || []
   const zonesOn = zonesActive.length
   const zonesTotal = board.zones.length
-  const aliveCount = players.filter((p) => p.alive).length
   const others = players.filter((p) => p.user_id !== user.id)
+  const burned = burnedUntil > now // moi, en train de brûler
+  const burnSecs = burned ? Math.ceil((burnedUntil - now) / 1000) : 0
+  const isBurned = (p) => p.burned_until && p.burned_until > now // autres joueurs
+  const jumpCooling = !airborne && now < jumpReadyAt
+  const jumpRemain = jumpCooling ? Math.ceil((jumpReadyAt - now) / 1000) : 0
 
   // ----- Salle d'attente multijoueur -----
   if (session.statut === 'waiting') {
@@ -369,7 +405,7 @@ export default function FloorMulti({ onBack }) {
       <h1 className="flava__title">Floor is Lava 👥</h1>
       <p className="flava__hint">
         Partie commune ! Activez ensemble les <strong>{zonesTotal} zones</strong>.
-        {!myAlive && ' Tu es éliminé — encourage les survivants ! 👀'}
+        {' '}Touché par la lave&nbsp;? Tu brûles 5&nbsp;s puis tu revis 🔥
       </p>
 
       <div className="flava__stage" style={{ '--size': size }}>
@@ -400,11 +436,12 @@ export default function FloorMulti({ onBack }) {
           {others.map((p) => (
             <div
               key={p.user_id}
-              className={`flava__player flava__player--other ${isWide(p.avatar) ? 'flava__player--wide' : ''} ${p.alive ? '' : 'flava__player--dead'}`}
+              className={`flava__player flava__player--other ${isWide(p.avatar) ? 'flava__player--wide' : ''} ${isBurned(p) ? 'flava__player--burned' : ''}`}
               style={{ gridColumn: p.c + 1, gridRow: p.r + 1 }}
             >
               <span className="flava__player-shadow flava__player-shadow--other" />
               <FallGuy avatar={p.avatar} role={p.role} anim={p.alive ? 'idle' : null} />
+              {isBurned(p) && <span className="flava__flames">🔥</span>}
               <span className="flava__player-name">{p.pseudo}</span>
             </div>
           ))}
@@ -423,13 +460,20 @@ export default function FloorMulti({ onBack }) {
 
           {pos && (
             <div
-              className={`flava__player ${airborne ? 'flava__player--air' : ''} ${isWide(user.avatar) ? 'flava__player--wide' : ''} ${myAlive ? '' : 'flava__player--dead'}`}
+              className={`flava__player ${airborne ? 'flava__player--air' : ''} ${isWide(user.avatar) ? 'flava__player--wide' : ''} ${burned ? 'flava__player--burned' : ''}`}
               style={{ gridColumn: pos.c + 1, gridRow: pos.r + 1 }}
             >
               <span className="flava__player-shadow" />
               <span className="flava__player-aura" />
-              <span className="flava__player-arrow" />
+              {!burned && <span className="flava__player-arrow" />}
+              {/* Barre d'immunité du saut (se vide pendant le saut) */}
+              {airborne && (
+                <span className="flava__jumpbar">
+                  <span className="flava__jumpbar-fill" style={{ animationDuration: `${AIRBORNE_MS}ms` }} />
+                </span>
+              )}
               <FallGuy avatar={user?.avatar} role={user?.role} anim={airborne ? 'jump' : 'idle'} />
+              {burned && <span className="flava__flames">🔥</span>}
             </div>
           )}
         </div>
@@ -443,7 +487,13 @@ export default function FloorMulti({ onBack }) {
           <button className="flava__key flava-submerge flava__key--right" onClick={() => move(0, 1)}>▶</button>
           <button className="flava__key flava-submerge flava__key--down" onClick={() => move(1, 0)}>▼</button>
         </div>
-        <button className="flava__jump flava-submerge" onClick={jump}>SAUT<br />⤴</button>
+        <button
+          className={`flava__jump flava-submerge ${jumpCooling ? 'flava__jump--cd' : ''}`}
+          onClick={jump}
+          disabled={airborne || jumpCooling || burned}
+        >
+          {jumpCooling ? <>⏳<br />{jumpRemain}s</> : <>SAUT<br />⤴</>}
+        </button>
       </div>
 
       {/* Fin de partie commune */}
@@ -481,9 +531,9 @@ export default function FloorMulti({ onBack }) {
         </div>
       )}
 
-      {/* Éliminé mais la partie continue : mode spectateur */}
-      {!finished && !myAlive && (
-        <div className="flava__spectate">👀 Mode spectateur — survivants : {aliveCount}</div>
+      {/* Brûlé : on ne meurt pas, on revit dans quelques secondes */}
+      {!finished && burned && (
+        <div className="flava__spectate flava__spectate--burn">🔥 Brûlé ! Tu revis dans {burnSecs}s…</div>
       )}
     </div>
   )

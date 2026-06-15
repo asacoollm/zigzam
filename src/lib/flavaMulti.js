@@ -171,6 +171,10 @@ export async function flavaEliminate(sessionId, userId) {
   const r = await rpc('flava_eliminate', { p_session: sessionId, p_user: userId })
   return r.error ? r : r.data
 }
+// Résurrection : marque le joueur « brûlé » 5 s (au lieu de l'éliminer).
+export async function flavaBurn(sessionId, userId) {
+  return rpc('flava_burn', { p_session: sessionId, p_user: userId })
+}
 export async function flavaLeave(sessionId, userId) {
   return rpc('flava_leave', { p_session: sessionId, p_user: userId })
 }

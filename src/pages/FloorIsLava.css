@@ -72,6 +72,9 @@
   width: min(86vw, 460px);
   aspect-ratio: 1;
   margin: 0 auto;
+  /* Taille d'UNE case en px (plateau − padding 14px − gaps 6px) ÷ nb de cases.
+     Sert au positionnement vertical de l'avatar/cercle en px (pas en %). */
+  --cell: calc((min(86vw, 460px) - 28px - (var(--size) - 1) * 6px) / var(--size));
 }
 .flava__board,
 .flava__grid-overlay {
@@ -175,26 +178,32 @@
 .flava__player svg {
   position: absolute;
   left: 50%;
-  bottom: 12%; /* pieds centrés sur le disque (cercle visible juste dessous) */
-  height: 168%;
+  /* Positionnement VERTICAL en px (basé sur --cell) : les pieds tombent
+     pile sur le bord supérieur du cercle (≈ 0.32 case). */
+  bottom: calc(var(--cell) * 0.25);
+  height: calc(var(--cell) * 1.7);
   width: auto;
-  transform: translateX(-50%);
+  /* Transform composable : --tx (centrage horizontal) + --ty (saut). */
+  --tx: -50%;
+  --ty: 0px;
+  transform: translate(var(--tx), var(--ty));
   z-index: 3;
   filter:
     drop-shadow(0 0 3px #fff)
     drop-shadow(0 0 7px rgba(255, 255, 255, 0.95))
     drop-shadow(0 7px 7px rgba(43, 35, 80, 0.45));
-  transition: bottom 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.flava__player--air svg { bottom: 68%; } /* saut : l'avatar décolle, l'ombre reste sur la case */
+/* Saut : l'avatar monte (translateY en px) ; le cercle, lui, ne bouge pas. */
+.flava__player--air svg { --ty: calc(var(--cell) * -0.95); }
 
-/* Repère de case : disque coloré lumineux au sol, montre où est le joueur. */
+/* Repère de case : cercle lumineux au sol, en bas du conteneur, centré. */
 .flava__player-shadow {
   position: absolute;
   left: 50%;
-  bottom: 4%;
-  width: 86%;
-  height: 30%;
+  bottom: calc(var(--cell) * 0.06);
+  width: calc(var(--cell) * 0.82);
+  height: calc(var(--cell) * 0.26);
   transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(124, 58, 255, 0.55), rgba(124, 58, 255, 0.12) 72%);
@@ -437,7 +446,7 @@
    60/210 = 28.57% : on aligne ce point sur le centre du disque.
    ============================================================ */
 .flava__player.flava__player--wide svg {
-  transform: translateX(-28.57%);
+  --tx: -28.57%;
 }
 
 /* ============================================================
@@ -474,8 +483,8 @@
 
 /* Avatars des autres joueurs : plus petits, avec pseudo */
 .flava__player--other svg {
-  height: 120%;
-  bottom: 14%; /* pieds centrés sur le disque (cohérent avec le joueur principal) */
+  height: calc(var(--cell) * 1.2);
+  bottom: calc(var(--cell) * 0.27); /* pieds sur le haut du cercle (cohérent avec le joueur principal) */
   filter:
     drop-shadow(0 0 2px #fff)
     drop-shadow(0 5px 5px rgba(43, 35, 80, 0.4));
@@ -504,6 +513,61 @@
 .flava__player--dead svg { filter: grayscale(1) opacity(0.45); }
 .flava__player--dead .flava__player-shadow,
 .flava__player--dead .flava__player-shadow--other { opacity: 0.3; }
+
+/* Joueur BRÛLÉ 🔥 (résurrection) : avatar rougi + flammes */
+.flava__player--burned svg {
+  filter: brightness(0.85) sepia(1) saturate(5) hue-rotate(-20deg)
+    drop-shadow(0 0 6px #ff7a18) drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
+}
+.flava__flames {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--cell) * 0.28);
+  transform: translateX(-50%);
+  font-size: calc(var(--cell) * 0.95);
+  z-index: 6;
+  pointer-events: none;
+  animation: flava-flames 0.35s ease-in-out infinite alternate;
+}
+@keyframes flava-flames {
+  from { transform: translateX(-50%) scale(0.9) translateY(0); opacity: 0.9; }
+  to { transform: translateX(-50%) scale(1.15) translateY(-8%); opacity: 1; }
+}
+
+/* Barre d'immunité du saut (se vide pendant le saut) */
+.flava__jumpbar {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(var(--cell) * -0.12);
+  width: calc(var(--cell) * 0.9);
+  height: 6px;
+  background: rgba(43, 35, 80, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  overflow: hidden;
+  z-index: 7;
+}
+.flava__jumpbar-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #3dd68c, #00bfff);
+  border-radius: 999px;
+  animation-name: flava-jumpbar;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes flava-jumpbar { from { width: 100%; } to { width: 0%; } }
+
+/* Bouton saut en recharge : grisé */
+.flava__jump--cd { opacity: 0.5; filter: grayscale(0.85); font-size: 13px; }
+
+.flava__spectate--burn { background: linear-gradient(90deg, #ff8c42, #ef4444); }
+
+@media (prefers-reduced-motion: reduce) {
+  .flava__flames { animation: none; }
+}
 
 .flava__spectate {
   position: fixed;
