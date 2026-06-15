@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
@@ -11,10 +12,32 @@ import Economie from './pages/Economie'
 import Parametres from './pages/Parametres'
 import Admin from './pages/Admin'
 import ParentalGuard from './components/ParentalGuard'
+import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
+import ReportButton from './components/ReportButton'
 
 export default function App() {
   const { user } = useAuth()
+
+  // Détecte l'ouverture du clavier mobile (focus d'un champ sur petit écran)
+  // → ajoute la classe body.kb-open pour masquer les widgets fixes du bas.
+  useEffect(() => {
+    const isField = (el) =>
+      el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+    const onFocusIn = (e) => {
+      if (isField(e.target) && window.innerWidth <= 640) {
+        document.body.classList.add('kb-open')
+      }
+    }
+    const onFocusOut = () => document.body.classList.remove('kb-open')
+    document.addEventListener('focusin', onFocusIn)
+    document.addEventListener('focusout', onFocusOut)
+    return () => {
+      document.removeEventListener('focusin', onFocusIn)
+      document.removeEventListener('focusout', onFocusOut)
+      document.body.classList.remove('kb-open')
+    }
+  }, [])
 
   // Destination par défaut selon l'état de l'utilisateur
   const home = !user
@@ -26,6 +49,7 @@ export default function App() {
   return (
     <>
     {user && !user.premiere_connexion && <ParentalGuard />}
+    {user && !user.premiere_connexion && <InactivityGuard />}
     <Routes>
       <Route
         path="/login"
@@ -108,6 +132,7 @@ export default function App() {
       <Route path="*" element={<Navigate to={home} replace />} />
     </Routes>
     <OnlineWidget />
+    <ReportButton />
     </>
   )
 }

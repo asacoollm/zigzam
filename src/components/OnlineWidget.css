@@ -106,3 +106,17 @@
   line-height: 1.4;
   color: #6b6486;
 }
+
+/* Masqué quand le clavier mobile est ouvert (ne gêne pas la saisie de message) */
+body.kb-open .online { display: none; }
+
+/* Mobile : widget plus compact, ne couvre pas les boutons d'action */
+@media (max-width: 520px) {
+  .online {
+    width: 190px;
+    left: 10px;
+    bottom: 10px;
+    font-size: 12.5px;
+  }
+  .online__list { max-height: 180px; }
+}

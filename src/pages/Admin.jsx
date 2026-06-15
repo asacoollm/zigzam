@@ -12,6 +12,8 @@ import {
   createInviteCode,
   listInviteCodes,
   toggleInviteCode,
+  adminListBugReports,
+  adminUpdateBugReport,
 } from '../lib/modules'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -552,6 +554,123 @@ function SectionCodes({ adminId }) {
   )
 }
 
+// --------------- Bug Reports 🚨 ---------------
+const BUG_STATUTS = [
+  { id: 'nouveau', label: '🆕 Nouveau' },
+  { id: 'en_cours', label: '🔧 En cours' },
+  { id: 'resolu', label: '✅ Résolu' },
+]
+
+function BugReportCard({ report, adminId, onUpdate }) {
+  const [note, setNote] = useState(report.note_admin ?? '')
+  const [savingNote, setSavingNote] = useState(false)
+  const [noteMsg, setNoteMsg] = useState(false)
+  const [statutLoading, setStatutLoading] = useState(null)
+
+  async function changeStatut(statut) {
+    setStatutLoading(statut)
+    const res = await adminUpdateBugReport(adminId, report.id, statut, note)
+    setStatutLoading(null)
+    if (!res.error) onUpdate(report.id, { statut })
+  }
+
+  async function saveNote() {
+    setSavingNote(true)
+    const res = await adminUpdateBugReport(adminId, report.id, report.statut, note)
+    setSavingNote(false)
+    if (!res.error) {
+      onUpdate(report.id, { note_admin: note })
+      setNoteMsg(true)
+      setTimeout(() => setNoteMsg(false), 2000)
+    }
+  }
+
+  return (
+    <article className={`bug-card bug-card--${report.statut}`}>
+      <div className="bug-card__head">
+        <div className="bug-card__author">
+          <FallGuy avatar={report.auteur?.avatar ?? null} className="bug-card__avatar" role={report.auteur?.role} />
+          <div className="bug-card__meta">
+            <span className="bug-card__pseudo">{report.auteur?.pseudo ?? 'Anonyme'}</span>
+            <span className="bug-card__date">{new Date(report.date).toLocaleString('fr-FR')}</span>
+          </div>
+        </div>
+        <span className={`bug-card__status bug-card__status--${report.statut}`}>
+          {BUG_STATUTS.find((s) => s.id === report.statut)?.label ?? report.statut}
+        </span>
+      </div>
+
+      <p className="bug-card__message">{report.message}</p>
+
+      <div className="bug-card__statuts">
+        {BUG_STATUTS.map((s) => (
+          <button
+            key={s.id}
+            className={`admin-btn admin-btn--sm ${report.statut === s.id ? 'admin-btn--primary' : ''}`}
+            onClick={() => changeStatut(s.id)}
+            disabled={statutLoading !== null || report.statut === s.id}
+          >
+            {statutLoading === s.id ? '…' : s.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="bug-card__note">
+        <textarea
+          className="admin-input bug-card__note-input"
+          placeholder="Note interne (visible par les admins)…"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={2}
+        />
+        <button className="admin-btn admin-btn--primary admin-btn--sm" onClick={saveNote} disabled={savingNote}>
+          {savingNote ? '…' : noteMsg ? '✅' : '💾 Note'}
+        </button>
+      </div>
+    </article>
+  )
+}
+
+function SectionBugReports({ adminId }) {
+  const [reports, setReports] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let on = true
+    adminListBugReports(adminId).then((data) => {
+      if (!on) return
+      setReports(Array.isArray(data) ? data : [])
+      setLoading(false)
+    })
+    return () => { on = false }
+  }, [adminId])
+
+  function patchReport(id, patch) {
+    setReports((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)))
+  }
+
+  const nouveaux = reports.filter((r) => r.statut === 'nouveau').length
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">
+        🚨 Bug Reports {nouveaux > 0 && <span className="bug-count">{nouveaux} nouveau{nouveaux > 1 ? 'x' : ''}</span>}
+      </h2>
+      {loading && <p className="admin-loading">Chargement…</p>}
+      {!loading && reports.length === 0 && (
+        <p className="admin-empty">Aucun signalement pour l'instant 🎉</p>
+      )}
+      {!loading && reports.length > 0 && (
+        <div className="bug-list">
+          {reports.map((r) => (
+            <BugReportCard key={r.id} report={r} adminId={adminId} onUpdate={patchReport} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 // --------------- Page principale ---------------
 export default function Admin() {
   const { user } = useAuth()
@@ -580,6 +699,8 @@ export default function Admin() {
       </header>
 
       <SectionActus adminId={user.id} />
+
+      <SectionBugReports adminId={user.id} />
 
       {isSuperAdmin && (
         <>
