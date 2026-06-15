@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-  pokerJoin, pokerStart, pokerSave, pokerFinish, pokerState, pokerLeave,
+  pokerJoin, pokerStart, pokerSave, pokerFinish, pokerWager, pokerState, pokerLeave,
   pokerAddBot, pokerRemoveBot, subscribePoker, broadcastPoker,
   initGame, placeDisk, launchChallenge, raise, pass, flipDisk, nextRound, botAction, actorIndex,
   flowersLeft, skullLeft, totalPlaced, ownedTotal,
@@ -27,12 +27,15 @@ export default function PokerDonuts() {
   const [bidInput, setBidInput] = useState(1)
   const [busy, setBusy] = useState(false)
   const [showRules, setShowRules] = useState(false)
+  const [betPrompt, setBetPrompt] = useState(null) // { amount } : popup de pari ouvert
+  const [betInput, setBetInput] = useState(0)
   const channelRef = useRef(null)
   const sessionRef = useRef(null)
   const finishedRef = useRef(false)
   const rewardedRef = useRef(false)
   const initRef = useRef(false)
   const botTimer = useRef(null)
+  const wagerRoundRef = useRef(-1) // manche dont le pari a déjà été réglé
 
   const session = data?.session || null
   const joueurs = data?.joueurs || []
@@ -114,6 +117,19 @@ export default function PokerDonuts() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [etat?.phase, etat?.winner])
 
+  // Règle MON pari perso de challenger à la fin de la manche (serveur).
+  useEffect(() => {
+    if (etat?.phase !== 'round_end' || !etat.bet || !etat.resolve) return
+    if (etat.bet.player !== etat.resolve.challenger) return // le parieur a été surenchéri
+    if (etat.players[etat.bet.player]?.user_id !== user.id) return // pas mon pari
+    if (wagerRoundRef.current === etat.round) return
+    wagerRoundRef.current = etat.round
+    pokerWager(user.id, etat.bet.amount, !!etat.resolve.success).then((res) => {
+      if (res?.ok) updateUser({ donuts: res.donuts })
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [etat?.phase, etat?.round])
+
   // Pilote des bots : seul l'hôte (1er joueur humain) joue les coups des bots.
   useEffect(() => {
     const e = data?.etat && data.etat.players ? data.etat : null
@@ -178,6 +194,43 @@ export default function PokerDonuts() {
       </div>
     </div>
   )
+
+  // Popup : parier des donuts (perso) sur le défi qu'on lance.
+  const launchWithBet = (bet) => {
+    const amount = betPrompt.amount
+    setBetPrompt(null)
+    push(launchChallenge(etat, myIdx, amount, bet))
+  }
+  const betModal = () => {
+    const max = user.donuts
+    const val = Math.max(0, Math.min(betInput, max))
+    return (
+      <div className="poker__overlay" onMouseDown={() => setBetPrompt(null)}>
+        <div className="poker__rules" onMouseDown={(e) => e.stopPropagation()}>
+          <h2 className="poker__rules-title">🍩 Parier des donuts ?</h2>
+          <p className="poker__bet-text">
+            Tu lances un défi de <strong>{betPrompt.amount} disque(s)</strong>.<br />
+            Veux-tu parier des donuts dessus&nbsp;? Réussite → tu gagnes ta mise, échec → tu la perds.
+          </p>
+          <p className="poker__bet-balance">Ton solde : <strong>{max} 🍩</strong></p>
+          <input
+            className="poker__bid-input poker__bet-input"
+            type="number" min="0" max={max}
+            value={betInput}
+            onChange={(e) => setBetInput(Number(e.target.value))}
+          />
+          <div className="poker__panel-actions">
+            <button className="poker__btn" disabled={val <= 0} onClick={() => launchWithBet(val)}>
+              Parier {val} 🍩
+            </button>
+            <button className="poker__btn poker__btn--ghost" onClick={() => launchWithBet(0)}>
+              Jouer sans parier
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!session) {
     return <div className="poker"><Backdrop /><div className="poker__loading">🃏 Connexion à la table…</div></div>
@@ -364,7 +417,7 @@ export default function PokerDonuts() {
             <input className="poker__bid-input" type="number" min="1" max={placed}
               value={bidInput} onChange={(e) => setBidInput(Number(e.target.value))} />
             <button className="poker__btn poker__btn--sm poker__btn--accent" disabled={busy || placed < 1}
-              onClick={() => push(launchChallenge(etat, myIdx, Math.max(1, Math.min(bidInput, placed))))}>
+              onClick={() => { setBetInput(0); setBetPrompt({ amount: Math.max(1, Math.min(bidInput, placed)) }) }}>
               Lancer un défi : {Math.max(1, Math.min(bidInput, placed))} 🎯
             </button>
           </div>
@@ -383,16 +436,27 @@ export default function PokerDonuts() {
         )}
 
         {etat.phase === 'resolving' && (
-          <p className="poker__instruct">
-            {isChallenger
-              ? `Retourne ${r.target} disque(s) — clique d'abord sur TES disques 👆`
-              : `${players[r.challenger]?.pseudo} retourne les disques…`}
-          </p>
+          <>
+            <p className="poker__instruct">
+              {isChallenger
+                ? `Retourne ${r.target} disque(s) — clique d'abord sur TES disques 👆`
+                : `${players[r.challenger]?.pseudo} retourne les disques…`}
+            </p>
+            {etat.bet && etat.bet.player === r.challenger && (
+              <p className="poker__bet-tag">🍩 Pari : {etat.bet.amount} donut(s) sur ce défi</p>
+            )}
+          </>
         )}
 
         {etat.phase === 'round_end' && (
           <>
             <p className="poker__instruct">{r?.success ? '🎉 ' : '💀 '}{etat.log}</p>
+            {etat.bet && etat.bet.player === r?.challenger && (
+              <p className={`poker__bet-tag ${r?.success ? 'poker__bet-tag--win' : 'poker__bet-tag--lose'}`}>
+                {r?.success ? `+${etat.bet.amount}` : `-${etat.bet.amount}`} 🍩
+                {' '}({players[etat.bet.player]?.pseudo} avait parié)
+              </p>
+            )}
             {isMyTurn && (
               <button className="poker__btn poker__btn--sm" disabled={busy}
                 onClick={() => push(nextRound(etat))}>Manche suivante →</button>
@@ -406,6 +470,7 @@ export default function PokerDonuts() {
       </div>
 
       {showRules && rulesModal()}
+      {betPrompt && betModal()}
     </div>
   )
 }

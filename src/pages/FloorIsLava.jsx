@@ -255,7 +255,9 @@ export default function FloorIsLava() {
             <span className="flava__player-shadow" />
             <span className="flava__player-aura" />
             <span className="flava__player-arrow" />
-            <FallGuy avatar={user?.avatar} role={user?.role} anim={airborne ? 'jump' : 'idle'} />
+            <div className="flava__avatar">
+              <FallGuy avatar={user?.avatar} role={user?.role} anim={airborne ? 'jump' : 'idle'} />
+            </div>
           </div>
         </div>
       </div>

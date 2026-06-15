@@ -440,7 +440,9 @@ export default function FloorMulti({ onBack }) {
               style={{ gridColumn: p.c + 1, gridRow: p.r + 1 }}
             >
               <span className="flava__player-shadow flava__player-shadow--other" />
-              <FallGuy avatar={p.avatar} role={p.role} anim={p.alive ? 'idle' : null} />
+              <div className="flava__avatar">
+                <FallGuy avatar={p.avatar} role={p.role} anim={p.alive ? 'idle' : null} />
+              </div>
               {isBurned(p) && <span className="flava__flames">🔥</span>}
               <span className="flava__player-name">{p.pseudo}</span>
             </div>
@@ -453,7 +455,9 @@ export default function FloorMulti({ onBack }) {
               style={{ gridColumn: b.c + 1, gridRow: b.r + 1 }}
             >
               <span className="flava__player-shadow flava__player-shadow--other" />
-              <FallGuy avatar={b.avatar} anim={b.alive ? 'idle' : null} />
+              <div className="flava__avatar">
+                <FallGuy avatar={b.avatar} anim={b.alive ? 'idle' : null} />
+              </div>
               <span className="flava__player-name">{b.pseudo}</span>
             </div>
           ))}
@@ -472,7 +476,9 @@ export default function FloorMulti({ onBack }) {
                   <span className="flava__jumpbar-fill" style={{ animationDuration: `${AIRBORNE_MS}ms` }} />
                 </span>
               )}
-              <FallGuy avatar={user?.avatar} role={user?.role} anim={airborne ? 'jump' : 'idle'} />
+              <div className="flava__avatar">
+                <FallGuy avatar={user?.avatar} role={user?.role} anim={airborne ? 'jump' : 'idle'} />
+              </div>
               {burned && <span className="flava__flames">🔥</span>}
             </div>
           )}

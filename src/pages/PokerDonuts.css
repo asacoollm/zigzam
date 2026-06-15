@@ -271,3 +271,14 @@
   .poker__seat-av { width: 32px; height: 42px; }
   .poker__seat-name { font-size: 10.5px; }
 }
+
+/* ----- Pari de donuts ----- */
+.poker__bet-text { font-size: 15px; line-height: 1.5; color: var(--texte); margin: 0 0 8px; text-align: center; }
+.poker__bet-balance { font-size: 14px; color: var(--texte-doux); margin: 0 0 10px; text-align: center; }
+.poker__bet-input { width: 120px; display: block; margin: 0 auto 14px; }
+.poker__bet-tag {
+  width: 100%; text-align: center; margin: 6px 0 0;
+  font-size: 14px; font-weight: 800; color: var(--violet-fonce);
+}
+.poker__bet-tag--win { color: #1e8a5a; }
+.poker__bet-tag--lose { color: #c0392b; }

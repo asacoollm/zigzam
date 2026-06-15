@@ -173,29 +173,34 @@
   min-height: 0;
   animation: flava-hop 0.18s ease-out;
 }
-/* Avatar : grand (occupe presque toute la hauteur de la case + dépasse un peu),
-   avec un contour lumineux pour bien le distinguer des cases. */
-.flava__player svg {
+/* CONTENEUR de l'avatar : c'est LUI qui gère le centrage (left/translateX) et
+   le saut (translateY). Indispensable car l'animation fg-idle/fg-jump pose un
+   `transform` sur le <svg> qui écraserait sinon le translateX de centrage. */
+.flava__avatar {
   position: absolute;
   left: 50%;
-  /* Positionnement VERTICAL en px (basé sur --cell) : les pieds tombent
-     pile sur le bord supérieur du cercle (≈ 0.32 case). */
-  bottom: calc(var(--cell) * 0.25);
+  bottom: calc(var(--cell) * 0.25); /* pieds pile sur le haut du cercle */
   height: calc(var(--cell) * 1.7);
-  width: auto;
-  /* Transform composable : --tx (centrage horizontal) + --ty (saut). */
   --tx: -50%;
   --ty: 0px;
   transform: translate(var(--tx), var(--ty));
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 3;
+  display: flex;
+  justify-content: center; /* le bonhomme est centré dans le conteneur */
+}
+/* Le <svg> remplit le conteneur ; son animation (translateY/rotate) reste interne. */
+.flava__avatar svg {
+  height: 100%;
+  width: auto;
+  display: block;
   filter:
     drop-shadow(0 0 3px #fff)
     drop-shadow(0 0 7px rgba(255, 255, 255, 0.95))
     drop-shadow(0 7px 7px rgba(43, 35, 80, 0.45));
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-/* Saut : l'avatar monte (translateY en px) ; le cercle, lui, ne bouge pas. */
-.flava__player--air svg { --ty: calc(var(--cell) * -0.95); }
+/* Saut : le conteneur monte (translateY en px) ; le cercle ne bouge pas. */
+.flava__player--air .flava__avatar { --ty: calc(var(--cell) * -0.95); }
 
 /* Repère de case : cercle lumineux au sol, en bas du conteneur, centré. */
 .flava__player-shadow {
@@ -445,7 +450,7 @@
    Avec un animal, le viewBox passe à 210 → le perso est à
    60/210 = 28.57% : on aligne ce point sur le centre du disque.
    ============================================================ */
-.flava__player.flava__player--wide svg {
+.flava__player.flava__player--wide .flava__avatar {
   --tx: -28.57%;
 }
 
@@ -482,9 +487,11 @@
 .flava__mode-desc { font-size: 13.5px; color: var(--texte-doux); text-align: center; line-height: 1.4; }
 
 /* Avatars des autres joueurs : plus petits, avec pseudo */
-.flava__player--other svg {
+.flava__player--other .flava__avatar {
   height: calc(var(--cell) * 1.2);
   bottom: calc(var(--cell) * 0.27); /* pieds sur le haut du cercle (cohérent avec le joueur principal) */
+}
+.flava__player--other .flava__avatar svg {
   filter:
     drop-shadow(0 0 2px #fff)
     drop-shadow(0 5px 5px rgba(43, 35, 80, 0.4));
@@ -510,12 +517,12 @@
   pointer-events: none;
 }
 /* Joueur éliminé : fantôme grisé */
-.flava__player--dead svg { filter: grayscale(1) opacity(0.45); }
+.flava__player--dead .flava__avatar svg { filter: grayscale(1) opacity(0.45); }
 .flava__player--dead .flava__player-shadow,
 .flava__player--dead .flava__player-shadow--other { opacity: 0.3; }
 
 /* Joueur BRÛLÉ 🔥 (résurrection) : avatar rougi + flammes */
-.flava__player--burned svg {
+.flava__player--burned .flava__avatar svg {
   filter: brightness(0.85) sepia(1) saturate(5) hue-rotate(-20deg)
     drop-shadow(0 0 6px #ff7a18) drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
 }
