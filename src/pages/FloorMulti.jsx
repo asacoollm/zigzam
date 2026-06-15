@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-  ROCK, ZONE, buildBoard, lavaAtTick, multiTick, isLavaCell,
-  flavaJoin, flavaState, flavaMove, flavaActivate, flavaEliminate, flavaLeave,
+  ROCK, ZONE, TICK_MS, LAVA_DELAY_MS, buildBoard, lavaAtTick, isLavaCell, emptyLavaGrid, botStep,
+  flavaJoin, flavaState, flavaMove, flavaActivate, flavaBurn, flavaLeave,
+  flavaStart, flavaAddBot, flavaRemoveBot, flavaSetBots,
   subscribeFlava, broadcastFlava,
 } from '../lib/flavaMulti'
 import { normalizeAvatar } from '../lib/avatar'
@@ -12,7 +13,9 @@ import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 
 const AIRBORNE_MS = 1500
-const JUMP_CD = 800
+const JUMP_CD = 1000          // recharge du saut APRÈS l'atterrissage
+const BURN_MS = 5000          // durée « brûlé » avant résurrection
+const REVIVE_GRACE_MS = 1500  // immunité brève après la résurrection
 
 // Un avatar est-il « large » (animal terrestre) → recentrage spécifique.
 function isWide(avatar) {
@@ -28,6 +31,9 @@ export default function FloorMulti({ onBack }) {
   const [pos, setPos] = useState(null)       // ma position { r, c } (locale, réactive)
   const [airborne, setAirborne] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const [activeAt, setActiveAt] = useState(null) // instant LOCAL de démarrage (chrono lave)
+  const [burnedUntil, setBurnedUntil] = useState(0) // brûlé jusqu'à (ms) — résurrection
+  const [jumpReadyAt, setJumpReadyAt] = useState(0) // saut prêt à (ms) — barre/recharge
   const [error, setError] = useState('')
 
   const channelRef = useRef(null)
@@ -35,11 +41,16 @@ export default function FloorMulti({ onBack }) {
   const jumpReadyRef = useRef(0)
   const landTimer = useRef(null)
   const posRef = useRef(null)
-  const eliminatedRef = useRef(false)
   const sessionRef = useRef(null)
+  const startedRef = useRef(false)
+  const activeAtRef = useRef(null) // instant LOCAL où ce client voit la partie active
+  const burnedUntilRef = useRef(0)
+  const reviveImmuneRef = useRef(0)
 
   const session = data?.session || null
   const players = data?.players || []
+  const bots = session?.bots || []
+  const hostId = players[0]?.user_id || null // 1er humain = hôte (pilote les bots)
   const me = players.find((p) => p.user_id === user.id) || null
   const myAlive = me ? me.alive : true
   const finished = session?.statut === 'finished'
@@ -50,12 +61,17 @@ export default function FloorMulti({ onBack }) {
     return buildBoard(session.taille, session.seed)
   }, [session?.taille, session?.seed]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Lave courante (déterministe, synchronisée par started_at).
+  // Lave courante (déterministe). Le temps écoulé est mesuré LOCALEMENT (depuis
+  // que CE client voit la partie active) → robuste aux décalages d'horloge entre
+  // le navigateur et le serveur (sinon : lave instantanée → élimination immédiate).
   const lava = useMemo(() => {
     if (!session || !board) return null
-    const T = multiTick(session.started_at, now)
+    if (session.statut !== 'active' || !activeAt) return emptyLavaGrid(session.taille)
+    const elapsed = now - activeAt
+    if (elapsed < LAVA_DELAY_MS) return emptyLavaGrid(session.taille) // répit ~5 s
+    const T = Math.floor((elapsed - LAVA_DELAY_MS) / TICK_MS)
     return lavaAtTick(session.taille, session.seed, board.terrain, T)
-  }, [session?.taille, session?.seed, session?.started_at, board, now]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session?.statut, session?.taille, session?.seed, board, now, activeAt]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Niveau de lave (#1 — submersion des boutons proportionnelle).
   const submerge = useMemo(() => {
@@ -70,11 +86,30 @@ export default function FloorMulti({ onBack }) {
     if (!st || st.error) { setError('Connexion à la partie impossible. Réessaie !'); return }
     setData(st)
     sessionRef.current = st.session
+    // Repère LOCAL de démarrage de la partie (pour le chrono de la lave) :
+    // robuste aux décalages d'horloge navigateur/serveur.
+    if (st.session.statut === 'active') {
+      if (!activeAtRef.current) {
+        const t = Date.now()
+        activeAtRef.current = t
+        setActiveAt(t)
+      }
+    } else if (activeAtRef.current) {
+      activeAtRef.current = null
+      setActiveAt(null)
+    }
     const mine = st.players.find((p) => p.user_id === user.id)
-    // On adopte la position serveur seulement si on n'en a pas encore localement.
-    if (mine && !posRef.current) {
-      posRef.current = { r: mine.r, c: mine.c }
-      setPos({ r: mine.r, c: mine.c })
+    if (mine) {
+      // Pendant l'attente, on suit le centre ; au démarrage (waiting → active),
+      // on adopte la position serveur (plateau recentré). Ensuite, position locale.
+      if (!posRef.current || st.session.statut === 'waiting') {
+        posRef.current = { r: mine.r, c: mine.c }
+        setPos({ r: mine.r, c: mine.c })
+      } else if (st.session.statut === 'active' && !startedRef.current) {
+        startedRef.current = true
+        posRef.current = { r: mine.r, c: mine.c }
+        setPos({ r: mine.r, c: mine.c })
+      }
     }
   }, [user.id])
 
@@ -113,19 +148,44 @@ export default function FloorMulti({ onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.id])
 
-  // Détection d'élimination : sur la lave, pas en l'air, encore vivant.
+  // Brûlure (résurrection) : toucher la lave (pas en l'air) → brûlé 5 s, pas mort.
   useEffect(() => {
-    if (!lava || !pos || finished || eliminatedRef.current || !myAlive) return
+    if (!lava || !pos || finished || session?.statut !== 'active') return
+    const nowMs = Date.now()
+    if (burnedUntilRef.current > nowMs || reviveImmuneRef.current > nowMs) return
     if (isLavaCell(lava, pos.r, pos.c) && !airborneRef.current) {
-      eliminatedRef.current = true
+      const until = nowMs + BURN_MS
+      burnedUntilRef.current = until
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBurnedUntil(until)
       const sid = sessionRef.current?.id
-      if (sid) flavaEliminate(sid, user.id).then((s) => {
-        applyState(s)
+      if (sid) flavaBurn(sid, user.id).then(() => {
         if (channelRef.current) broadcastFlava(channelRef.current)
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lava, pos, finished, myAlive])
+  }, [lava, pos, finished, session?.statut])
+
+  // Résurrection : quand la brûlure se termine, on revit au centre (case de départ)
+  // avec une courte immunité.
+  useEffect(() => {
+    if (burnedUntil <= 0 || now < burnedUntil) return
+    const sess = sessionRef.current
+    const center = sess ? sess.taille >> 1 : 0
+    const safe = { r: center, c: center }
+    posRef.current = safe
+    burnedUntilRef.current = 0
+    reviveImmuneRef.current = Date.now() + REVIVE_GRACE_MS
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPos(safe)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setBurnedUntil(0)
+    if (sess?.id) {
+      flavaMove(sess.id, user.id, safe.r, safe.c)
+      if (channelRef.current) broadcastFlava(channelRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [now, burnedUntil])
 
   // Crédite les donuts gagnés (victoire commune) une seule fois.
   const wonRef = useRef(false)
@@ -137,8 +197,38 @@ export default function FloorMulti({ onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished, session?.resultat])
 
+  // Pilote des bots : seul l'hôte (1er humain) déplace les bots (évitent la
+  // lave, foncent sur les zones) et active les zones qu'ils atteignent.
+  useEffect(() => {
+    if (!board || session?.statut !== 'active' || hostId !== user.id) return
+    const id = setInterval(() => {
+      const sess = sessionRef.current
+      if (!sess || sess.statut !== 'active') return
+      const list = sess.bots || []
+      if (list.length === 0) return
+      const elapsed = activeAtRef.current ? Date.now() - activeAtRef.current : 0
+      const lavaNow = elapsed < LAVA_DELAY_MS
+        ? emptyLavaGrid(sess.taille)
+        : lavaAtTick(sess.taille, sess.seed, board.terrain, Math.floor((elapsed - LAVA_DELAY_MS) / TICK_MS))
+      const zonesActive = sess.zones_active || []
+      const newBots = list.map((b) => botStep(board, lavaNow, b, zonesActive, sess.taille))
+      newBots.forEach((b) => {
+        if (!b.alive) return
+        const idx = board.zones.findIndex((z) => z.r === b.r && z.c === b.c)
+        if (idx >= 0 && !zonesActive.includes(idx)) {
+          flavaActivate(sess.id, user.id, idx, board.zones.length).then((s) => applyState(s))
+        }
+      })
+      flavaSetBots(sess.id, newBots)
+      setData((d) => (d ? { ...d, session: { ...d.session, bots: newBots } } : d))
+      if (channelRef.current) broadcastFlava(channelRef.current)
+    }, 500)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [board, session?.id, session?.statut, hostId, user.id])
+
   const move = useCallback((dr, dc) => {
-    if (finished || eliminatedRef.current) return
+    if (finished || burnedUntilRef.current > Date.now() || sessionRef.current?.statut !== 'active') return
     const cur = posRef.current
     if (!cur || !board) return
     const nr = cur.r + dr
@@ -164,17 +254,19 @@ export default function FloorMulti({ onBack }) {
   }, [board, finished, session, user.id, applyState])
 
   const jump = useCallback(() => {
-    if (finished || eliminatedRef.current) return
-    const now = Date.now()
-    if (now < jumpReadyRef.current) return
-    jumpReadyRef.current = now + JUMP_CD
+    if (finished || burnedUntilRef.current > Date.now()) return
+    const t = Date.now()
+    if (t < jumpReadyRef.current) return // en recharge
+    // Prêt de nouveau après l'immunité (saut) + la recharge.
+    jumpReadyRef.current = t + AIRBORNE_MS + JUMP_CD
+    setJumpReadyAt(jumpReadyRef.current)
     airborneRef.current = true
     setAirborne(true)
     clearTimeout(landTimer.current)
     landTimer.current = setTimeout(() => {
       airborneRef.current = false
       setAirborne(false)
-      setNow(Date.now()) // force une réévaluation d'élimination à l'atterrissage
+      setNow(Date.now())
     }, AIRBORNE_MS)
   }, [finished])
 
@@ -198,6 +290,23 @@ export default function FloorMulti({ onBack }) {
     const sid = sessionRef.current?.id
     if (sid) flavaLeave(sid, user.id)
     onBack()
+  }
+
+  const afterLobby = (s) => {
+    applyState(s)
+    if (channelRef.current) broadcastFlava(channelRef.current)
+  }
+  const startGame = () => {
+    const sid = sessionRef.current?.id
+    if (sid) flavaStart(sid, user.id).then(afterLobby)
+  }
+  const addBot = () => {
+    const sid = sessionRef.current?.id
+    if (sid) flavaAddBot(sid).then(afterLobby)
+  }
+  const removeBot = () => {
+    const sid = sessionRef.current?.id
+    if (sid) flavaRemoveBot(sid).then(afterLobby)
   }
 
   if (error) {
@@ -235,8 +344,52 @@ export default function FloorMulti({ onBack }) {
   const zonesActive = session.zones_active || []
   const zonesOn = zonesActive.length
   const zonesTotal = board.zones.length
-  const aliveCount = players.filter((p) => p.alive).length
   const others = players.filter((p) => p.user_id !== user.id)
+  const burned = burnedUntil > now // moi, en train de brûler
+  const burnSecs = burned ? Math.ceil((burnedUntil - now) / 1000) : 0
+  const isBurned = (p) => p.burned_until && p.burned_until > now // autres joueurs
+  const jumpCooling = !airborne && now < jumpReadyAt
+  const jumpRemain = jumpCooling ? Math.ceil((jumpReadyAt - now) / 1000) : 0
+
+  // ----- Salle d'attente multijoueur -----
+  if (session.statut === 'waiting') {
+    const total = players.length + bots.length
+    return (
+      <div className="flava">
+        <Backdrop />
+        <header className="flava__top">
+          <button className="flava__back" onClick={leave}>⬅️ Quitter</button>
+          <span className="flava__level-hud">👥 Multijoueur</span>
+        </header>
+        <h1 className="flava__title">Floor is Lava 👥</h1>
+        <p className="flava__hint">Salle d'attente — minimum 2 joueurs (humains + bots).</p>
+        <div className="flava__lobby">
+          {players.map((p) => (
+            <div key={p.user_id} className="flava__lobby-player">
+              <FallGuy avatar={p.avatar} role={p.role} className="flava__lobby-av" anim="idle" />
+              <span className="flava__lobby-name">{p.pseudo}{p.user_id === user.id ? ' (toi)' : ''}</span>
+            </div>
+          ))}
+          {bots.map((b) => (
+            <div key={b.id} className="flava__lobby-player flava__lobby-player--bot">
+              <FallGuy avatar={b.avatar} className="flava__lobby-av" anim="idle" />
+              <span className="flava__lobby-name">{b.pseudo}</span>
+            </div>
+          ))}
+        </div>
+        <p className="flava__count">{total} joueur(s) · plateau {size}×{size}</p>
+        <div className="flava__lobby-btns">
+          <button className="flava__btn flava__btn--ghost" disabled={total >= 6} onClick={addBot}>🤖 Ajouter un bot</button>
+          {bots.length > 0 && (
+            <button className="flava__btn flava__btn--ghost" onClick={removeBot}>❌ Retirer un bot</button>
+          )}
+        </div>
+        <button className="flava__btn flava__lobby-start" disabled={total < 2} onClick={startGame}>
+          {total < 2 ? 'En attente de joueurs…' : 'Démarrer la partie 🚀'}
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={`flava ${finished ? 'flava--victory' : ''}`} style={{ '--lava-level': submerge }}>
@@ -252,7 +405,7 @@ export default function FloorMulti({ onBack }) {
       <h1 className="flava__title">Floor is Lava 👥</h1>
       <p className="flava__hint">
         Partie commune ! Activez ensemble les <strong>{zonesTotal} zones</strong>.
-        {!myAlive && ' Tu es éliminé — encourage les survivants ! 👀'}
+        {' '}Touché par la lave&nbsp;? Tu brûles 5&nbsp;s puis tu revis 🔥
       </p>
 
       <div className="flava__stage" style={{ '--size': size }}>
@@ -278,29 +431,49 @@ export default function FloorMulti({ onBack }) {
           )}
         </div>
 
-        {/* Avatars de tous les joueurs (le mien + les autres, temps réel) */}
+        {/* Avatars de tous les joueurs (le mien + les autres + les bots, temps réel) */}
         <div className="flava__grid-overlay">
           {others.map((p) => (
             <div
               key={p.user_id}
-              className={`flava__player flava__player--other ${isWide(p.avatar) ? 'flava__player--wide' : ''} ${p.alive ? '' : 'flava__player--dead'}`}
+              className={`flava__player flava__player--other ${isWide(p.avatar) ? 'flava__player--wide' : ''} ${isBurned(p) ? 'flava__player--burned' : ''}`}
               style={{ gridColumn: p.c + 1, gridRow: p.r + 1 }}
             >
               <span className="flava__player-shadow flava__player-shadow--other" />
               <FallGuy avatar={p.avatar} role={p.role} anim={p.alive ? 'idle' : null} />
+              {isBurned(p) && <span className="flava__flames">🔥</span>}
               <span className="flava__player-name">{p.pseudo}</span>
+            </div>
+          ))}
+
+          {bots.map((b) => (
+            <div
+              key={b.id}
+              className={`flava__player flava__player--other flava__player--bot ${b.alive ? '' : 'flava__player--dead'}`}
+              style={{ gridColumn: b.c + 1, gridRow: b.r + 1 }}
+            >
+              <span className="flava__player-shadow flava__player-shadow--other" />
+              <FallGuy avatar={b.avatar} anim={b.alive ? 'idle' : null} />
+              <span className="flava__player-name">{b.pseudo}</span>
             </div>
           ))}
 
           {pos && (
             <div
-              className={`flava__player ${airborne ? 'flava__player--air' : ''} ${isWide(user.avatar) ? 'flava__player--wide' : ''} ${myAlive ? '' : 'flava__player--dead'}`}
+              className={`flava__player ${airborne ? 'flava__player--air' : ''} ${isWide(user.avatar) ? 'flava__player--wide' : ''} ${burned ? 'flava__player--burned' : ''}`}
               style={{ gridColumn: pos.c + 1, gridRow: pos.r + 1 }}
             >
               <span className="flava__player-shadow" />
               <span className="flava__player-aura" />
-              <span className="flava__player-arrow" />
+              {!burned && <span className="flava__player-arrow" />}
+              {/* Barre d'immunité du saut (se vide pendant le saut) */}
+              {airborne && (
+                <span className="flava__jumpbar">
+                  <span className="flava__jumpbar-fill" style={{ animationDuration: `${AIRBORNE_MS}ms` }} />
+                </span>
+              )}
               <FallGuy avatar={user?.avatar} role={user?.role} anim={airborne ? 'jump' : 'idle'} />
+              {burned && <span className="flava__flames">🔥</span>}
             </div>
           )}
         </div>
@@ -314,7 +487,13 @@ export default function FloorMulti({ onBack }) {
           <button className="flava__key flava-submerge flava__key--right" onClick={() => move(0, 1)}>▶</button>
           <button className="flava__key flava-submerge flava__key--down" onClick={() => move(1, 0)}>▼</button>
         </div>
-        <button className="flava__jump flava-submerge" onClick={jump}>SAUT<br />⤴</button>
+        <button
+          className={`flava__jump flava-submerge ${jumpCooling ? 'flava__jump--cd' : ''}`}
+          onClick={jump}
+          disabled={airborne || jumpCooling || burned}
+        >
+          {jumpCooling ? <>⏳<br />{jumpRemain}s</> : <>SAUT<br />⤴</>}
+        </button>
       </div>
 
       {/* Fin de partie commune */}
@@ -352,9 +531,9 @@ export default function FloorMulti({ onBack }) {
         </div>
       )}
 
-      {/* Éliminé mais la partie continue : mode spectateur */}
-      {!finished && !myAlive && (
-        <div className="flava__spectate">👀 Mode spectateur — survivants : {aliveCount}</div>
+      {/* Brûlé : on ne meurt pas, on revit dans quelques secondes */}
+      {!finished && burned && (
+        <div className="flava__spectate flava__spectate--burn">🔥 Brûlé ! Tu revis dans {burnSecs}s…</div>
       )}
     </div>
   )
