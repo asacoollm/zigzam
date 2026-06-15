@@ -107,12 +107,13 @@ export default function Dashboard() {
     markTutorialDone(user.id)
   }
 
-  // Admin / superadmin : accès anticipé au module Floor is Lava (test avant l'ouverture).
   const isAdmin = user.role === 'admin' || user.role === 'superadmin'
+  // Seuls les SUPERADMIN ont l'aperçu anticipé des jeux verrouillés par le décompte.
+  const isSuperadmin = user.role === 'superadmin'
 
   const handleTile = (m, blocked) => {
-    // Décompte : verrouillé pour les élèves, mais les admins peuvent tester avant l'ouverture.
-    if (m.flava && !flavaUnlocked && !isAdmin) {
+    // Décompte : verrouillé pour tout le monde sauf les superadmin (aperçu).
+    if (m.flava && !flavaUnlocked && !isSuperadmin) {
       flash(`🔒 ${m.label} ouvre dans ${cd.d}j ${cd.h}h ${cd.m}min ${cd.s}s !`)
       return
     }
@@ -158,9 +159,10 @@ export default function Dashboard() {
         {modules.map((m) => {
           const count = m.badge ? badges[m.badge] : 0
           const blocked = isModuleBlocked(user.parental, m.key)
-          // Verrou décompte : visuel complet pour les élèves ; aperçu cliquable pour les admins.
-          const flavaLocked = m.flava && !flavaUnlocked && !isAdmin
-          const flavaPreview = m.flava && !flavaUnlocked && isAdmin
+          // Verrou décompte : grisé + décompte pour tout le monde ; aperçu
+          // en couleur normale (cliquable) pour les superadmin uniquement.
+          const flavaLocked = m.flava && !flavaUnlocked && !isSuperadmin
+          const flavaPreview = m.flava && !flavaUnlocked && isSuperadmin
           const flavaReady = m.flava && flavaUnlocked
           return (
             <button
@@ -180,20 +182,22 @@ export default function Dashboard() {
             >
               {blocked && <span className="tile__lock">🔒</span>}
               {!blocked && count > 0 && <span className="tile__badge">{count}</span>}
-              {flavaPreview && <span className="tile__ready-badge">Aperçu 🔧</span>}
               <span className="tile__emoji">{m.emoji}</span>
               <span className="tile__label">{m.label}</span>
 
-              {(flavaLocked || flavaPreview) && (
+              {/* Élèves & admins : grisé + décompte */}
+              {flavaLocked && (
                 <div className="tile__countdown" aria-label="Décompte avant ouverture">
-                  <span className="tile__countdown-lock">
-                    {flavaPreview ? '🔧 Ouverture dans' : '🔒 Ouverture dans'}
-                  </span>
+                  <span className="tile__countdown-lock">🔒 Ouverture dans</span>
                   <span className="tile__countdown-clock">
                     <b>{cd.d}</b>j <b>{String(cd.h).padStart(2, '0')}</b>h{' '}
                     <b>{String(cd.m).padStart(2, '0')}</b>m <b>{String(cd.s).padStart(2, '0')}</b>s
                   </span>
                 </div>
+              )}
+              {/* Superadmin : couleur normale + mention d'aperçu */}
+              {flavaPreview && (
+                <span className="tile__preview-note">🔧 Aperçu superadmin — grisé pour les autres</span>
               )}
               {flavaReady && <span className="tile__ready-badge">Disponible ! 🎉</span>}
             </button>
