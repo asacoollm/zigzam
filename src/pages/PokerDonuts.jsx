@@ -4,13 +4,20 @@ import { useAuth } from '../context/AuthContext'
 import {
   pokerJoin, pokerStart, pokerSave, pokerFinish, pokerState, pokerLeave,
   pokerAddBot, pokerRemoveBot, subscribePoker, broadcastPoker,
-  normPlayers, place, startBid, raise, pass, flipCard, nextRound, botAction,
-  flowersLeft, skullLeft, totalPlaced, playerCardCount,
+  initGame, placeDisk, launchChallenge, raise, pass, flipDisk, nextRound, botAction, actorIndex,
+  flowersLeft, skullLeft, totalPlaced, ownedTotal,
 } from '../lib/poker'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
 import './PokerDonuts.css'
+
+const PHASE_LABEL = {
+  placing: 'Pose un disque',
+  bidding: 'Enchère en cours',
+  resolving: 'Résolution du défi',
+  round_end: 'Fin de manche',
+}
 
 export default function PokerDonuts() {
   const { user, updateUser } = useAuth()
@@ -19,14 +26,17 @@ export default function PokerDonuts() {
   const [data, setData] = useState(null)
   const [bidInput, setBidInput] = useState(1)
   const [busy, setBusy] = useState(false)
+  const [showRules, setShowRules] = useState(false)
   const channelRef = useRef(null)
   const sessionRef = useRef(null)
   const finishedRef = useRef(false)
   const rewardedRef = useRef(false)
+  const initRef = useRef(false)
+  const botTimer = useRef(null)
 
   const session = data?.session || null
   const joueurs = data?.joueurs || []
-  const etat = data?.etat && data.etat.players ? normPlayers(data.etat) : null
+  const etat = data?.etat && data.etat.players ? data.etat : null
 
   const sync = useCallback((st) => {
     if (!st || st.error) return
@@ -65,6 +75,28 @@ export default function PokerDonuts() {
     return () => clearInterval(id)
   }, [session?.id, sync]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const push = async (newEtat, statut = '') => {
+    setBusy(true)
+    setData((d) => ({ ...d, etat: newEtat }))
+    const sid = sessionRef.current?.id
+    const st = await pokerSave(sid, user.id, newEtat, statut)
+    sync(st)
+    if (channelRef.current) broadcastPoker(channelRef.current)
+    setBusy(false)
+  }
+
+  // L'hôte (1er joueur humain) construit l'état initial du jeu.
+  useEffect(() => {
+    if (data?.session?.statut !== 'playing') return
+    if (data?.etat && data.etat.players) return // déjà initialisé
+    const host = (data?.joueurs || []).find((j) => !j.is_bot)
+    if (!host || host.user_id !== user.id || initRef.current) return
+    initRef.current = true
+    const fp = Math.floor(Math.random() * data.joueurs.length)
+    push(initGame(data.joueurs, fp))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, user.id])
+
   // Crédite les donuts à la fin (une seule fois) côté serveur.
   useEffect(() => {
     if (etat?.phase === 'game_over' && etat.winner && !finishedRef.current) {
@@ -82,75 +114,73 @@ export default function PokerDonuts() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [etat?.phase, etat?.winner])
 
-  const push = async (newEtat, statut = '') => {
-    setBusy(true)
-    setData((d) => ({ ...d, etat: newEtat }))
-    const sid = sessionRef.current?.id
-    const st = await pokerSave(sid, user.id, newEtat, statut)
-    sync(st)
-    if (channelRef.current) broadcastPoker(channelRef.current)
-    setBusy(false)
-  }
-
   // Pilote des bots : seul l'hôte (1er joueur humain) joue les coups des bots.
-  const botTimer = useRef(null)
   useEffect(() => {
-    const e = data?.etat && data.etat.players ? normPlayers(data.etat) : null
+    const e = data?.etat && data.etat.players ? data.etat : null
     if (!e || data?.session?.statut !== 'playing') return
     const host = e.players.find((p) => !p.is_bot)
     if (!host || host.user_id !== user.id) return
-    let actorIdx = -1
-    if (e.phase === 'placing' || e.phase === 'bidding' || e.phase === 'round_end') actorIdx = e.turn
-    else if (e.phase === 'flipping' && e.flip) actorIdx = e.flip.flipper
-    if (actorIdx < 0) return
-    const actor = e.players[actorIdx]
-    if (!actor || !actor.is_bot || (actor.out && e.phase !== 'round_end')) return
+    const idx = actorIndex(e)
+    if (idx < 0) return
+    const actor = e.players[idx]
+    if (!actor || !actor.is_bot) return
     clearTimeout(botTimer.current)
     botTimer.current = setTimeout(() => {
-      const next = botAction(e, actorIdx)
+      const next = botAction(e, idx)
       if (next !== e) push(next)
-    }, 1000)
+    }, 1100)
     return () => clearTimeout(botTimer.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, user.id])
 
   const addBot = async () => {
     setBusy(true)
-    const st = await pokerAddBot(sessionRef.current?.id)
-    sync(st)
+    sync(await pokerAddBot(sessionRef.current?.id))
     if (channelRef.current) broadcastPoker(channelRef.current)
     setBusy(false)
   }
   const removeBot = async () => {
     setBusy(true)
-    const st = await pokerRemoveBot(sessionRef.current?.id)
-    sync(st)
+    sync(await pokerRemoveBot(sessionRef.current?.id))
     if (channelRef.current) broadcastPoker(channelRef.current)
     setBusy(false)
   }
-
   const start = async () => {
     setBusy(true)
-    const sid = sessionRef.current?.id
-    const st = await pokerStart(sid, user.id)
-    sync(st)
+    sync(await pokerStart(sessionRef.current?.id, user.id))
     if (channelRef.current) broadcastPoker(channelRef.current)
     setBusy(false)
   }
-
   const leave = () => {
     const sid = sessionRef.current?.id
     if (sid) pokerLeave(sid, user.id)
     navigate('/dashboard')
   }
 
-  if (!session) {
-    return (
-      <div className="poker">
-        <Backdrop />
-        <div className="poker__loading">🃏 Connexion à la table…</div>
+  const rulesButton = () => (
+    <button className="poker__rules-btn" onClick={() => setShowRules(true)}>📖 Lire les règles</button>
+  )
+  const rulesModal = () => (
+    <div className="poker__overlay" onMouseDown={() => setShowRules(false)}>
+      <div className="poker__rules" onMouseDown={(e) => e.stopPropagation()}>
+        <h2 className="poker__rules-title">📖 Règles du Poker Donuts 🃏</h2>
+        <div className="poker__rules-body">
+          <p>Chaque joueur a <strong>4 disques</strong> : 3 fleurs 🌸 et 1 crâne 💀 (face cachée).</p>
+          <p><strong>1. On pose :</strong> à tour de rôle, pose un disque face cachée sur ton tapis.</p>
+          <p><strong>2. Le défi :</strong> au lieu de poser, tu peux parier que tu retourneras X disques sans crâne. Les autres surenchérissent ou passent. Le dernier qui reste devient le <strong>challenger</strong>.</p>
+          <p><strong>3. On retourne :</strong> le challenger retourne les disques, <strong>en commençant par les siens</strong>.</p>
+          <p>🌸 <strong>Que des fleurs ?</strong> → il gagne la manche et retourne son tapis côté fleur.</p>
+          <p>💀 <strong>Un crâne ?</strong> → il perd un disque au hasard. Plus de disque = éliminé !</p>
+          <p>🍀 <strong>Dernière chance :</strong> en tombant à 1 disque, tu reçois un disque fleur bonus pour 1 manche (une seule fois).</p>
+          <p>🏆 <strong>Gagner :</strong> remporte 2 manches (tapis déjà côté fleur), ou sois le dernier en jeu !</p>
+        </div>
+        <button className="poker__btn" onClick={() => setShowRules(false)}>Compris ! 👍</button>
       </div>
-    )
+    </div>
+  )
+
+  if (!session) {
+    return <div className="poker"><Backdrop /><div className="poker__loading">🃏 Connexion à la table…</div></div>
   }
 
   // ----- Salle d'attente -----
@@ -161,7 +191,7 @@ export default function PokerDonuts() {
         <header className="poker__top">
           <button className="poker__back" onClick={leave}>⬅️ Quitter</button>
           <ZigzamLogo size="sm" />
-          <span />
+          {rulesButton()}
         </header>
         <h1 className="poker__title">Poker Donuts 🃏</h1>
         <p className="poker__hint">Salle d'attente — il faut 3 à 6 joueurs.</p>
@@ -181,18 +211,15 @@ export default function PokerDonuts() {
         </div>
         <p className="poker__count">{joueurs.length}/6 joueurs</p>
         <div className="poker__bot-btns">
-          <button className="poker__btn poker__btn--sm" disabled={joueurs.length >= 6 || busy} onClick={addBot}>
-            🤖 Ajouter un bot
-          </button>
+          <button className="poker__btn poker__btn--sm" disabled={joueurs.length >= 6 || busy} onClick={addBot}>🤖 Ajouter un bot</button>
           {joueurs.some((j) => j.is_bot) && (
-            <button className="poker__btn poker__btn--sm poker__btn--ghost" disabled={busy} onClick={removeBot}>
-              ❌ Retirer un bot
-            </button>
+            <button className="poker__btn poker__btn--sm poker__btn--ghost" disabled={busy} onClick={removeBot}>❌ Retirer un bot</button>
           )}
         </div>
         <button className="poker__btn" disabled={joueurs.length < 3 || busy} onClick={start}>
           {joueurs.length < 3 ? 'Il manque des joueurs…' : 'Démarrer la partie 🚀'}
         </button>
+        {showRules && rulesModal()}
       </div>
     )
   }
@@ -221,34 +248,50 @@ export default function PokerDonuts() {
     )
   }
 
+  // ----- Distribution (état en cours d'initialisation par l'hôte) -----
+  if (!etat) {
+    return <div className="poker"><Backdrop /><div className="poker__loading">🃏 Distribution des disques…</div></div>
+  }
+
   // ----- Partie en cours -----
   const players = etat.players
   const myIdx = players.findIndex((p) => p.user_id === user.id)
-  const me = players[myIdx]
-  const isMyTurn = etat.turn === myIdx && me && !me.out
+  const me = myIdx >= 0 ? players[myIdx] : null
+  const isMyTurn = actorIndex(etat) === myIdx && me && !me.out
   const placed = totalPlaced(etat)
-  const flip = etat.flip
+  const r = etat.resolve
+  const isChallenger = etat.phase === 'resolving' && r && players[r.challenger]?.user_id === user.id
 
-  const canBid = etat.phase === 'placing' && isMyTurn && placed >= 1
-  const isFlipper = etat.phase === 'flipping' && flip && players[flip.flipper]?.user_id === user.id
-
-  // Disposition circulaire des joueurs autour de la table.
   const seatStyle = (i) => {
     const ang = (i / players.length) * 2 * Math.PI - Math.PI / 2
     return { left: `${50 + 42 * Math.cos(ang)}%`, top: `${50 + 42 * Math.sin(ang)}%` }
   }
+  const revealedCount = (ownerIdx) => (r ? r.revealed.filter((x) => x.owner === ownerIdx).length : 0)
+  // Un joueur peut-il retourner la pile du joueur `i` maintenant ?
+  const canFlip = (i) => {
+    if (!isChallenger) return false
+    if (players[i].stack.length <= revealedCount(i)) return false
+    const ownRevealed = revealedCount(r.challenger)
+    if (ownRevealed < players[r.challenger].stack.length && i !== r.challenger) return false
+    return true
+  }
 
-  const revealedCount = (ownerIdx) =>
-    flip ? flip.revealed.filter((r) => r.owner === ownerIdx).length : 0
+  const phaseText = etat.phase === 'placing'
+    ? (etat.prep ? 'Préparation : pose un disque' : 'Pose un disque ou lance un défi')
+    : PHASE_LABEL[etat.phase] || ''
 
   return (
     <div className="poker">
       <Backdrop />
       <header className="poker__top">
         <button className="poker__back" onClick={leave}>⬅️ Quitter</button>
-        <ZigzamLogo size="sm" />
-        <span className="poker__round">Manche {etat.round}{etat.phase === 'flipping' && flip ? ` · défi ${flip.target}` : ''}</span>
+        {rulesButton()}
+        <span className="poker__round">
+          Manche {etat.round}{etat.phase === 'resolving' && r ? ` · défi ${r.target}` : ''}
+        </span>
       </header>
+
+      <p className="poker__phase">{phaseText}</p>
 
       <div className="poker__table-wrap">
         <div className="poker__table">
@@ -261,8 +304,8 @@ export default function PokerDonuts() {
           </div>
 
           {players.map((p, i) => {
-            const isTurn = etat.turn === i && etat.phase !== 'flipping'
-            const clickable = isFlipper && p.stack.length > revealedCount(i)
+            const isTurn = actorIndex(etat) === i
+            const flippable = canFlip(i)
             return (
               <div
                 key={p.user_id}
@@ -270,26 +313,25 @@ export default function PokerDonuts() {
                 style={seatStyle(i)}
               >
                 <FallGuy avatar={p.avatar} role={p.role} className="poker__seat-av" anim={isTurn ? 'idle' : null} />
-                <span className="poker__seat-name">{p.pseudo}</span>
-                <span className="poker__seat-info">
-                  🃏 {playerCardCount(p)} · 🏆 {p.roundsWon}
-                </span>
+                <span className="poker__seat-name">{p.pseudo}{p.passed ? ' 🙅' : ''}</span>
+                <span className="poker__seat-info">🃏 {ownedTotal(p)}{p.mat === 'flower' ? ' · 🌸' : ''}{p.bonus ? ' · 🍀' : ''}</span>
+                {/* Tapis + pile de disques posés (légèrement décalés) */}
                 <button
-                  className={`poker__stack ${clickable ? 'poker__stack--clickable' : ''}`}
-                  onClick={() => clickable && push(flipCard(etat, i))}
-                  disabled={!clickable}
-                  aria-label={`Pile de ${p.pseudo}`}
+                  className={`poker__mat ${p.mat === 'flower' ? 'poker__mat--flower' : ''} ${flippable ? 'poker__mat--flip' : ''}`}
+                  onClick={() => flippable && push(flipDisk(etat, i))}
+                  disabled={!flippable}
+                  aria-label={`Tapis de ${p.pseudo}`}
                 >
                   {p.stack.map((_, k) => {
-                    const isRevealed = flip && (p.stack.length - 1 - k) < revealedCount(i)
-                    const card = isRevealed ? p.stack[k] : null
+                    const isUp = r && (p.stack.length - 1 - k) < revealedCount(i)
+                    const disk = isUp ? p.stack[k] : null
                     return (
-                      <span key={k} className={`poker__card ${isRevealed ? 'poker__card--up' : ''}`}>
-                        {isRevealed ? (card === 'skull' ? '💀' : '🌸') : '🂠'}
+                      <span key={k} className={`poker__disk ${isUp ? 'poker__disk--up' : ''}`} style={{ marginTop: k === 0 ? 0 : -14 }}>
+                        {isUp ? (disk === 'skull' ? '💀' : '🌸') : '⬤'}
                       </span>
                     )
                   })}
-                  {p.stack.length === 0 && <span className="poker__card poker__card--empty" />}
+                  {p.stack.length === 0 && <span className="poker__disk poker__disk--empty" />}
                 </button>
               </div>
             )
@@ -297,58 +339,73 @@ export default function PokerDonuts() {
         </div>
       </div>
 
-      {/* Contrôles du joueur */}
+      {/* Ma main (disques que je peux poser) */}
+      {me && !me.out && (
+        <div className="poker__hand">
+          <span className="poker__hand-label">Ta main :</span>
+          {Array.from({ length: Math.max(0, flowersLeft(me)) }).map((_, k) => (
+            <button key={`f${k}`} className="poker__hand-disk poker__hand-disk--flower"
+              disabled={busy || !(etat.phase === 'placing' && isMyTurn)}
+              onClick={() => push(placeDisk(etat, myIdx, 'flower'))}>🌸</button>
+          ))}
+          {skullLeft(me) > 0 && (
+            <button className="poker__hand-disk poker__hand-disk--skull"
+              disabled={busy || !(etat.phase === 'placing' && isMyTurn)}
+              onClick={() => push(placeDisk(etat, myIdx, 'skull'))}>💀</button>
+          )}
+          {me.bonus > 0 && <span className="poker__hand-bonus">🍀 Dernière chance</span>}
+        </div>
+      )}
+
+      {/* Contrôles selon la phase */}
       <div className="poker__controls">
-        {etat.phase === 'placing' && isMyTurn && (
-          <>
-            <button className="poker__btn poker__btn--sm" disabled={busy || flowersLeft(me) <= 0}
-              onClick={() => push(place(etat, myIdx, 'flower'))}>Poser 🌸</button>
-            <button className="poker__btn poker__btn--sm" disabled={busy || skullLeft(me) <= 0}
-              onClick={() => push(place(etat, myIdx, 'skull'))}>Poser 💀</button>
-            <button className="poker__btn poker__btn--sm poker__btn--accent" disabled={busy || !canBid}
-              onClick={() => push(startBid(etat, myIdx, Math.max(1, Math.min(bidInput, placed))))}>
-              Défi : {Math.max(1, Math.min(bidInput, placed))} 🃏
-            </button>
+        {etat.phase === 'placing' && isMyTurn && !etat.prep && (
+          <div className="poker__challenge">
             <input className="poker__bid-input" type="number" min="1" max={placed}
               value={bidInput} onChange={(e) => setBidInput(Number(e.target.value))} />
-          </>
+            <button className="poker__btn poker__btn--sm poker__btn--accent" disabled={busy || placed < 1}
+              onClick={() => push(launchChallenge(etat, myIdx, Math.max(1, Math.min(bidInput, placed))))}>
+              Lancer un défi : {Math.max(1, Math.min(bidInput, placed))} 🎯
+            </button>
+          </div>
         )}
 
         {etat.phase === 'bidding' && isMyTurn && (
-          <>
+          <div className="poker__challenge">
             <input className="poker__bid-input" type="number" min={(etat.bid?.amount ?? 0) + 1} max={placed}
               value={bidInput} onChange={(e) => setBidInput(Number(e.target.value))} />
-            <button className="poker__btn poker__btn--sm poker__btn--accent" disabled={busy || bidInput <= (etat.bid?.amount ?? 0) || bidInput > placed}
+            <button className="poker__btn poker__btn--sm poker__btn--accent"
+              disabled={busy || bidInput <= (etat.bid?.amount ?? 0) || bidInput > placed}
               onClick={() => push(raise(etat, myIdx, bidInput))}>Surenchérir ⬆️</button>
             <button className="poker__btn poker__btn--sm" disabled={busy}
-              onClick={() => push(pass(etat, myIdx))}>Passer</button>
-          </>
+              onClick={() => push(pass(etat, myIdx))}>Passer 🙅</button>
+          </div>
         )}
 
-        {etat.phase === 'flipping' && (
+        {etat.phase === 'resolving' && (
           <p className="poker__instruct">
-            {isFlipper
-              ? `À toi de retourner ${flip.target} carte(s) — commence par les tiennes 👆`
-              : `${players[flip.flipper]?.pseudo} retourne les cartes…`}
+            {isChallenger
+              ? `Retourne ${r.target} disque(s) — clique d'abord sur TES disques 👆`
+              : `${players[r.challenger]?.pseudo} retourne les disques…`}
           </p>
         )}
 
         {etat.phase === 'round_end' && (
           <>
-            <p className="poker__instruct">
-              {flip?.success ? '🎉 Défi réussi !' : '💀 Crâne trouvé !'} {etat.log}
-            </p>
-            {etat.turn === myIdx && (
+            <p className="poker__instruct">{r?.success ? '🎉 ' : '💀 '}{etat.log}</p>
+            {isMyTurn && (
               <button className="poker__btn poker__btn--sm" disabled={busy}
                 onClick={() => push(nextRound(etat))}>Manche suivante →</button>
             )}
           </>
         )}
 
-        {!isMyTurn && etat.phase !== 'flipping' && etat.phase !== 'round_end' && (
-          <p className="poker__instruct">⏳ Au tour de {players[etat.turn]?.pseudo}…</p>
+        {!isMyTurn && etat.phase !== 'resolving' && etat.phase !== 'round_end' && (
+          <p className="poker__instruct">⏳ Au tour de {players[actorIndex(etat)]?.pseudo}…</p>
         )}
       </div>
+
+      {showRules && rulesModal()}
     </div>
   )
 }
