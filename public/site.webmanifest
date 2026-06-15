@@ -1,0 +1,25 @@
+{
+  "name": "Zigzam",
+  "short_name": "Zigzam",
+  "description": "L'appli fun et sécurisée de ta classe : chat, actualités, jeux et avatars Fall Guys.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#7C3AFF",
+  "theme_color": "#7C3AFF",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "type": "image/x-icon",
+      "sizes": "48x48"
+    }
+  ]
+}
