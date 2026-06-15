@@ -18,6 +18,8 @@ const MODULES = [
   { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
   { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor', flava: true },
+  { emoji: '🃏', label: 'Poker Donuts', color: 'var(--rose)', to: '/poker-donuts', key: 'poker', flava: true },
+  { emoji: '🕵️', label: "L'Imposteur", color: 'var(--violet)', to: '/imposteur', key: 'imposteur', flava: true },
 ]
 
 // Étapes du tutoriel de bienvenue (pointent vers les éléments via data-tut).
@@ -72,7 +74,7 @@ export default function Dashboard() {
       if (t >= FLAVA_UNLOCK_TS) {
         // Transition en direct : déverrouillage + célébration.
         setFlavaParty(true)
-        flash('🌋 Floor is Lava est disponible !')
+        flash('🎉 Les nouveaux jeux sont disponibles !')
         clearInterval(id)
       }
     }, 1000)
@@ -111,7 +113,7 @@ export default function Dashboard() {
   const handleTile = (m, blocked) => {
     // Décompte : verrouillé pour les élèves, mais les admins peuvent tester avant l'ouverture.
     if (m.flava && !flavaUnlocked && !isAdmin) {
-      flash(`🌋 Floor is Lava ouvre dans ${cd.d}j ${cd.h}h ${cd.m}min ${cd.s}s !`)
+      flash(`🔒 ${m.label} ouvre dans ${cd.d}j ${cd.h}h ${cd.m}min ${cd.s}s !`)
       return
     }
     if (m.soon) {

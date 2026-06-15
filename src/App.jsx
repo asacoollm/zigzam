@@ -12,6 +12,8 @@ import Economie from './pages/Economie'
 import Parametres from './pages/Parametres'
 import Admin from './pages/Admin'
 import FloorIsLava from './pages/FloorIsLava'
+import PokerDonuts from './pages/PokerDonuts'
+import Imposteur from './pages/Imposteur'
 import ParentalGuard from './components/ParentalGuard'
 import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
@@ -122,6 +124,18 @@ export default function App() {
         path="/floor-is-lava"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <FloorIsLava />
+        }
+      />
+      <Route
+        path="/poker-donuts"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <PokerDonuts />
+        }
+      />
+      <Route
+        path="/imposteur"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Imposteur />
         }
       />
       <Route
