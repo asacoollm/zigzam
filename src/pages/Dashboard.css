@@ -100,6 +100,41 @@
   }
 }
 
+/* ---- Mobile (≤ 480px, ex. iPhone 14 = 390px) ---- */
+@media (max-width: 480px) {
+  .dash { padding: 12px; }
+  .dash__top {
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 20px;
+  }
+  /* Avatar + identité d'un côté, compteurs de l'autre, sur toute la largeur */
+  .dash__hello { gap: 10px; }
+  .dash__avatar { width: 60px; }
+  .dash__name { font-size: 17px; }
+  .dash__counters {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .counter {
+    font-size: 16px;
+    padding: 7px 11px;
+    flex: 1 1 auto;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .dash__logout {
+    flex: 1 1 100%;
+    text-align: center;
+    min-height: 44px;
+  }
+  .dash__grid { gap: 12px; }
+  .tile { padding: 20px 8px; min-height: 132px; }
+  .tile__emoji { font-size: 40px; }
+}
+
 /* Tuiles — glassmorphism avec accent coloré par module */
 .tile {
   position: relative;
@@ -159,6 +194,75 @@
 .tile--soon:hover {
   transform: none;
 }
+
+/* ---- Floor is Lava : tuile verrouillée avec décompte (#5) ---- */
+.tile--flava-locked {
+  filter: grayscale(0.9);
+  cursor: not-allowed;
+}
+.tile--flava-locked:hover { transform: none; box-shadow: 0 12px 28px rgba(124, 58, 255, 0.18); }
+.tile--flava-locked .tile__emoji { opacity: 0.6; }
+.tile--flava-locked .tile__label { opacity: 0.7; }
+
+.tile__countdown {
+  position: absolute;
+  inset: auto 6px 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: 12px;
+  background: rgba(43, 35, 80, 0.72);
+  color: #fff;
+  filter: grayscale(0); /* le décompte reste lisible malgré le grayscale de la tuile */
+}
+.tile__countdown-lock { font-size: 10px; font-weight: 700; opacity: 0.85; letter-spacing: 0.02em; }
+.tile__countdown-clock { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.tile__countdown-clock b { font-size: 14px; font-weight: 900; color: #ffd23f; }
+
+/* Tuile déverrouillée : lueur d'ouverture */
+.tile--flava-ready {
+  border-color: rgba(255, 140, 66, 0.6);
+  box-shadow: 0 12px 28px rgba(255, 140, 66, 0.35), 0 0 0 2px rgba(255, 140, 66, 0.3) inset;
+}
+.tile__ready-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(90deg, #ff8c42, #ef4444);
+  border-radius: 999px;
+  padding: 3px 9px;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+  z-index: 2;
+}
+/* Célébration en direct au passage à zéro */
+.tile--flava-party { animation: flava-party 0.9s ease-in-out 3; }
+@keyframes flava-party {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-8px) rotate(-3deg); }
+  75% { transform: translateY(-8px) rotate(3deg); }
+}
+
+/* ---- Encadré bonus pause 18h (#3) ---- */
+.dash__pause-bonus {
+  width: 100%;
+  max-width: 760px;
+  margin: 14px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: linear-gradient(100deg, rgba(0, 191, 255, 0.14), rgba(124, 58, 255, 0.12));
+  border: 1.5px solid rgba(124, 58, 255, 0.22);
+  box-shadow: 0 10px 26px rgba(43, 35, 80, 0.12);
+}
+.dash__pause-emoji { font-size: 30px; flex-shrink: 0; }
+.dash__pause-text { margin: 0; font-size: 15px; font-weight: 600; color: var(--texte); line-height: 1.4; }
 
 .dash__toast {
   position: fixed;

@@ -334,3 +334,26 @@ export async function getBadges(userId) {
   const r = await rpc('get_badges', { p_user: userId })
   return r.error ? { discuter: 0, actus: 0 } : r.data
 }
+
+// ---------------- SIGNALEMENTS DE BUG 🚨 ----------------
+// Crée un signalement depuis n'importe quelle page.
+export async function createBugReport(userId, message) {
+  const r = await rpc('create_bug_report', { p_user: userId, p_message: message })
+  if (r.error) return r
+  if (r.data?.error === 'empty') return { error: 'Écris un petit message pour décrire le problème 🙂' }
+  if (r.data?.error) return { error: ERR }
+  return { ok: true }
+}
+// Liste de tous les signalements (panel admin).
+export async function adminListBugReports(adminId) {
+  const r = await rpc('admin_list_bug_reports', { p_admin: adminId })
+  return r.error ? [] : r.data
+}
+// Met à jour le statut et/ou la note interne d'un signalement.
+export async function adminUpdateBugReport(adminId, reportId, statut, note) {
+  const r = await rpc('admin_update_bug_report', {
+    p_admin: adminId, p_report: reportId, p_statut: statut || '', p_note: note ?? null,
+  })
+  if (r.error || r.data?.error) return { error: ERR }
+  return { ok: true }
+}

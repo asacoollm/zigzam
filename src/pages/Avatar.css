@@ -55,6 +55,29 @@
   .av__main {
     grid-template-columns: 1fr;
   }
+  /* Empilement vertical réel : le bonhomme ne reste plus collé en haut */
+  .av__stage {
+    position: static;
+    padding: 18px;
+  }
+  .av__hero { width: 170px; }
+}
+
+/* Mobile (≤ 480px) : modales d'achat / skin en plein écran */
+@media (max-width: 480px) {
+  .av { padding: 12px; }
+  .modal { padding: 0; place-items: stretch; }
+  .modal__card {
+    max-width: none;
+    width: 100%;
+    min-height: 100%;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .skin-form { justify-content: flex-start; }
+  .av__tab { min-height: 44px; }
 }
 
 /* Scène du bonhomme */

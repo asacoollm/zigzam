@@ -552,6 +552,24 @@
   .disc__conv-header {
     gap: 7px;
   }
+
+  /* Modale « nouvelle discussion » en plein écran sur mobile */
+  .disc__modal-overlay { padding: 0; }
+  .disc__modal {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+    border-width: 0;
+    justify-content: flex-start;
+  }
+  /* Boutons d'action confortables au pouce (≥ 44px) */
+  .disc__btn { min-height: 44px; }
+  .disc__btn--send { width: 50px; height: 50px; }
 }
 
 /* ── Popup de confirmation « quitter » ── */

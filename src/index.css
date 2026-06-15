@@ -64,3 +64,16 @@ h3 {
   margin: 0;
   font-weight: 700;
 }
+
+/* Évite le zoom automatique iOS au focus (les champs < 16px déclenchent un zoom) */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+  /* Cibles tactiles confortables : tous les boutons font au moins 44px de haut */
+  button {
+    min-height: 44px;
+  }
+}

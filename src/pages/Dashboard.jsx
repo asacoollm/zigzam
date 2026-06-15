@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getBadges, markTutorialDone } from '../lib/modules'
 import { isModuleBlocked } from '../lib/parental'
+import { FLAVA_UNLOCK_TS, flavaCountdown } from '../lib/flavaCountdown'
 import Backdrop from '../components/Backdrop'
 import Buddy from '../components/Buddy'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -16,7 +17,7 @@ const MODULES = [
   { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar', tut: 'avatar' },
   { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
-  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
+  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor', flava: true },
 ]
 
 // Étapes du tutoriel de bienvenue (pointent vers les éléments via data-tut).
@@ -43,12 +44,51 @@ export default function Dashboard() {
   const [rulesOpen, setRulesOpen] = useState(true)
   // Le tutoriel se lance auto à la 1re connexion (tutoriel_vu === false).
   const [showTut, setShowTut] = useState(() => user.tutoriel_vu === false)
+  // Décompte Floor is Lava (#5) — tic chaque seconde tant que verrouillé.
+  const [now, setNow] = useState(() => Date.now())
+  const [flavaParty, setFlavaParty] = useState(false)
+  const flavaUnlocked = now >= FLAVA_UNLOCK_TS
+  const cd = flavaCountdown(now)
+
+  const toastTimer = useRef(null)
+  const flash = useCallback((m) => {
+    setToast(m)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(''), 2600)
+  }, [])
 
   useEffect(() => {
     let on = true
     getBadges(user.id).then((b) => on && setBadges(b))
     return () => { on = false }
   }, [user.id])
+
+  // Tic du décompte (1 s). S'arrête dès que le module est déverrouillé.
+  useEffect(() => {
+    if (Date.now() >= FLAVA_UNLOCK_TS) return
+    const id = setInterval(() => {
+      const t = Date.now()
+      setNow(t)
+      if (t >= FLAVA_UNLOCK_TS) {
+        // Transition en direct : déverrouillage + célébration.
+        setFlavaParty(true)
+        flash('🌋 Floor is Lava est disponible !')
+        clearInterval(id)
+      }
+    }, 1000)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Récompense « vraie pause » (#3) : message de bienvenue à la connexion.
+  useEffect(() => {
+    if (user.pause_recompense) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      flash('Bon retour ! 🌟 Tu as gagné 2 🍩 donuts pour ta pause !')
+      updateUser({ pause_recompense: false })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Relance manuelle depuis Paramètres ("Revoir le tutoriel").
   useEffect(() => {
@@ -65,13 +105,11 @@ export default function Dashboard() {
     markTutorialDone(user.id)
   }
 
-  const flash = (m) => {
-    setToast(m)
-    window.clearTimeout(flash._t)
-    flash._t = window.setTimeout(() => setToast(''), 2600)
-  }
-
   const handleTile = (m, blocked) => {
+    if (m.flava && !flavaUnlocked) {
+      flash(`🌋 Floor is Lava ouvre dans ${cd.d}j ${cd.h}h ${cd.m}min ${cd.s}s !`)
+      return
+    }
     if (m.soon) {
       flash('🌋 Bientôt disponible ! Ce module est en cours de développement.')
       return
@@ -114,11 +152,20 @@ export default function Dashboard() {
         {modules.map((m) => {
           const count = m.badge ? badges[m.badge] : 0
           const blocked = isModuleBlocked(user.parental, m.key)
+          const flavaLocked = m.flava && !flavaUnlocked
+          const flavaReady = m.flava && flavaUnlocked
           return (
             <button
               key={m.label}
               data-tut={m.tut ? `tile-${m.tut}` : undefined}
-              className={`tile ${blocked ? 'tile--locked' : ''} ${m.soon ? 'tile--soon' : ''}`}
+              className={[
+                'tile',
+                blocked ? 'tile--locked' : '',
+                m.soon ? 'tile--soon' : '',
+                flavaLocked ? 'tile--flava-locked' : '',
+                flavaReady ? 'tile--flava-ready' : '',
+                flavaReady && flavaParty ? 'tile--flava-party' : '',
+              ].filter(Boolean).join(' ')}
               style={{ '--tile-color': m.color }}
               onClick={() => handleTile(m, blocked)}
               disabled={blocked}
@@ -127,6 +174,17 @@ export default function Dashboard() {
               {!blocked && count > 0 && <span className="tile__badge">{count}</span>}
               <span className="tile__emoji">{m.emoji}</span>
               <span className="tile__label">{m.label}</span>
+
+              {flavaLocked && (
+                <div className="tile__countdown" aria-label="Décompte avant ouverture">
+                  <span className="tile__countdown-lock">🔒 Ouverture dans</span>
+                  <span className="tile__countdown-clock">
+                    <b>{cd.d}</b>j <b>{String(cd.h).padStart(2, '0')}</b>h{' '}
+                    <b>{String(cd.m).padStart(2, '0')}</b>m <b>{String(cd.s).padStart(2, '0')}</b>s
+                  </span>
+                </div>
+              )}
+              {flavaReady && <span className="tile__ready-badge">Disponible ! 🎉</span>}
             </button>
           )
         })}
@@ -153,6 +211,14 @@ export default function Dashboard() {
           </ul>
         )}
       </section>
+
+      <div className="dash__pause-bonus">
+        <span className="dash__pause-emoji">💤</span>
+        <p className="dash__pause-text">
+          Faire une <strong>pause de 18h</strong> te rapporte <strong>2 🍩 donuts</strong> !
+          Zigzam encourage les vraies pauses 🌟
+        </p>
+      </div>
 
       {toast && <div className="dash__toast">{toast}</div>}
 
