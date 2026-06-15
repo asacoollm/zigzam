@@ -382,3 +382,144 @@
 @media (min-width: 760px) {
   .flava__pad { opacity: 0.85; }
 }
+
+/* ============================================================
+   #1 — Boutons SUBMERGÉS par la lave
+   La hauteur de la coulée suit --lava-level (0 → 1), montante.
+   ============================================================ */
+.flava-submerge {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+/* ::before est peint AVANT le texte → la lave reste derrière le libellé */
+.flava-submerge::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--lava-level, 0) * 100%);
+  background: linear-gradient(
+    0deg,
+    rgba(239, 68, 68, 0.95) 0%,
+    rgba(255, 140, 66, 0.88) 55%,
+    rgba(255, 210, 63, 0.62) 100%
+  );
+  box-shadow: inset 0 2px 8px rgba(255, 240, 200, 0.5);
+  transition: height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Victoire : nettoyage — la lave reflue (height → 0) + reflet qui balaye */
+.flava--victory .flava-submerge::before {
+  height: 0;
+}
+.flava--victory .flava-submerge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%);
+  transform: translateX(-130%);
+  animation: flava-clean 0.75s ease 0.1s 1;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes flava-clean {
+  to { transform: translateX(130%); }
+}
+
+/* ============================================================
+   #7 — Recentrage de l'avatar « large » (animal terrestre).
+   Sans pet, le perso est déjà centré (x=60 sur viewBox 120).
+   Avec un animal, le viewBox passe à 210 → le perso est à
+   60/210 = 28.57% : on aligne ce point sur le centre du disque.
+   ============================================================ */
+.flava__player.flava__player--wide svg {
+  transform: translateX(-28.57%);
+}
+
+/* ============================================================
+   #6 — MULTIJOUEUR : sélecteur de mode + autres joueurs
+   ============================================================ */
+.flava__modes {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 560px;
+}
+.flava__mode {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 16px 36px rgba(124, 58, 255, 0.2);
+  backdrop-filter: blur(12px);
+  transition: transform 0.14s, box-shadow 0.14s;
+}
+.flava__mode:hover { transform: translateY(-5px); box-shadow: 0 24px 44px rgba(124, 58, 255, 0.3); }
+.flava__mode--multi { border-color: rgba(255, 140, 66, 0.5); }
+.flava__mode-emoji { font-size: 46px; }
+.flava__mode-title { font-size: 20px; font-weight: 900; color: var(--texte); }
+.flava__mode-desc { font-size: 13.5px; color: var(--texte-doux); text-align: center; line-height: 1.4; }
+
+/* Avatars des autres joueurs : plus petits, avec pseudo */
+.flava__player--other svg {
+  height: 120%;
+  bottom: 10%;
+  filter:
+    drop-shadow(0 0 2px #fff)
+    drop-shadow(0 5px 5px rgba(43, 35, 80, 0.4));
+}
+.flava__player-shadow--other {
+  border-color: var(--bleu, #00bfff);
+  background: radial-gradient(ellipse, rgba(0, 191, 255, 0.45), rgba(0, 191, 255, 0.1) 72%);
+  box-shadow: 0 0 10px 2px rgba(0, 191, 255, 0.5);
+}
+.flava__player-name {
+  position: absolute;
+  left: 50%;
+  top: -26%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(43, 35, 80, 0.8);
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  z-index: 6;
+  pointer-events: none;
+}
+/* Joueur éliminé : fantôme grisé */
+.flava__player--dead svg { filter: grayscale(1) opacity(0.45); }
+.flava__player--dead .flava__player-shadow,
+.flava__player--dead .flava__player-shadow--other { opacity: 0.3; }
+
+.flava__spectate {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: rgba(43, 35, 80, 0.9);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 14px;
+  box-shadow: 0 12px 26px rgba(43, 35, 80, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flava--victory .flava-submerge::after { animation: none; }
+}

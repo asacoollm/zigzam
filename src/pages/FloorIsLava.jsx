@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getFlavaLevel, flavaWin } from '../lib/modules'
 import {
   SIZE, ROCK, ZONE, makeLevel, stepLava, isLava, inBoard,
 } from '../lib/floorislava'
+import { normalizeAvatar } from '../lib/avatar'
+import { animalWide } from '../components/avatarParts'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
+import FloorMulti from './FloorMulti'
 import './FloorIsLava.css'
 
 const AIRBORNE_MS = 1500  // durée du saut (immunité à la lave en l'air) ~1,5 s
@@ -61,6 +64,7 @@ function reducer(state, action) {
 export default function FloorIsLava() {
   const { user, updateUser } = useAuth()
   const navigate = useNavigate()
+  const [mode, setMode] = useState(null)          // null (choix) | 'solo' | 'multi'
   const [state, dispatch] = useReducer(reducer, 1, makeLevel)
   const [airborne, setAirborne] = useState(false)
   const [started, setStarted] = useState(false)   // écran d'intro tant que false
@@ -155,12 +159,58 @@ export default function FloorIsLava() {
   const zonesOn = state.zones.filter((z) => z.active).length
   const zonesTotal = state.zones.length
 
+  // #1 — niveau de lave (0..1) pour la submersion des boutons.
+  const submerge = useMemo(() => {
+    if (state.status === 'won' || !started) return 0
+    let n = 0
+    for (const row of state.lava) for (const cell of row) if (cell) n++
+    return Math.min(1, (n / (SIZE * SIZE)) * 2.6)
+  }, [state.lava, state.status, started])
+
+  // #7 — recentrage de l'avatar « large » (animal terrestre).
+  const playerWide = useMemo(() => {
+    const a = user?.avatar ? normalizeAvatar(user.avatar) : null
+    return !!(a?.animal && animalWide(a.animal))
+  }, [user?.avatar])
+
+  // Choix du mode (solo / multijoueur) avant de jouer.
+  if (mode === 'multi') {
+    return <FloorMulti onBack={() => setMode(null)} />
+  }
+
+  if (mode === null) {
+    return (
+      <div className="flava">
+        <Backdrop />
+        <header className="flava__top">
+          <button className="flava__back" onClick={() => navigate('/dashboard')}>⬅️ Retour</button>
+          <ZigzamLogo size="sm" />
+          <span />
+        </header>
+        <h1 className="flava__title">Floor is Lava 🌋</h1>
+        <p className="flava__hint">Choisis ton mode de jeu&nbsp;!</p>
+        <div className="flava__modes">
+          <button className="flava__mode flava__mode--solo" onClick={() => setMode('solo')}>
+            <span className="flava__mode-emoji">🎮</span>
+            <span className="flava__mode-title">Solo</span>
+            <span className="flava__mode-desc">Niveaux progressifs, difficulté croissante</span>
+          </button>
+          <button className="flava__mode flava__mode--multi" onClick={() => setMode('multi')}>
+            <span className="flava__mode-emoji">👥</span>
+            <span className="flava__mode-title">Multijoueur</span>
+            <span className="flava__mode-desc">Rejoins la partie commune en temps réel</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flava">
+    <div className={`flava ${state.status === 'won' ? 'flava--victory' : ''}`} style={{ '--lava-level': submerge }}>
       <Backdrop />
 
       <header className="flava__top">
-        <button className="flava__back" onClick={() => navigate('/dashboard')}>⬅️ Retour</button>
+        <button className="flava__back flava-submerge" onClick={() => navigate('/dashboard')}>⬅️ Retour</button>
         <ZigzamLogo size="sm" />
         <div className="flava__hud">
           <span className="flava__level-hud">Niveau {state.level}</span>
@@ -199,7 +249,7 @@ export default function FloorIsLava() {
         <div className="flava__grid-overlay">
           <div
             key={`${state.player.r}-${state.player.c}`}
-            className={`flava__player ${airborne ? 'flava__player--air' : ''}`}
+            className={`flava__player ${airborne ? 'flava__player--air' : ''} ${playerWide ? 'flava__player--wide' : ''}`}
             style={{ gridColumn: state.player.c + 1, gridRow: state.player.r + 1 }}
           >
             <span className="flava__player-shadow" />
@@ -213,12 +263,12 @@ export default function FloorIsLava() {
       {/* Commandes tactiles (mobile) */}
       <div className="flava__pad" aria-hidden="true">
         <div className="flava__dpad">
-          <button className="flava__key flava__key--up" onClick={() => move(-1, 0)}>▲</button>
-          <button className="flava__key flava__key--left" onClick={() => move(0, -1)}>◀</button>
-          <button className="flava__key flava__key--right" onClick={() => move(0, 1)}>▶</button>
-          <button className="flava__key flava__key--down" onClick={() => move(1, 0)}>▼</button>
+          <button className="flava__key flava-submerge flava__key--up" onClick={() => move(-1, 0)}>▲</button>
+          <button className="flava__key flava-submerge flava__key--left" onClick={() => move(0, -1)}>◀</button>
+          <button className="flava__key flava-submerge flava__key--right" onClick={() => move(0, 1)}>▶</button>
+          <button className="flava__key flava-submerge flava__key--down" onClick={() => move(1, 0)}>▼</button>
         </div>
-        <button className="flava__jump" onClick={jump}>SAUT<br />⤴</button>
+        <button className="flava__jump flava-submerge" onClick={jump}>SAUT<br />⤴</button>
       </div>
 
       {/* Écran d'intro / instructions */}
