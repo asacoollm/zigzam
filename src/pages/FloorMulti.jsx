@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-  ROCK, ZONE, buildBoard, lavaAtTick, multiTick, isLavaCell,
+  ROCK, ZONE, TICK_MS, LAVA_DELAY_MS, buildBoard, lavaAtTick, isLavaCell, emptyLavaGrid, botStep,
   flavaJoin, flavaState, flavaMove, flavaActivate, flavaEliminate, flavaLeave,
+  flavaStart, flavaAddBot, flavaRemoveBot, flavaSetBots,
   subscribeFlava, broadcastFlava,
 } from '../lib/flavaMulti'
 import { normalizeAvatar } from '../lib/avatar'
@@ -37,9 +38,12 @@ export default function FloorMulti({ onBack }) {
   const posRef = useRef(null)
   const eliminatedRef = useRef(false)
   const sessionRef = useRef(null)
+  const startedRef = useRef(false)
 
   const session = data?.session || null
   const players = data?.players || []
+  const bots = session?.bots || []
+  const hostId = players[0]?.user_id || null // 1er humain = hôte (pilote les bots)
   const me = players.find((p) => p.user_id === user.id) || null
   const myAlive = me ? me.alive : true
   const finished = session?.statut === 'finished'
@@ -53,9 +57,12 @@ export default function FloorMulti({ onBack }) {
   // Lave courante (déterministe, synchronisée par started_at).
   const lava = useMemo(() => {
     if (!session || !board) return null
-    const T = multiTick(session.started_at, now)
+    if (session.statut !== 'active') return emptyLavaGrid(session.taille)
+    const elapsed = now - session.started_at
+    if (elapsed < LAVA_DELAY_MS) return emptyLavaGrid(session.taille) // répit ~5 s
+    const T = Math.floor((elapsed - LAVA_DELAY_MS) / TICK_MS)
     return lavaAtTick(session.taille, session.seed, board.terrain, T)
-  }, [session?.taille, session?.seed, session?.started_at, board, now]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session?.statut, session?.taille, session?.seed, session?.started_at, board, now]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Niveau de lave (#1 — submersion des boutons proportionnelle).
   const submerge = useMemo(() => {
@@ -71,10 +78,17 @@ export default function FloorMulti({ onBack }) {
     setData(st)
     sessionRef.current = st.session
     const mine = st.players.find((p) => p.user_id === user.id)
-    // On adopte la position serveur seulement si on n'en a pas encore localement.
-    if (mine && !posRef.current) {
-      posRef.current = { r: mine.r, c: mine.c }
-      setPos({ r: mine.r, c: mine.c })
+    if (mine) {
+      // Pendant l'attente, on suit le centre ; au démarrage (waiting → active),
+      // on adopte la position serveur (plateau recentré). Ensuite, position locale.
+      if (!posRef.current || st.session.statut === 'waiting') {
+        posRef.current = { r: mine.r, c: mine.c }
+        setPos({ r: mine.r, c: mine.c })
+      } else if (st.session.statut === 'active' && !startedRef.current) {
+        startedRef.current = true
+        posRef.current = { r: mine.r, c: mine.c }
+        setPos({ r: mine.r, c: mine.c })
+      }
     }
   }, [user.id])
 
@@ -137,8 +151,38 @@ export default function FloorMulti({ onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished, session?.resultat])
 
+  // Pilote des bots : seul l'hôte (1er humain) déplace les bots (évitent la
+  // lave, foncent sur les zones) et active les zones qu'ils atteignent.
+  useEffect(() => {
+    if (!board || session?.statut !== 'active' || hostId !== user.id) return
+    const id = setInterval(() => {
+      const sess = sessionRef.current
+      if (!sess || sess.statut !== 'active') return
+      const list = sess.bots || []
+      if (list.length === 0) return
+      const elapsed = Date.now() - sess.started_at
+      const lavaNow = elapsed < LAVA_DELAY_MS
+        ? emptyLavaGrid(sess.taille)
+        : lavaAtTick(sess.taille, sess.seed, board.terrain, Math.floor((elapsed - LAVA_DELAY_MS) / TICK_MS))
+      const zonesActive = sess.zones_active || []
+      const newBots = list.map((b) => botStep(board, lavaNow, b, zonesActive, sess.taille))
+      newBots.forEach((b) => {
+        if (!b.alive) return
+        const idx = board.zones.findIndex((z) => z.r === b.r && z.c === b.c)
+        if (idx >= 0 && !zonesActive.includes(idx)) {
+          flavaActivate(sess.id, user.id, idx, board.zones.length).then((s) => applyState(s))
+        }
+      })
+      flavaSetBots(sess.id, newBots)
+      setData((d) => (d ? { ...d, session: { ...d.session, bots: newBots } } : d))
+      if (channelRef.current) broadcastFlava(channelRef.current)
+    }, 500)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [board, session?.id, session?.statut, hostId, user.id])
+
   const move = useCallback((dr, dc) => {
-    if (finished || eliminatedRef.current) return
+    if (finished || eliminatedRef.current || sessionRef.current?.statut !== 'active') return
     const cur = posRef.current
     if (!cur || !board) return
     const nr = cur.r + dr
@@ -200,6 +244,23 @@ export default function FloorMulti({ onBack }) {
     onBack()
   }
 
+  const afterLobby = (s) => {
+    applyState(s)
+    if (channelRef.current) broadcastFlava(channelRef.current)
+  }
+  const startGame = () => {
+    const sid = sessionRef.current?.id
+    if (sid) flavaStart(sid, user.id).then(afterLobby)
+  }
+  const addBot = () => {
+    const sid = sessionRef.current?.id
+    if (sid) flavaAddBot(sid).then(afterLobby)
+  }
+  const removeBot = () => {
+    const sid = sessionRef.current?.id
+    if (sid) flavaRemoveBot(sid).then(afterLobby)
+  }
+
   if (error) {
     return (
       <div className="flava">
@@ -237,6 +298,46 @@ export default function FloorMulti({ onBack }) {
   const zonesTotal = board.zones.length
   const aliveCount = players.filter((p) => p.alive).length
   const others = players.filter((p) => p.user_id !== user.id)
+
+  // ----- Salle d'attente multijoueur -----
+  if (session.statut === 'waiting') {
+    const total = players.length + bots.length
+    return (
+      <div className="flava">
+        <Backdrop />
+        <header className="flava__top">
+          <button className="flava__back" onClick={leave}>⬅️ Quitter</button>
+          <span className="flava__level-hud">👥 Multijoueur</span>
+        </header>
+        <h1 className="flava__title">Floor is Lava 👥</h1>
+        <p className="flava__hint">Salle d'attente — minimum 2 joueurs (humains + bots).</p>
+        <div className="flava__lobby">
+          {players.map((p) => (
+            <div key={p.user_id} className="flava__lobby-player">
+              <FallGuy avatar={p.avatar} role={p.role} className="flava__lobby-av" anim="idle" />
+              <span className="flava__lobby-name">{p.pseudo}{p.user_id === user.id ? ' (toi)' : ''}</span>
+            </div>
+          ))}
+          {bots.map((b) => (
+            <div key={b.id} className="flava__lobby-player flava__lobby-player--bot">
+              <FallGuy avatar={b.avatar} className="flava__lobby-av" anim="idle" />
+              <span className="flava__lobby-name">{b.pseudo}</span>
+            </div>
+          ))}
+        </div>
+        <p className="flava__count">{total} joueur(s) · plateau {size}×{size}</p>
+        <div className="flava__lobby-btns">
+          <button className="flava__btn flava__btn--ghost" disabled={total >= 6} onClick={addBot}>🤖 Ajouter un bot</button>
+          {bots.length > 0 && (
+            <button className="flava__btn flava__btn--ghost" onClick={removeBot}>❌ Retirer un bot</button>
+          )}
+        </div>
+        <button className="flava__btn flava__lobby-start" disabled={total < 2} onClick={startGame}>
+          {total < 2 ? 'En attente de joueurs…' : 'Démarrer la partie 🚀'}
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={`flava ${finished ? 'flava--victory' : ''}`} style={{ '--lava-level': submerge }}>
@@ -278,7 +379,7 @@ export default function FloorMulti({ onBack }) {
           )}
         </div>
 
-        {/* Avatars de tous les joueurs (le mien + les autres, temps réel) */}
+        {/* Avatars de tous les joueurs (le mien + les autres + les bots, temps réel) */}
         <div className="flava__grid-overlay">
           {others.map((p) => (
             <div
@@ -289,6 +390,18 @@ export default function FloorMulti({ onBack }) {
               <span className="flava__player-shadow flava__player-shadow--other" />
               <FallGuy avatar={p.avatar} role={p.role} anim={p.alive ? 'idle' : null} />
               <span className="flava__player-name">{p.pseudo}</span>
+            </div>
+          ))}
+
+          {bots.map((b) => (
+            <div
+              key={b.id}
+              className={`flava__player flava__player--other flava__player--bot ${b.alive ? '' : 'flava__player--dead'}`}
+              style={{ gridColumn: b.c + 1, gridRow: b.r + 1 }}
+            >
+              <span className="flava__player-shadow flava__player-shadow--other" />
+              <FallGuy avatar={b.avatar} anim={b.alive ? 'idle' : null} />
+              <span className="flava__player-name">{b.pseudo}</span>
             </div>
           ))}
 

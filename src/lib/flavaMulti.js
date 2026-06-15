@@ -12,6 +12,7 @@ export const FLOOR = 0
 export const ROCK = 1
 export const ZONE = 2
 export const TICK_MS = 700 // cadence de la lave en multi
+export const LAVA_DELAY_MS = 5000 // répit avant la 1re vague (comme en solo)
 
 const ERR = 'Oups, une erreur est survenue. Réessaie !'
 
@@ -108,6 +109,38 @@ export function lavaAtTick(size, seed, terrain, T) {
   return lava
 }
 export function isLavaCell(lava, r, c) { return !!(lava[r] && lava[r][c]) }
+export function emptyLavaGrid(size) {
+  return Array.from({ length: size }, () => Array.from({ length: size }, () => false))
+}
+
+// IA de bot : avance d'une case vers la zone inactive la plus proche en
+// évitant la lave. Renvoie le bot mis à jour (peut mourir si encerclé).
+export function botStep(board, lava, bot, zonesActive, size) {
+  if (!bot.alive) return bot
+  let target = null
+  let best = Infinity
+  board.zones.forEach((z, idx) => {
+    if (zonesActive.includes(idx)) return
+    const d = Math.abs(z.r - bot.r) + Math.abs(z.c - bot.c)
+    if (d < best) { best = d; target = z }
+  })
+  const opts = [
+    { r: bot.r, c: bot.c },
+    { r: bot.r - 1, c: bot.c }, { r: bot.r + 1, c: bot.c },
+    { r: bot.r, c: bot.c - 1 }, { r: bot.r, c: bot.c + 1 },
+  ].filter((o) => o.r >= 0 && o.r < size && o.c >= 0 && o.c < size && !isLavaCell(lava, o.r, o.c))
+  if (opts.length === 0) {
+    return isLavaCell(lava, bot.r, bot.c) ? { ...bot, alive: false } : bot
+  }
+  let pick = opts[0]
+  let pbest = Infinity
+  for (const o of opts) {
+    const d = target ? Math.abs(target.r - o.r) + Math.abs(target.c - o.c) : 0
+    const score = d + Math.random() * 0.5
+    if (score < pbest) { pbest = score; pick = o }
+  }
+  return { ...bot, r: pick.r, c: pick.c }
+}
 
 // ---------------- RPC ----------------
 async function rpc(fn, params) {
@@ -140,6 +173,21 @@ export async function flavaEliminate(sessionId, userId) {
 }
 export async function flavaLeave(sessionId, userId) {
   return rpc('flava_leave', { p_session: sessionId, p_user: userId })
+}
+export async function flavaStart(sessionId, userId) {
+  const r = await rpc('flava_start', { p_session: sessionId, p_user: userId })
+  return r.error ? r : r.data
+}
+export async function flavaAddBot(sessionId) {
+  const r = await rpc('flava_add_bot', { p_session: sessionId })
+  return r.error ? r : r.data
+}
+export async function flavaRemoveBot(sessionId) {
+  const r = await rpc('flava_remove_bot', { p_session: sessionId })
+  return r.error ? r : r.data
+}
+export async function flavaSetBots(sessionId, bots) {
+  return rpc('flava_set_bots', { p_session: sessionId, p_bots: bots })
 }
 
 // Canal Realtime partagé : un client diffuse à chaque action, les autres
