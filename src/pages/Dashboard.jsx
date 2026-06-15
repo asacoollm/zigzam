@@ -105,8 +105,12 @@ export default function Dashboard() {
     markTutorialDone(user.id)
   }
 
+  // Admin / superadmin : accès anticipé au module Floor is Lava (test avant l'ouverture).
+  const isAdmin = user.role === 'admin' || user.role === 'superadmin'
+
   const handleTile = (m, blocked) => {
-    if (m.flava && !flavaUnlocked) {
+    // Décompte : verrouillé pour les élèves, mais les admins peuvent tester avant l'ouverture.
+    if (m.flava && !flavaUnlocked && !isAdmin) {
       flash(`🌋 Floor is Lava ouvre dans ${cd.d}j ${cd.h}h ${cd.m}min ${cd.s}s !`)
       return
     }
@@ -118,7 +122,7 @@ export default function Dashboard() {
   }
 
   const modules = [...MODULES]
-  if (user.role === 'admin' || user.role === 'superadmin') {
+  if (isAdmin) {
     modules.push({ emoji: '🛡️', label: 'Admin', color: 'var(--violet)', to: '/admin' })
   }
 
@@ -152,7 +156,9 @@ export default function Dashboard() {
         {modules.map((m) => {
           const count = m.badge ? badges[m.badge] : 0
           const blocked = isModuleBlocked(user.parental, m.key)
-          const flavaLocked = m.flava && !flavaUnlocked
+          // Verrou décompte : visuel complet pour les élèves ; aperçu cliquable pour les admins.
+          const flavaLocked = m.flava && !flavaUnlocked && !isAdmin
+          const flavaPreview = m.flava && !flavaUnlocked && isAdmin
           const flavaReady = m.flava && flavaUnlocked
           return (
             <button
@@ -172,12 +178,15 @@ export default function Dashboard() {
             >
               {blocked && <span className="tile__lock">🔒</span>}
               {!blocked && count > 0 && <span className="tile__badge">{count}</span>}
+              {flavaPreview && <span className="tile__ready-badge">Aperçu 🔧</span>}
               <span className="tile__emoji">{m.emoji}</span>
               <span className="tile__label">{m.label}</span>
 
-              {flavaLocked && (
+              {(flavaLocked || flavaPreview) && (
                 <div className="tile__countdown" aria-label="Décompte avant ouverture">
-                  <span className="tile__countdown-lock">🔒 Ouverture dans</span>
+                  <span className="tile__countdown-lock">
+                    {flavaPreview ? '🔧 Ouverture dans' : '🔒 Ouverture dans'}
+                  </span>
                   <span className="tile__countdown-clock">
                     <b>{cd.d}</b>j <b>{String(cd.h).padStart(2, '0')}</b>h{' '}
                     <b>{String(cd.m).padStart(2, '0')}</b>m <b>{String(cd.s).padStart(2, '0')}</b>s
