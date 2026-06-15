@@ -29,6 +29,7 @@ export default function FloorMulti({ onBack }) {
   const [pos, setPos] = useState(null)       // ma position { r, c } (locale, réactive)
   const [airborne, setAirborne] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const [activeAt, setActiveAt] = useState(null) // instant LOCAL de démarrage (chrono lave)
   const [error, setError] = useState('')
 
   const channelRef = useRef(null)
@@ -39,6 +40,7 @@ export default function FloorMulti({ onBack }) {
   const eliminatedRef = useRef(false)
   const sessionRef = useRef(null)
   const startedRef = useRef(false)
+  const activeAtRef = useRef(null) // instant LOCAL où ce client voit la partie active
 
   const session = data?.session || null
   const players = data?.players || []
@@ -54,15 +56,17 @@ export default function FloorMulti({ onBack }) {
     return buildBoard(session.taille, session.seed)
   }, [session?.taille, session?.seed]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Lave courante (déterministe, synchronisée par started_at).
+  // Lave courante (déterministe). Le temps écoulé est mesuré LOCALEMENT (depuis
+  // que CE client voit la partie active) → robuste aux décalages d'horloge entre
+  // le navigateur et le serveur (sinon : lave instantanée → élimination immédiate).
   const lava = useMemo(() => {
     if (!session || !board) return null
-    if (session.statut !== 'active') return emptyLavaGrid(session.taille)
-    const elapsed = now - session.started_at
+    if (session.statut !== 'active' || !activeAt) return emptyLavaGrid(session.taille)
+    const elapsed = now - activeAt
     if (elapsed < LAVA_DELAY_MS) return emptyLavaGrid(session.taille) // répit ~5 s
     const T = Math.floor((elapsed - LAVA_DELAY_MS) / TICK_MS)
     return lavaAtTick(session.taille, session.seed, board.terrain, T)
-  }, [session?.statut, session?.taille, session?.seed, session?.started_at, board, now]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session?.statut, session?.taille, session?.seed, board, now, activeAt]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Niveau de lave (#1 — submersion des boutons proportionnelle).
   const submerge = useMemo(() => {
@@ -77,6 +81,18 @@ export default function FloorMulti({ onBack }) {
     if (!st || st.error) { setError('Connexion à la partie impossible. Réessaie !'); return }
     setData(st)
     sessionRef.current = st.session
+    // Repère LOCAL de démarrage de la partie (pour le chrono de la lave) :
+    // robuste aux décalages d'horloge navigateur/serveur.
+    if (st.session.statut === 'active') {
+      if (!activeAtRef.current) {
+        const t = Date.now()
+        activeAtRef.current = t
+        setActiveAt(t)
+      }
+    } else if (activeAtRef.current) {
+      activeAtRef.current = null
+      setActiveAt(null)
+    }
     const mine = st.players.find((p) => p.user_id === user.id)
     if (mine) {
       // Pendant l'attente, on suit le centre ; au démarrage (waiting → active),
@@ -160,7 +176,7 @@ export default function FloorMulti({ onBack }) {
       if (!sess || sess.statut !== 'active') return
       const list = sess.bots || []
       if (list.length === 0) return
-      const elapsed = Date.now() - sess.started_at
+      const elapsed = activeAtRef.current ? Date.now() - activeAtRef.current : 0
       const lavaNow = elapsed < LAVA_DELAY_MS
         ? emptyLavaGrid(sess.taille)
         : lavaAtTick(sess.taille, sess.seed, board.terrain, Math.floor((elapsed - LAVA_DELAY_MS) / TICK_MS))

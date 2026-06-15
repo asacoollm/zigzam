@@ -175,7 +175,7 @@
 .flava__player svg {
   position: absolute;
   left: 50%;
-  bottom: 8%;
+  bottom: 12%; /* pieds centrés sur le disque (cercle visible juste dessous) */
   height: 168%;
   width: auto;
   transform: translateX(-50%);
@@ -186,7 +186,7 @@
     drop-shadow(0 7px 7px rgba(43, 35, 80, 0.45));
   transition: bottom 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.flava__player--air svg { bottom: 64%; } /* saut : l'avatar décolle, l'ombre reste sur la case */
+.flava__player--air svg { bottom: 68%; } /* saut : l'avatar décolle, l'ombre reste sur la case */
 
 /* Repère de case : disque coloré lumineux au sol, montre où est le joueur. */
 .flava__player-shadow {
@@ -475,7 +475,7 @@
 /* Avatars des autres joueurs : plus petits, avec pseudo */
 .flava__player--other svg {
   height: 120%;
-  bottom: 10%;
+  bottom: 14%; /* pieds centrés sur le disque (cohérent avec le joueur principal) */
   filter:
     drop-shadow(0 0 2px #fff)
     drop-shadow(0 5px 5px rgba(43, 35, 80, 0.4));
