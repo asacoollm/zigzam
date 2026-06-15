@@ -24,6 +24,7 @@ export default function Economie() {
   // Historique
   const [transactions, setTransactions] = useState([])
   const [histoLoading, setHistoLoading] = useState(true)
+  const [histoOpen, setHistoOpen] = useState(false) // replié par défaut (5 dernières)
 
   const chargerHistorique = useCallback(async () => {
     setHistoLoading(true)
@@ -208,22 +209,35 @@ export default function Economie() {
         ) : transactions.length === 0 ? (
           <p className="eco__histo-vide">Aucune transaction pour l'instant.</p>
         ) : (
-          <ul className="eco__histo-liste">
-            {transactions.map((tx) => (
-              <li key={tx.id} className="eco__histo-item">
-                <span className="eco__histo-icone">
-                  {tx.devise === 'gemme' ? '💎' : '🍩'}
-                </span>
-                <span className="eco__histo-desc">{tx.description}</span>
-                <span
-                  className={`eco__histo-montant ${tx.montant >= 0 ? 'eco__histo-montant--positif' : 'eco__histo-montant--negatif'}`}
-                >
-                  {tx.montant >= 0 ? '+' : ''}{tx.montant}
-                </span>
-                <span className="eco__histo-date">{formaterDate(tx.date)}</span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="eco__histo-liste">
+              {(histoOpen ? transactions : transactions.slice(0, 5)).map((tx) => (
+                <li key={tx.id} className="eco__histo-item">
+                  <span className="eco__histo-icone">
+                    {tx.devise === 'gemme' ? '💎' : '🍩'}
+                  </span>
+                  <span className="eco__histo-desc">{tx.description}</span>
+                  <span
+                    className={`eco__histo-montant ${tx.montant >= 0 ? 'eco__histo-montant--positif' : 'eco__histo-montant--negatif'}`}
+                  >
+                    {tx.montant >= 0 ? '+' : ''}{tx.montant}
+                  </span>
+                  <span className="eco__histo-date">{formaterDate(tx.date)}</span>
+                </li>
+              ))}
+            </ul>
+            {transactions.length > 5 && (
+              <button
+                className="eco__histo-toggle"
+                onClick={() => setHistoOpen((v) => !v)}
+                aria-expanded={histoOpen}
+              >
+                {histoOpen
+                  ? 'Réduire ▲'
+                  : `Voir tout l'historique (${transactions.length}) ▼`}
+              </button>
+            )}
+          </>
         )}
       </section>
     </div>

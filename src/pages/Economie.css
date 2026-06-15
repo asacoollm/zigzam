@@ -281,6 +281,25 @@
   gap: 10px;
 }
 
+/* Bouton dérouler / réduire l'historique — glassmorphism Zigzam */
+.eco__histo-toggle {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 16px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--violet-fonce);
+  background: rgba(124, 58, 255, 0.1);
+  border: 1.5px solid rgba(124, 58, 255, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.eco__histo-toggle:hover { background: rgba(124, 58, 255, 0.18); }
+.eco__histo-toggle:active { transform: translateY(1px); }
+
 .eco__histo-item {
   display: grid;
   grid-template-columns: 28px 1fr auto;
