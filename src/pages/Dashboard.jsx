@@ -17,7 +17,7 @@ const MODULES = [
   { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar', tut: 'avatar' },
   { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
-  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor', flava: true },
+  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
   { emoji: '🃏', label: 'Poker Donuts', color: 'var(--rose)', to: '/poker-donuts', key: 'poker', flava: true },
   { emoji: '🕵️', label: "L'Imposteur", color: 'var(--violet)', to: '/imposteur', key: 'imposteur', flava: true },
   { emoji: '🎬', label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
