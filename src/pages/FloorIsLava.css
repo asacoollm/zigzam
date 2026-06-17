@@ -298,6 +298,43 @@
 }
 .flava__jump:active { transform: translateY(3px); }
 
+/* Plateau tactile : on bloque le scroll pour un glissement fluide du doigt. */
+.flava__stage--touch {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Gros bouton de saut tactile, fixé en bas à droite (≥ 60px, facile à viser). */
+.flava__jump-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 24px;
+  z-index: 65;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  background: radial-gradient(circle at 35% 30%, #ffd23f, #ff8c42 55%, #ef4444);
+  box-shadow: 0 10px 24px rgba(239, 68, 68, 0.5);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.flava__jump-fab-arrow { font-size: 26px; line-height: 1; }
+.flava__jump-fab:active { transform: scale(0.92); }
+.flava__jump-fab:disabled { opacity: 0.55; }
+.flava__jump-fab--cd { background: radial-gradient(circle at 35% 30%, #c9cde0, #8b94a3); }
+
 /* Overlays (intro + fin de partie) */
 .flava__overlay {
   position: fixed;

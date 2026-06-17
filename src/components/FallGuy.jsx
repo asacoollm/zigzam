@@ -195,9 +195,9 @@ export default function FallGuy({
   const colorId = a?.color || color
   const { fill: bodyFill } = resolveColor(colorId)
   const cls = `fg ${anim ? 'fg--' + anim : ''} ${className}`.trim()
-  // Un grand animal terrestre prend place À DROITE → on élargit le viewBox.
+  // Tout animal de compagnie prend place À DROITE du bonhomme → on élargit le viewBox.
   const wide = a?.animal && animalWide(a.animal)
-  const viewBox = wide ? '0 -24 210 192' : '0 -24 120 192'
+  const viewBox = wide ? '0 -24 214 192' : '0 -24 120 192'
 
   return (
     <svg

@@ -120,6 +120,61 @@ export default function FloorIsLava() {
     }, AIRBORNE_MS)
   }, [])
 
+  // Détection d'un appareil tactile → contrôles au doigt (glisser + bouton saut).
+  const isTouch = useMemo(
+    () => typeof window !== 'undefined' && (('ontouchstart' in window) || navigator.maxTouchPoints > 0),
+    [],
+  )
+  const stageRef = useRef(null)
+  const dragRef = useRef({ x: 0, y: 0, ax: 0, ay: 0, cell: 48 })
+
+  // Glisser-déplacer sur le plateau : on déplace le perso case par case
+  // dans la direction du glissement, autant de cases que le doigt parcourt.
+  const onBoardTouchStart = useCallback((e) => {
+    const t = e.touches[0]
+    if (!t) return
+    const rect = stageRef.current?.getBoundingClientRect()
+    const cell = rect ? rect.width / SIZE : 48
+    dragRef.current = { x: t.clientX, y: t.clientY, ax: 0, ay: 0, cell }
+  }, [])
+
+  const onBoardTouchMove = useCallback((e) => {
+    const t = e.touches[0]
+    if (!t) return
+    e.preventDefault() // empêche le scroll pendant le glissement
+    const d = dragRef.current
+    d.ax += t.clientX - d.x
+    d.ay += t.clientY - d.y
+    d.x = t.clientX
+    d.y = t.clientY
+    const th = Math.max(18, d.cell * 0.7) // seuil ≈ 0,7 case → réactif
+    let guard = 0
+    while ((Math.abs(d.ax) >= th || Math.abs(d.ay) >= th) && guard++ < SIZE + 1) {
+      if (Math.abs(d.ax) >= Math.abs(d.ay)) {
+        const dir = d.ax > 0 ? 1 : -1
+        move(0, dir)
+        d.ax -= dir * th
+      } else {
+        const dir = d.ay > 0 ? 1 : -1
+        move(dir, 0)
+        d.ay -= dir * th
+      }
+    }
+  }, [move])
+
+  // Listeners natifs non-passifs (preventDefault fiable, glissement fluide).
+  useEffect(() => {
+    if (!isTouch) return
+    const el = stageRef.current
+    if (!el) return
+    el.addEventListener('touchstart', onBoardTouchStart, { passive: false })
+    el.addEventListener('touchmove', onBoardTouchMove, { passive: false })
+    return () => {
+      el.removeEventListener('touchstart', onBoardTouchStart)
+      el.removeEventListener('touchmove', onBoardTouchMove)
+    }
+  }, [isTouch, onBoardTouchStart, onBoardTouchMove])
+
   const resetTransient = () => {
     clearTimeout(landTimer.current)
     airborneRef.current = false
@@ -220,10 +275,16 @@ export default function FloorIsLava() {
 
       <h1 className="flava__title">Floor is Lava 🌋</h1>
       <p className="flava__hint">
-        Flèches = bouger • Espace = sauter par-dessus la lave • Active toutes les zones jaunes !
+        {isTouch
+          ? 'Glisse ton doigt sur le plateau pour bouger • Bouton ⬆ SAUT pour sauter • Active toutes les zones jaunes !'
+          : 'Flèches = bouger • Espace = sauter par-dessus la lave • Active toutes les zones jaunes !'}
       </p>
 
-      <div className="flava__stage" style={{ '--size': SIZE }}>
+      <div
+        ref={stageRef}
+        className={`flava__stage ${isTouch ? 'flava__stage--touch' : ''}`}
+        style={{ '--size': SIZE }}
+      >
         <div className="flava__board">
           {state.terrain.map((row, r) =>
             row.map((cell, c) => {
@@ -262,16 +323,14 @@ export default function FloorIsLava() {
         </div>
       </div>
 
-      {/* Commandes tactiles (mobile) */}
-      <div className="flava__pad" aria-hidden="true">
-        <div className="flava__dpad">
-          <button className="flava__key flava-submerge flava__key--up" onClick={() => move(-1, 0)}>▲</button>
-          <button className="flava__key flava-submerge flava__key--left" onClick={() => move(0, -1)}>◀</button>
-          <button className="flava__key flava-submerge flava__key--right" onClick={() => move(0, 1)}>▶</button>
-          <button className="flava__key flava-submerge flava__key--down" onClick={() => move(1, 0)}>▼</button>
-        </div>
-        <button className="flava__jump flava-submerge" onClick={jump}>SAUT<br />⤴</button>
-      </div>
+      {/* Commande tactile (mobile) : gros bouton de saut fixé à droite.
+          Le déplacement se fait en glissant le doigt sur le plateau. */}
+      {isTouch && started && state.status === 'playing' && (
+        <button className="flava__jump-fab flava-submerge" onClick={jump} aria-label="Sauter">
+          <span className="flava__jump-fab-arrow">⬆</span>
+          SAUT
+        </button>
+      )}
 
       {/* Écran d'intro / instructions */}
       {!started && (

@@ -1,6 +1,8 @@
 import { supabase } from './supabase'
 
 const STORAGE_KEY = 'zigzam.user'
+// Clé dédiée « Se souvenir de moi » : on n'y stocke QUE le pseudo, jamais le mot de passe.
+const REMEMBER_KEY = 'zigzam.remember'
 
 // --- Session locale (pas de Supabase Auth : auth maison par pseudo) ---
 export function getStoredUser() {
@@ -18,6 +20,32 @@ export function storeUser(user) {
 
 export function clearStoredUser() {
   localStorage.removeItem(STORAGE_KEY)
+}
+
+// --- « Se souvenir de moi » : mémorise le pseudo (jamais le mot de passe) ---
+export function rememberPseudo(pseudo) {
+  try {
+    localStorage.setItem(REMEMBER_KEY, pseudo)
+  } catch {
+    /* stockage indisponible : on ignore */
+  }
+}
+
+export function getRememberedPseudo() {
+  try {
+    return localStorage.getItem(REMEMBER_KEY) || null
+  } catch {
+    return null
+  }
+}
+
+// Efface les données « se souvenir de moi » de cet appareil.
+export function forgetDevice() {
+  try {
+    localStorage.removeItem(REMEMBER_KEY)
+  } catch {
+    /* rien à faire */
+  }
 }
 
 // --- Connexion : appelle la fonction SQL login() ---

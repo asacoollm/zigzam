@@ -703,10 +703,14 @@ const SPORT = {
 }
 
 // ----------------------------------------------------------------
-//  ANIMAUX  (compagnons — au sol à gauche, ou sur l'épaule droite)
+//  ANIMAUX  (compagnons — TOUJOURS à CÔTÉ du bonhomme, à sa droite :
+//  terrestres au sol (hauteur des pieds), volants/aquatiques un peu au-dessus.
+//  Aucun animal n'est posé SUR le bonhomme.)
 // ----------------------------------------------------------------
 // Les dessins d'animaux sont centrés sur l'origine ; la taille et la position
 // finales sont appliquées par ANIMAL_PLACEMENT (cf. renderAnimal).
+// `ground` / `shoulder` ne sont plus que de simples enveloppes <g> : la
+// position réelle vient de ANIMAL_PLACEMENT (tout est désormais à droite).
 const ground = (children) => <g>{children}</g>
 const shoulder = (children) => <g>{children}</g>
 
@@ -970,39 +974,46 @@ const ANIMAL = {
   ),
 }
 
-// Position + échelle finales de chaque animal sur le bonhomme.
-//  - petits (épaule) ~ scale 0.95 ; moyens (à gauche) ~ 1.5 ;
-//  - grands (à droite, presque aussi grands que lui) ~ 2.2 ; volants près de la tête.
-const ANIMAL_MED = 'translate(24 112) scale(1.5)'
+// Position + échelle finales de chaque animal : TOUJOURS à droite du bonhomme,
+// jamais posé dessus. Le bonhomme occupe x≈18..102, pieds ≈ y152.
+//  - terrestres : centrés ~x150, posés au sol (bas de l'animal ≈ y150)
+//  - volants    : centrés ~x150, un peu plus haut (au-dessus des pieds)
+//  - aquatiques : centrés ~x150, flottent à mi-hauteur
+//  Les petits animaux sont nettement agrandis pour rester visibles à droite.
+const ANIMAL_MED = 'translate(150 90) scale(2.4)'
 const ANIMAL_PLACEMENT = {
-  // volants — au-dessus et légèrement à droite de la tête
-  dragon: 'translate(88 0) scale(1.4)',
-  unicorn: 'translate(88 -2) scale(1.4)',
-  ghost: 'translate(92 0) scale(1.3)',
-  owl: 'translate(92 2) scale(1.2)',
-  parrot: 'translate(92 2) scale(1.2)',
-  bee: 'translate(98 6) scale(0.95)',
-  butterfly: 'translate(98 6) scale(0.95)',
-  ladybug: 'translate(98 8) scale(0.9)',
-  // petits terrestres — posés sur l'épaule droite
-  cat: 'translate(92 42) scale(0.95)',
-  penguin: 'translate(92 40) scale(0.95)',
-  snake: 'translate(90 38) scale(1)',
-  hamster: 'translate(92 42) scale(0.95)',
-  // grands terrestres — à droite, au sol, aussi grands que le bonhomme (viewBox élargi)
-  dino: 'translate(156 76) scale(2.9)',
-  cow: 'translate(156 76) scale(2.9)',
-  alien: 'translate(156 70) scale(2.9)',
-  shark: 'translate(156 88) scale(2.7)',
-  dog: 'translate(156 78) scale(2.9)',
-  panda: 'translate(156 78) scale(2.9)',
-  // au sol à gauche
-  fish: 'translate(22 92) scale(1.2)',
+  // --- Terrestres : au sol, à droite, à hauteur des pieds ---
+  dino: 'translate(154 80) scale(2.9)',
+  cow: 'translate(150 75) scale(2.6)',
+  dog: 'translate(152 77) scale(2.8)',
+  panda: 'translate(152 77) scale(2.8)',
+  fox: 'translate(150 85) scale(2.5)',
+  cat: 'translate(150 88) scale(2.4)',
+  rabbit: 'translate(150 88) scale(2.4)',
+  frog: 'translate(150 90) scale(2.4)',
+  turtle: 'translate(150 98) scale(2.5)',
+  hamster: 'translate(150 90) scale(2.4)',
+  penguin: 'translate(150 90) scale(2.4)',
+  ladybug: 'translate(150 97) scale(2.3)',
+  snake: 'translate(148 110) scale(2.5)',
+  // --- Volants : à droite, légèrement au-dessus ---
+  dragon: 'translate(152 52) scale(1.9)',
+  unicorn: 'translate(150 52) scale(1.9)',
+  ghost: 'translate(150 48) scale(2.3)',
+  owl: 'translate(150 46) scale(2.3)',
+  parrot: 'translate(150 46) scale(2.3)',
+  bird: 'translate(150 50) scale(2.3)',
+  bee: 'translate(150 54) scale(2.1)',
+  butterfly: 'translate(150 52) scale(2.1)',
+  alien: 'translate(150 70) scale(2.2)',
+  // --- Aquatiques : à droite, flottent à mi-hauteur ---
+  fish: 'translate(150 96) scale(2.3)',
+  shark: 'translate(152 96) scale(2.5)',
 }
 
-// Animaux assez grands pour nécessiter un viewBox élargi (placés à droite du bonhomme).
-const WIDE_ANIMALS = new Set(['dino', 'cow', 'alien', 'shark', 'dog', 'panda'])
-export function animalWide(id) { return WIDE_ANIMALS.has(id) }
+// Tous les animaux étant désormais placés à DROITE du bonhomme, ils
+// nécessitent tous le viewBox élargi pour ne pas être coupés.
+export function animalWide() { return true }
 
 // ---- Sélecteurs exportés ----
 export function renderHat(id) { return HATS[id]?.() ?? null }

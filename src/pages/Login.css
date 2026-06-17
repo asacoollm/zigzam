@@ -210,3 +210,59 @@
   font-size: 15px;
   font-weight: 600;
 }
+
+/* Reconnexion rapide (« Se souvenir de moi ») */
+.login__quick {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.login__quick-hi {
+  margin: 0;
+  color: var(--texte-doux);
+  font-size: 18px;
+  font-weight: 500;
+}
+.login__quick-hi strong {
+  color: var(--violet-fonce);
+}
+.login__quick-btn {
+  background: rgba(124, 58, 255, 0.12);
+  color: var(--violet-fonce);
+  font-size: 17px;
+  font-weight: 700;
+  padding: 12px;
+  border-radius: 16px;
+  border: 2px solid rgba(124, 58, 255, 0.25);
+  transition: background 0.15s, transform 0.1s;
+}
+.login__quick-btn:hover {
+  background: rgba(124, 58, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Case « Se souvenir de moi » */
+.login__remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--texte);
+  cursor: pointer;
+}
+.login__remember input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--violet);
+  cursor: pointer;
+}
+
+.login__forget {
+  color: #b45309;
+}
+.login__forget:hover {
+  background: rgba(180, 83, 9, 0.1);
+}

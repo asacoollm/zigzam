@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { login, getStoredUser } from '../lib/auth'
+import {
+  login, getStoredUser, rememberPseudo, getRememberedPseudo, forgetDevice,
+} from '../lib/auth'
 import { getParental, validateInviteCode, signupWithCode } from '../lib/modules'
 import { isOutsideAllowedHours, PAUSE_MESSAGE_HORAIRE } from '../lib/parental'
 import Backdrop from '../components/Backdrop'
@@ -13,16 +15,35 @@ export default function Login() {
   const { signIn, pauseMessage, clearPause } = useAuth()
   const navigate = useNavigate()
 
+  const rememberedPseudo = getRememberedPseudo()
+
   const [mode, setMode] = useState('login') // 'login' | 'invite' | 'signup'
-  const [pseudo, setPseudo] = useState('')
+  const [pseudo, setPseudo] = useState(rememberedPseudo || '')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
+  const [remember, setRemember] = useState(!!rememberedPseudo)
+  const [remembered, setRemembered] = useState(rememberedPseudo) // pseudo mémorisé sur cet appareil
 
+  const passwordRef = useRef(null)
   const lastAvatar = getStoredUser()?.avatar ?? null
+
+  // Reconnexion rapide : on garde le pseudo et on place le curseur sur le mot de passe.
+  const quickReconnect = () => {
+    if (remembered) setPseudo(remembered)
+    passwordRef.current?.focus()
+  }
+
+  // Oublier cet appareil : efface le pseudo mémorisé et masque la reconnexion rapide.
+  const handleForget = () => {
+    forgetDevice()
+    setRemembered(null)
+    setRemember(false)
+    setPseudo('')
+  }
 
   const reset = (m) => {
     setMode(m)
@@ -54,6 +75,9 @@ export default function Login() {
       setError(PAUSE_MESSAGE_HORAIRE)
       return
     }
+    // « Se souvenir de moi » : on mémorise seulement le pseudo (jamais le mot de passe).
+    if (remember) rememberPseudo(pseudo.trim())
+    else forgetDevice()
     signIn({ ...result.user, parental })
     navigate(result.user.premiere_connexion ? '/onboarding' : '/dashboard', {
       replace: true,
@@ -113,19 +137,29 @@ export default function Login() {
         {/* ---------- CONNEXION ---------- */}
         {mode === 'login' && (
           <form onSubmit={handleLogin}>
-            <p className="login__subtitle">Connecte-toi pour jouer !</p>
+            {remembered ? (
+              <div className="login__quick">
+                <p className="login__quick-hi">👋 Re-bonjour <strong>{remembered}</strong> !</p>
+                <button type="button" className="login__quick-btn" onClick={quickReconnect}>
+                  👋 Reconnexion rapide
+                </button>
+              </div>
+            ) : (
+              <p className="login__subtitle">Connecte-toi pour jouer !</p>
+            )}
             <label className="field">
               <span className="field__label">👤 Ton pseudo</span>
               <input
                 className="field__input" type="text" value={pseudo}
                 onChange={(e) => setPseudo(e.target.value)}
-                placeholder="Ex : lucas" autoComplete="username" autoFocus
+                placeholder="Ex : lucas" autoComplete="username" autoFocus={!remembered}
               />
             </label>
             <label className="field">
               <span className="field__label">🔒 Ton mot de passe</span>
               <div className="field__password">
                 <input
+                  ref={passwordRef}
                   className="field__input"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -139,10 +173,22 @@ export default function Login() {
                 </button>
               </div>
             </label>
+            <label className="login__remember">
+              <input
+                type="checkbox" checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+              />
+              <span>Se souvenir de moi 💾</span>
+            </label>
             {error && <p className="login__error">{error}</p>}
             <button className="login__button" type="submit" disabled={loading}>
               {loading ? 'On y va…' : "C'est parti ! 🚀"}
             </button>
+            {remembered && (
+              <button type="button" className="login__link login__forget" onClick={handleForget}>
+                🗑️ Oublier cet appareil
+              </button>
+            )}
             <button type="button" className="login__link" onClick={() => reset('invite')}>
               Pas encore de compte ? Créer mon compte 🎉
             </button>

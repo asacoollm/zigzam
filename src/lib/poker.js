@@ -78,7 +78,7 @@ export function startRound(state, firstPlayer) {
   return {
     ...state, players, firstPlayer: fp,
     phase: 'placing', prep: true, prepOrder, prepIndex: 0, turn: prepOrder[0],
-    bid: null, resolve: null, winner: null, bet: null,
+    bid: null, resolve: null, winner: null,
     log: `Manche ${state.round} — préparation : chacun pose un disque.`,
   }
 }
@@ -102,16 +102,14 @@ export function placeDisk(etat, idx, kind) {
     log: `${p.pseudo} a posé un disque.` }
 }
 
-// `bet` = donuts pariés (perso) par CE joueur s'il reste le challenger (0 = sans pari).
-export function launchChallenge(etat, idx, amount, bet = 0) {
+export function launchChallenge(etat, idx, amount) {
   if (etat.prep) return etat
   const max = totalPlaced(etat)
   const amt = Math.max(1, Math.min(amount, max))
   const players = etat.players.map((p) => ({ ...p, passed: false }))
   return { ...etat, players, phase: 'bidding', bid: { amount: amt, bidder: idx },
-    bet: bet > 0 ? { player: idx, amount: bet } : null,
     turn: nextActiveBidder(players, idx),
-    log: `${etat.players[idx].pseudo} parie ${amt} disque(s)${bet > 0 ? ` (mise ${bet} 🍩)` : ''} !` }
+    log: `${etat.players[idx].pseudo} parie ${amt} disque(s) !` }
 }
 
 export function raise(etat, idx, amount) {
@@ -278,11 +276,6 @@ export async function pokerSave(sessionId, userId, etat, statut = '') {
 }
 export async function pokerFinish(sessionId, winnerId) {
   const r = await rpc('poker_finish', { p_session: sessionId, p_winner: winnerId })
-  return r.error ? r : r.data
-}
-// Applique le pari perso du challenger (défi réussi → +montant, échoué → -montant).
-export async function pokerWager(userId, amount, won) {
-  const r = await rpc('poker_wager', { p_user: userId, p_amount: amount, p_won: won })
   return r.error ? r : r.data
 }
 export async function pokerState(sessionId) {

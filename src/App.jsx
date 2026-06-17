@@ -13,7 +13,6 @@ import Parametres from './pages/Parametres'
 import Admin from './pages/Admin'
 import FloorIsLava from './pages/FloorIsLava'
 import PokerDonuts from './pages/PokerDonuts'
-import Imposteur from './pages/Imposteur'
 import Serie from './pages/Serie'
 import EpisodePlayer from './pages/EpisodePlayer'
 import BoiteMystere from './pages/BoiteMystere'
@@ -133,12 +132,6 @@ export default function App() {
         path="/poker-donuts"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <PokerDonuts />
-        }
-      />
-      <Route
-        path="/imposteur"
-        element={
-          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Imposteur />
         }
       />
       <Route

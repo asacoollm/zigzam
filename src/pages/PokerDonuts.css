@@ -78,12 +78,12 @@
 /* ----- Table de jeu ----- */
 .poker__table-wrap {
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
   margin: 6px auto 0;
 }
 .poker__table {
   position: relative;
-  width: min(88vw, 480px);
+  width: min(95vw, 580px);
   aspect-ratio: 1;
   margin: 0 auto;
   border-radius: 50%;
@@ -113,9 +113,9 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  width: 84px;
+  width: 96px;
 }
-.poker__seat-av { width: 38px; height: 50px; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35)); }
+.poker__seat-av { width: 42px; height: 54px; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35)); }
 .poker__seat-name {
   font-size: 12px; font-weight: 800; color: #fff;
   background: rgba(43, 35, 80, 0.7); border-radius: 999px; padding: 1px 8px; white-space: nowrap;
@@ -191,42 +191,54 @@
   padding: 6px 16px; border-radius: 999px; box-shadow: 0 6px 16px rgba(124, 58, 255, 0.35);
 }
 
-/* ----- Tapis + disques posés ----- */
+/* ----- Tapis + disques posés (cartes bien grandes) ----- */
 .poker__mat {
   display: flex; flex-direction: column-reverse; align-items: center;
-  min-height: 34px; min-width: 34px; padding: 5px;
-  border-radius: 10px; background: rgba(255, 255, 255, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.7); margin-top: 2px;
+  min-height: 56px; min-width: 56px; padding: 6px;
+  border-radius: 12px; background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.7); margin-top: 3px;
 }
 .poker__mat--flower {
   background: radial-gradient(circle at 50% 40%, #ffe7a8, #ffd23f);
   border-color: #f0a800;
 }
-.poker__mat--flip { cursor: pointer; outline: 2px dashed #ffe082; outline-offset: 1px; }
+.poker__mat--flip { cursor: pointer; outline: 3px dashed #ffe082; outline-offset: 2px; }
 .poker__disk {
-  width: 24px; height: 24px; border-radius: 50%;
-  display: grid; place-items: center; font-size: 13px;
-  background: radial-gradient(circle at 35% 30%, #9a6bff, #5a1fd4);
-  color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 26px;
+  color: #fff; box-shadow: 0 3px 7px rgba(0, 0, 0, 0.35);
+  border: 2.5px solid rgba(255, 255, 255, 0.85);
+}
+/* Dos de carte : motif Zigzam coloré (pinwheel signature) */
+.poker__disk--down {
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.6), transparent 42%),
+    conic-gradient(from 35deg, #ff4d8d, #7c3aff, #00bfff, #ff4d8d);
+  position: relative;
+}
+.poker__disk--down::after {
+  content: '✦';
+  font-size: 18px;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 .poker__disk--up { background: #fff; border-color: #e0d6ff; }
 .poker__disk--empty { background: rgba(255, 255, 255, 0.2); box-shadow: none; border-style: dashed; }
 
 /* ----- Ma main ----- */
 .poker__hand {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
-  margin-top: 16px; padding: 10px 14px; max-width: 540px;
-  background: rgba(255, 255, 255, 0.55); border: 1.5px solid rgba(255, 255, 255, 0.7);
-  border-radius: 18px; backdrop-filter: blur(10px);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;
+  margin-top: 16px; padding: 16px 20px; max-width: 600px; width: 100%;
+  background: rgba(255, 255, 255, 0.6); border: 1.5px solid rgba(255, 255, 255, 0.75);
+  border-radius: 22px; backdrop-filter: blur(10px); box-shadow: 0 -4px 20px rgba(124, 58, 255, 0.15);
 }
-.poker__hand-label { font-size: 13px; font-weight: 800; color: var(--texte-doux); }
+.poker__hand-label { font-size: 14px; font-weight: 800; color: var(--texte-doux); width: 100%; text-align: center; }
 .poker__hand-disk {
-  width: 46px; height: 46px; border-radius: 50%; font-size: 22px;
-  display: grid; place-items: center; border: 2.5px solid #fff;
-  box-shadow: 0 4px 10px rgba(43, 35, 80, 0.25); transition: transform 0.1s;
+  width: 88px; height: 88px; border-radius: 50%; font-size: 44px;
+  display: grid; place-items: center; border: 3px solid #fff;
+  box-shadow: 0 6px 16px rgba(43, 35, 80, 0.3); transition: transform 0.1s;
 }
-.poker__hand-disk:not(:disabled):hover { transform: translateY(-3px) scale(1.05); }
+.poker__hand-disk:not(:disabled):hover { transform: translateY(-4px) scale(1.06); }
 .poker__hand-disk:disabled { opacity: 0.55; }
 .poker__hand-disk--flower { background: radial-gradient(circle at 35% 30%, #ffe7f0, #ffd0e6); }
 .poker__hand-disk--skull { background: radial-gradient(circle at 35% 30%, #3a3550, #1c1830); }
@@ -267,18 +279,9 @@
 .poker__panel-actions .poker__btn { flex: 1; }
 
 @media (max-width: 480px) {
-  .poker__seat { width: 68px; }
-  .poker__seat-av { width: 32px; height: 42px; }
+  .poker__seat { width: 72px; }
+  .poker__seat-av { width: 34px; height: 44px; }
   .poker__seat-name { font-size: 10.5px; }
+  .poker__hand-disk { width: 72px; height: 72px; font-size: 38px; }
+  .poker__disk { width: 40px; height: 40px; font-size: 22px; }
 }
-
-/* ----- Pari de donuts ----- */
-.poker__bet-text { font-size: 15px; line-height: 1.5; color: var(--texte); margin: 0 0 8px; text-align: center; }
-.poker__bet-balance { font-size: 14px; color: var(--texte-doux); margin: 0 0 10px; text-align: center; }
-.poker__bet-input { width: 120px; display: block; margin: 0 auto 14px; }
-.poker__bet-tag {
-  width: 100%; text-align: center; margin: 6px 0 0;
-  font-size: 14px; font-weight: 800; color: var(--violet-fonce);
-}
-.poker__bet-tag--win { color: #1e8a5a; }
-.poker__bet-tag--lose { color: #c0392b; }

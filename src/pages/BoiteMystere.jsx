@@ -206,6 +206,12 @@ export default function BoiteMystere() {
             )}
           </div>
 
+          {step >= 4 && !result.skin && result.doublon > 0 && (
+            <div className="reveal__doublon reveal__item--pop">
+              Tu avais déjà cet accessoire ! Tu reçois {result.doublon} 💎 à la place.
+            </div>
+          )}
+
           {step >= 4 && result.skin && (
             <div className="reveal__skin reveal__item--pop">
               <span className="reveal__skin-tag">🎁 Nouveau skin équipé !</span>
