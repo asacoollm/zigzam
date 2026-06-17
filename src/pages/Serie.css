@@ -87,11 +87,33 @@
 }
 
 .serie-card__num {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--accent);
+}
+
+.serie-card__draft {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b6191;
+  background: rgba(107, 97, 145, 0.16);
+  border: 1px solid rgba(107, 97, 145, 0.3);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.serie__empty {
+  text-align: center;
+  color: var(--texte-doux);
+  font-size: 15px;
+  padding: 30px 10px;
 }
 
 .serie-card__name {

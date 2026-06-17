@@ -615,3 +615,48 @@
     width: 100%;
   }
 }
+
+/* --------------- Série Zigzam 🎬 --------------- */
+.serie-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.serie-admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(124, 58, 255, 0.06);
+  border: 1px solid rgba(124, 58, 255, 0.12);
+}
+.serie-admin-row__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.serie-admin-row__num {
+  font-weight: 700;
+  color: var(--violet);
+  white-space: nowrap;
+}
+.serie-admin-row__name { font-weight: 600; }
+.serie-admin-row__status {
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.serie-admin-row__status--pub { color: #1f9d57; background: rgba(61, 214, 140, 0.16); }
+.serie-admin-row__status--draft { color: #6b6191; background: rgba(107, 97, 145, 0.14); }
+
+@media (max-width: 640px) {
+  .serie-admin-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

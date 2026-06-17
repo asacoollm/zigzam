@@ -45,6 +45,9 @@ const episode1 = {
   title: 'Le Skin de la Honte',
   emoji: '🎬',
   duration: '~2 min',
+  // Visibilité : true = visible par tous ; false = brouillon (superadmin seul).
+  // Cette valeur est le défaut ; le superadmin peut la surcharger depuis /admin.
+  publie: true,
   synopsis: 'Notre héros vient de claquer 20 gemmes pour un nouveau skin... et tient absolument à ce que tout le monde le remarque.',
   // Habillage de la vignette sur la page /serie
   accent: 'var(--rose)',

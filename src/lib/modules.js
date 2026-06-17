@@ -323,6 +323,22 @@ export async function flavaWin(userId, level) {
   return { ok: true, donuts: r.data.donuts, reward: r.data.reward, niveau: r.data.niveau }
 }
 
+// ---------------- SÉRIE ZIGZAM 🎬 ----------------
+// Map des overrides de publication { episode_id: publie } (vide si erreur/aucun).
+export async function getSerieVisibility() {
+  const r = await rpc('get_serie_visibility')
+  return r.error ? {} : (r.data || {})
+}
+// Superadmin : publie/dépublie un épisode pour tout le monde.
+export async function adminSetSeriePublie(adminId, episodeId, publie) {
+  const r = await rpc('admin_set_serie_publie', {
+    p_admin: adminId, p_episode: episodeId, p_publie: publie,
+  })
+  if (r.error) return r
+  if (r.data === 'forbidden') return { error: 'Permission refusée.' }
+  return { ok: true }
+}
+
 // ---------------- TUTORIEL ----------------
 // Marque le tutoriel de bienvenue comme vu (ne se relance plus automatiquement).
 export async function markTutorialDone(userId) {

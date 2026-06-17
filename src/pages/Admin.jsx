@@ -14,7 +14,10 @@ import {
   toggleInviteCode,
   adminListBugReports,
   adminUpdateBugReport,
+  getSerieVisibility,
+  adminSetSeriePublie,
 } from '../lib/modules'
+import { EPISODES, isPublished } from '../data/episodes'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
@@ -671,6 +674,69 @@ function SectionBugReports({ adminId }) {
   )
 }
 
+// --------------- Série Zigzam 🎬 ---------------
+function SectionSerie({ adminId }) {
+  const [overrides, setOverrides] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState(null)
+  const [msg, setMsg] = useState(null)
+
+  useEffect(() => {
+    let on = true
+    getSerieVisibility().then((o) => {
+      if (!on) return
+      setOverrides(o)
+      setLoading(false)
+    })
+    return () => { on = false }
+  }, [])
+
+  async function toggle(ep, publie) {
+    setBusyId(ep.id)
+    setMsg(null)
+    const res = await adminSetSeriePublie(adminId, ep.id, publie)
+    setBusyId(null)
+    if (res.error) {
+      setMsg({ type: 'err', text: res.error })
+      return
+    }
+    setOverrides((prev) => ({ ...prev, [ep.id]: publie }))
+  }
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">🎬 Série Zigzam</h2>
+      {msg && <p className={`admin-msg admin-msg--${msg.type}`}>{msg.text}</p>}
+      {loading && <p className="admin-loading">Chargement…</p>}
+      {!loading && (
+        <div className="serie-admin-list">
+          {EPISODES.map((ep) => {
+            const pub = isPublished(ep, overrides)
+            return (
+              <div key={ep.id} className="serie-admin-row">
+                <div className="serie-admin-row__info">
+                  <span className="serie-admin-row__num">Ép. {ep.number}</span>
+                  <span className="serie-admin-row__name">{ep.title}</span>
+                  <span className={`serie-admin-row__status serie-admin-row__status--${pub ? 'pub' : 'draft'}`}>
+                    {pub ? '✅ Publié' : '🔒 Brouillon'}
+                  </span>
+                </div>
+                <button
+                  className={`admin-btn admin-btn--sm ${pub ? 'admin-btn--danger' : 'admin-btn--vert'}`}
+                  onClick={() => toggle(ep, !pub)}
+                  disabled={busyId === ep.id}
+                >
+                  {busyId === ep.id ? '…' : pub ? 'Dépublier' : 'Publier'}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
 // --------------- Page principale ---------------
 export default function Admin() {
   const { user } = useAuth()
@@ -707,6 +773,7 @@ export default function Admin() {
           <SectionCreerCompte adminId={user.id} onUserCreated={handleUserCreated} />
           <SectionUtilisateurs adminId={user.id} refreshTrigger={refreshUsers} />
           <SectionCodes adminId={user.id} />
+          <SectionSerie adminId={user.id} />
         </>
       )}
     </div>

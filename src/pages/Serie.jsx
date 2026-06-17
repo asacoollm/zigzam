@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { EPISODES } from '../data/episodes'
+import { EPISODES, isPublished } from '../data/episodes'
+import { getSerieVisibility } from '../lib/modules'
 import FallGuy from '../components/FallGuy'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -18,6 +20,18 @@ function Thumb({ episode, avatar }) {
 export default function Serie() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const isSuperadmin = user.role === 'superadmin'
+  const [overrides, setOverrides] = useState({})
+
+  useEffect(() => {
+    let on = true
+    getSerieVisibility().then((o) => on && setOverrides(o))
+    return () => { on = false }
+  }, [])
+
+  // Utilisateurs normaux : seulement les épisodes publiés.
+  // Superadmin : tout, avec un badge « Brouillon » sur les non publiés.
+  const episodes = EPISODES.filter((ep) => isSuperadmin || isPublished(ep, overrides))
 
   return (
     <div className="serie">
@@ -38,25 +52,34 @@ export default function Serie() {
       </p>
 
       <main className="serie__list">
-        {EPISODES.map((ep) => (
-          <button
-            key={ep.id}
-            className="serie-card"
-            style={{ '--accent': ep.accent || 'var(--violet)' }}
-            onClick={() => navigate(`/serie/${ep.id}`)}
-          >
-            <Thumb episode={ep} avatar={user.avatar} />
-            <div className="serie-card__body">
-              <span className="serie-card__num">Épisode {ep.number}</span>
-              <span className="serie-card__name">{ep.title}</span>
-              {ep.synopsis && <span className="serie-card__synopsis">{ep.synopsis}</span>}
-              <span className="serie-card__meta">
-                <span className="serie-card__dur">⏱️ {ep.duration}</span>
-                <span className="serie-card__play">▶ Regarder</span>
-              </span>
-            </div>
-          </button>
-        ))}
+        {episodes.length === 0 && (
+          <p className="serie__empty">Aucun épisode disponible pour l'instant. Reviens bientôt ! 🎬</p>
+        )}
+        {episodes.map((ep) => {
+          const brouillon = !isPublished(ep, overrides)
+          return (
+            <button
+              key={ep.id}
+              className="serie-card"
+              style={{ '--accent': ep.accent || 'var(--violet)' }}
+              onClick={() => navigate(`/serie/${ep.id}`)}
+            >
+              <Thumb episode={ep} avatar={user.avatar} />
+              <div className="serie-card__body">
+                <span className="serie-card__num">
+                  Épisode {ep.number}
+                  {brouillon && <span className="serie-card__draft">🔒 Brouillon</span>}
+                </span>
+                <span className="serie-card__name">{ep.title}</span>
+                {ep.synopsis && <span className="serie-card__synopsis">{ep.synopsis}</span>}
+                <span className="serie-card__meta">
+                  <span className="serie-card__dur">⏱️ {ep.duration}</span>
+                  <span className="serie-card__play">▶ Regarder</span>
+                </span>
+              </div>
+            </button>
+          )
+        })}
       </main>
     </div>
   )

@@ -77,6 +77,77 @@
   border: 2.5px solid rgba(255, 255, 255, 0.85);
 }
 
+/* ---- Décor Dashboard ---- */
+.ep-decor--dashboard { background: rgba(255, 255, 255, 0.06); }
+.ep-dash {
+  width: min(82%, 460px);
+  margin-bottom: 14%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 22px;
+  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+}
+.ep-dash__brand {
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+.ep-dash__counters { display: flex; gap: 10px; margin-bottom: 14px; }
+.ep-dash__counter {
+  font-weight: 700;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+}
+.ep-dash__counter--donut { background: rgba(255, 210, 63, 0.4); }
+.ep-dash__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.ep-dash__tile {
+  aspect-ratio: 1.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ---- Décor Actualités ---- */
+.ep-decor--actus { background: rgba(255, 255, 255, 0.06); }
+.ep-actus {
+  width: min(80%, 440px);
+  margin-bottom: 16%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 22px;
+  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+}
+.ep-actus__bar { font-weight: 700; font-size: 17px; margin-bottom: 12px; }
+.ep-actus__post {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ep-actus__line { height: 9px; border-radius: 5px; background: #d7cdfa; }
+.ep-actus__line--title { height: 13px; width: 60%; background: #b9a8f5; }
+.ep-actus__line--short { width: 45%; }
+.ep-actus__views {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--violet);
+}
+
 /* ---- Plateau Floor is Lava (vue de dessus) ---- */
 .ep-decor--lava { background: rgba(20, 10, 40, 0.18); }
 .ep-decor--defeat {
@@ -155,6 +226,57 @@
 @keyframes ep-flicker {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-6px) scale(1.12); }
+}
+
+/* ---- Notification qui tombe du ciel ---- */
+.ep-notif {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(86%, 420px);
+  padding: 14px 20px;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--texte);
+  font-weight: 700;
+  font-size: 17px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 0 4px rgba(255, 210, 63, 0.6);
+  animation: ep-notif-drop 0.9s cubic-bezier(0.18, 1.4, 0.5, 1) forwards;
+}
+.ep-notif__icon { font-size: 28px; }
+@keyframes ep-notif-drop {
+  0% { transform: translate(-50%, -180%) scale(0.6) rotate(-8deg); opacity: 0; }
+  70% { transform: translate(-50%, 12%) scale(1.08) rotate(2deg); opacity: 1; }
+  100% { transform: translate(-50%, 0) scale(1) rotate(0); opacity: 1; }
+}
+
+/* ---- Confettis ---- */
+.ep-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; }
+.ep-confetti__bit {
+  position: absolute;
+  top: -8%;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  animation: ep-confetti-fall linear infinite;
+}
+.ep-confetti__bit--0 { left: 8%;  background: #ff4d8d; animation-duration: 2.6s; animation-delay: 0s;    }
+.ep-confetti__bit--1 { left: 26%; background: #7c3aff; animation-duration: 3.1s; animation-delay: 0.4s; }
+.ep-confetti__bit--2 { left: 47%; background: #00bfff; animation-duration: 2.3s; animation-delay: 0.2s; }
+.ep-confetti__bit--3 { left: 68%; background: #3dd68c; animation-duration: 2.9s; animation-delay: 0.6s; }
+.ep-confetti__bit--4 { left: 88%; background: #ffd23f; animation-duration: 2.5s; animation-delay: 0.1s; }
+/* Décalages horizontaux variés pour les répétitions */
+.ep-confetti__bit:nth-child(n+6)  { transform: translateX(20px); }
+.ep-confetti__bit:nth-child(n+11) { transform: translateX(-26px); }
+.ep-confetti__bit:nth-child(n+16) { transform: translateX(44px); }
+.ep-confetti__bit:nth-child(n+21) { transform: translateX(-40px); }
+@keyframes ep-confetti-fall {
+  0% { top: -8%; opacity: 1; }
+  100% { top: 108%; opacity: 0.9; }
 }
 
 /* ---------------- Bulles ---------------- */
@@ -290,9 +412,13 @@
   justify-content: center;
   gap: 16px;
   text-align: center;
+  color: #fff;
+  font-weight: 600;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ep-lava__cell.is-lava, .ep-fire span, .ep__next, .ep-caret { animation: none; }
+  .ep-lava__cell.is-lava, .ep-fire span, .ep__next, .ep-caret,
+  .ep-confetti__bit { animation: none; }
+  .ep-notif { animation-duration: 0.01s; }
   .ep__scene { transition: none; }
 }

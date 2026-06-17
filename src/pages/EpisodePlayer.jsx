@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getEpisode } from '../data/episodes'
+import { getEpisode, isPublished } from '../data/episodes'
+import { getSerieVisibility } from '../lib/modules'
 import FallGuy from '../components/FallGuy'
 import './EpisodePlayer.css'
 
@@ -67,6 +68,44 @@ function Decor({ scene }) {
     )
   }
 
+  if (decor === 'dashboard') {
+    const donuts = (scene.counter ?? 0).toLocaleString('fr-FR')
+    return (
+      <div className="ep-decor ep-decor--dashboard">
+        <div className="ep-dash">
+          <div className="ep-dash__brand">Zigzam</div>
+          <div className="ep-dash__counters">
+            <span className="ep-dash__counter ep-dash__counter--donut">🍩 {donuts}</span>
+            <span className="ep-dash__counter ep-dash__counter--gem">💎 0</span>
+          </div>
+          <div className="ep-dash__grid">
+            {['💬', '📰', '🎨', '🌋', '🃏', '🎬'].map((e, i) => (
+              <span key={i} className="ep-dash__tile">{e}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (decor === 'actus') {
+    return (
+      <div className="ep-decor ep-decor--actus">
+        <div className="ep-actus">
+          <div className="ep-actus__bar">📰 Actualités</div>
+          <div className="ep-actus__post">
+            <div className="ep-actus__line ep-actus__line--title" />
+            <div className="ep-actus__line" />
+            <div className="ep-actus__line ep-actus__line--short" />
+            {scene.views != null && (
+              <div className="ep-actus__views">👁️ {scene.views} vue{scene.views > 1 ? 's' : ''}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return <div className="ep-decor ep-decor--neutral" />
 }
 
@@ -84,9 +123,26 @@ export default function EpisodePlayer() {
   const [fading, setFading] = useState(false)
   const [castState, setCastState] = useState({}) // état dynamique par perso (expression…)
   const [blink, setBlink] = useState(false)
+  const [access, setAccess] = useState('checking') // 'checking' | 'ok' | 'denied'
 
   const timersRef = useRef([])
   const typeTimer = useRef(null)
+
+  const isSuperadmin = user?.role === 'superadmin'
+
+  // Contrôle d'accès : un brouillon n'est lisible que par le superadmin.
+  useEffect(() => {
+    let on = true
+    if (!episode || isSuperadmin) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAccess(!episode ? 'denied' : 'ok')
+      return
+    }
+    getSerieVisibility().then((overrides) => {
+      if (on) setAccess(isPublished(episode, overrides) ? 'ok' : 'denied')
+    })
+    return () => { on = false }
+  }, [episode, isSuperadmin])
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout)
@@ -232,13 +288,17 @@ export default function EpisodePlayer() {
     setInstant(false)
   }
 
-  if (!episode) {
+  if (!episode || access === 'denied') {
     return (
       <div className="ep ep--missing">
-        <p>Épisode introuvable 😕</p>
+        <p>{episode ? 'Cet épisode n\'est pas encore disponible 🔒' : 'Épisode introuvable 😕'}</p>
         <button className="ep-btn" onClick={() => navigate('/serie')}>Retour aux épisodes</button>
       </div>
     )
+  }
+
+  if (access === 'checking') {
+    return <div className="ep ep--missing"><p>Chargement…</p></div>
   }
 
   const visibleCount = instant ? bubbles.length : Math.min(cb + 1, bubbles.length)
@@ -256,6 +316,23 @@ export default function EpisodePlayer() {
             {scene.effects?.includes('fire') && (
               <div className="ep-fire" aria-hidden="true">
                 <span>🔥</span><span>🔥</span><span>🔥</span><span>🔥</span><span>🔥</span>
+              </div>
+            )}
+
+            {/* Pluie de confettis */}
+            {scene.effects?.includes('confetti') && (
+              <div className="ep-confetti" aria-hidden="true">
+                {Array.from({ length: 24 }).map((_, i) => (
+                  <span key={i} className={`ep-confetti__bit ep-confetti__bit--${i % 5}`} />
+                ))}
+              </div>
+            )}
+
+            {/* Notification qui tombe du ciel */}
+            {scene.notif && (
+              <div className="ep-notif" key={`notif-${sceneIndex}`}>
+                <span className="ep-notif__icon">🎁</span>
+                <span className="ep-notif__text">{scene.notif}</span>
               </div>
             )}
 

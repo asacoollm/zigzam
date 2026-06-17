@@ -181,7 +181,7 @@ function expressionMouth(expr) {
 // Petit bonhomme « Fall Guys » (haricot) en SVG, personnalisable.
 // - `avatar`     : objet { color, hat, glasses, hair, sport, animal, face } (prioritaire)
 // - `color`      : couleur simple (id ou hex) pour les usages décoratifs
-// - `anim`       : 'idle' | 'jump' | 'walk' | 'fall' | 'shrug' (animations)
+// - `anim`       : 'idle'|'jump'|'walk'|'fall'|'shrug'|'jumploop'|'collapse'
 // - `eyesClosed` : true → yeux fermés (petits arcs), pour la Série Zigzam
 // - `expression` : 'fier'|'gene'|'blase'|'moque'|'choque'|'triste'|'neutre' (Série Zigzam)
 // - `role`       : 'admin' | 'superadmin' → affiche un badge sur le ventre

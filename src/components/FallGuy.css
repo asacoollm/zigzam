@@ -55,6 +55,22 @@
   60% { transform: translateY(-4%) rotate(3deg); }
 }
 
+/* Saut de joie répété (Série Zigzam) : enchaîne les sauts en boucle */
+.fg--jumploop {
+  animation: fg-jump 0.7s ease-in-out infinite;
+}
+
+/* Effondrement (Série Zigzam) : le bonhomme s'écroule au sol et y reste */
+.fg--collapse {
+  animation: fg-collapse 0.9s ease-in forwards;
+}
+@keyframes fg-collapse {
+  0% { transform: translateY(0) rotate(0) scaleY(1); }
+  45% { transform: translateY(2%) rotate(-6deg) scaleY(0.95); }
+  100% { transform: translateY(14%) rotate(-78deg) scaleY(0.9); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .fg--idle, .fg--jump, .fg--walk, .fg--fall, .fg--shrug { animation: none; }
+  .fg--idle, .fg--jump, .fg--walk, .fg--fall, .fg--shrug,
+  .fg--jumploop, .fg--collapse { animation: none; }
 }
