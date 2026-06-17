@@ -366,6 +366,45 @@ export async function adminRefuseSerieProposition(adminId, propId) {
   return { ok: true }
 }
 
+// ---------------- BOÎTES MYSTÈRES 🎁 ----------------
+// Superadmin : crée une boîte aléatoire d'un niveau de rareté donné.
+export async function adminCreateBoiteAleatoire(adminId, destId, niveau) {
+  const r = await rpc('admin_create_boite_aleatoire', {
+    p_admin: adminId, p_dest: destId, p_niveau: niveau,
+  })
+  if (r.error) return r
+  if (r.data?.error) return { error: ERR }
+  return { ok: true }
+}
+// Superadmin : crée une boîte personnalisée (donuts, gemmes, accessoire optionnel).
+export async function adminCreateBoitePerso(adminId, destId, donuts, gemmes, skinCat, skinItem) {
+  const r = await rpc('admin_create_boite_perso', {
+    p_admin: adminId, p_dest: destId,
+    p_donuts: donuts, p_gemmes: gemmes,
+    p_skin_cat: skinCat || '', p_skin_item: skinItem || '',
+  })
+  if (r.error) return r
+  if (r.data?.error) return { error: ERR }
+  return { ok: true }
+}
+// Superadmin : historique de toutes les boîtes envoyées.
+export async function adminListBoites(adminId) {
+  const r = await rpc('admin_list_boites', { p_admin: adminId })
+  return r.error ? [] : r.data
+}
+// Utilisateur : ses boîtes non ouvertes (dashboard + page d'ouverture).
+export async function getMyBoites(userId) {
+  const r = await rpc('get_my_boites', { p_user: userId })
+  return r.error ? [] : r.data
+}
+// Utilisateur : ouvre une boîte (tirage + crédit côté serveur).
+export async function openBoite(userId, boiteId) {
+  const r = await rpc('open_boite', { p_user: userId, p_boite: boiteId })
+  if (r.error) return r
+  if (r.data?.error) return { error: ERR }
+  return r.data
+}
+
 // ---------------- TUTORIEL ----------------
 // Marque le tutoriel de bienvenue comme vu (ne se relance plus automatiquement).
 export async function markTutorialDone(userId) {

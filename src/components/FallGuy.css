@@ -79,7 +79,18 @@
   50% { transform: rotate(5deg); }
 }
 
+/* Pose fière (célébration d'achat) : se dandine fièrement en boucle */
+.fg--pose {
+  animation: fg-pose 1.4s ease-in-out infinite;
+}
+@keyframes fg-pose {
+  0%, 100% { transform: rotate(-4deg) translateY(0) scale(1); }
+  25% { transform: rotate(3deg) translateY(-5%) scale(1.03); }
+  50% { transform: rotate(-3deg) translateY(0) scale(1); }
+  75% { transform: rotate(4deg) translateY(-5%) scale(1.03); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fg--idle, .fg--jump, .fg--walk, .fg--fall, .fg--shrug,
-  .fg--jumploop, .fg--collapse, .fg--wave { animation: none; }
+  .fg--jumploop, .fg--collapse, .fg--wave, .fg--pose { animation: none; }
 }

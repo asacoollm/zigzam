@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getBadges, markTutorialDone } from '../lib/modules'
+import { getBadges, markTutorialDone, getMyBoites } from '../lib/modules'
 import { isModuleBlocked } from '../lib/parental'
 import { FLAVA_UNLOCK_TS, flavaCountdown } from '../lib/flavaCountdown'
 import Backdrop from '../components/Backdrop'
@@ -43,6 +43,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const location = useLocation()
   const [badges, setBadges] = useState({ discuter: 0, actus: 0 })
+  const [boiteCount, setBoiteCount] = useState(0)
   const [toast, setToast] = useState('')
   const [rulesOpen, setRulesOpen] = useState(true)
   // Le tutoriel se lance auto à la 1re connexion (tutoriel_vu === false).
@@ -63,6 +64,7 @@ export default function Dashboard() {
   useEffect(() => {
     let on = true
     getBadges(user.id).then((b) => on && setBadges(b))
+    getMyBoites(user.id).then((b) => on && setBoiteCount(Array.isArray(b) ? b.length : 0))
     return () => { on = false }
   }, [user.id])
 
@@ -156,7 +158,28 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {boiteCount > 0 && (
+        <button className="dash__boite-notif" onClick={() => navigate('/boites')}>
+          <span className="dash__boite-notif-emoji">🎁</span>
+          <span>
+            Asacool t'a envoyé {boiteCount > 1 ? `${boiteCount} boîtes mystères` : 'une boîte mystère'} !
+            <strong> Clique pour {boiteCount > 1 ? 'les' : "l'"} ouvrir ✨</strong>
+          </span>
+        </button>
+      )}
+
       <main className="dash__grid" data-tut="grid">
+        {boiteCount > 0 && (
+          <button
+            className="tile tile--boite"
+            style={{ '--tile-color': 'var(--rose)' }}
+            onClick={() => navigate('/boites')}
+          >
+            {boiteCount > 1 && <span className="tile__badge">{boiteCount}</span>}
+            <span className="tile__emoji">🎁</span>
+            <span className="tile__label">Tu as une boîte mystère !</span>
+          </button>
+        )}
         {modules.map((m) => {
           const count = m.badge ? badges[m.badge] : 0
           const blocked = isModuleBlocked(user.parental, m.key)

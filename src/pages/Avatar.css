@@ -444,3 +444,108 @@
     animation: none;
   }
 }
+
+/* ============================================================
+   Célébration d'achat — animation plein écran
+   ============================================================ */
+.celebrate {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Fond sombre + halo signature Zigzam pour mettre le bonhomme en valeur */
+  background:
+    radial-gradient(60% 50% at 50% 48%, rgba(124, 58, 255, 0.45), transparent 70%),
+    rgba(20, 14, 40, 0.82);
+  backdrop-filter: blur(8px);
+  animation: celebrate-fade 0.25s ease;
+}
+@keyframes celebrate-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.celebrate__hero {
+  width: min(58vw, 300px);
+  height: auto;
+  filter: drop-shadow(0 24px 50px rgba(124, 58, 255, 0.6));
+  z-index: 2;
+  animation: celebrate-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes celebrate-pop {
+  0% { transform: scale(0.3) translateY(20%); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.celebrate__bubble {
+  position: absolute;
+  top: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 14px 24px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--texte);
+  font-size: 22px;
+  font-weight: 800;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  animation: celebrate-bubble 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
+}
+@keyframes celebrate-bubble {
+  0% { transform: translateX(-50%) scale(0.4); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* ---- Confettis ---- */
+.celebrate__confetti { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.celebrate__bit {
+  position: absolute;
+  top: -8%;
+  width: 11px;
+  height: 15px;
+  border-radius: 2px;
+  animation: celebrate-fall linear infinite;
+}
+.celebrate__bit--0 { left: 9%;  background: #ff4d8d; animation-duration: 2.6s; animation-delay: 0s;    }
+.celebrate__bit--1 { left: 24%; background: #7c3aff; animation-duration: 3.1s; animation-delay: 0.3s; }
+.celebrate__bit--2 { left: 40%; background: #00bfff; animation-duration: 2.3s; animation-delay: 0.1s; }
+.celebrate__bit--3 { left: 58%; background: #3dd68c; animation-duration: 2.9s; animation-delay: 0.5s; }
+.celebrate__bit--4 { left: 74%; background: #ffd23f; animation-duration: 2.4s; animation-delay: 0.2s; }
+.celebrate__bit--5 { left: 90%; background: #ff8c42; animation-duration: 2.7s; animation-delay: 0.4s; }
+.celebrate__bit:nth-child(n+7)  { transform: translateX(18px); }
+.celebrate__bit:nth-child(n+13) { transform: translateX(-24px); }
+.celebrate__bit:nth-child(n+19) { transform: translateX(40px); }
+.celebrate__bit:nth-child(n+25) { transform: translateX(-36px); }
+@keyframes celebrate-fall {
+  0% { top: -8%; opacity: 1; }
+  100% { top: 110%; opacity: 0.9; }
+}
+
+/* ---- Étoiles scintillantes ---- */
+.celebrate__stars { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.celebrate__star {
+  position: absolute;
+  font-size: 26px;
+  animation: celebrate-twinkle 1.6s ease-in-out infinite;
+}
+.celebrate__star--0 { top: 24%; left: 22%; animation-delay: 0s;   }
+.celebrate__star--1 { top: 34%; left: 76%; animation-delay: 0.2s; font-size: 32px; }
+.celebrate__star--2 { top: 58%; left: 16%; animation-delay: 0.4s; }
+.celebrate__star--3 { top: 64%; left: 82%; animation-delay: 0.6s; font-size: 34px; }
+.celebrate__star--4 { top: 42%; left: 12%; animation-delay: 0.3s; }
+.celebrate__star--5 { top: 70%; left: 50%; animation-delay: 0.5s; font-size: 30px; }
+.celebrate__star--6 { top: 20%; left: 58%; animation-delay: 0.7s; }
+.celebrate__star--7 { top: 78%; left: 32%; animation-delay: 0.1s; }
+@keyframes celebrate-twinkle {
+  0%, 100% { transform: scale(0.7) rotate(-10deg); opacity: 0.4; }
+  50% { transform: scale(1.25) rotate(10deg); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate__hero, .celebrate__bubble, .celebrate__bit, .celebrate__star { animation: none; }
+}

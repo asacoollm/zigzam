@@ -16,6 +16,7 @@ import PokerDonuts from './pages/PokerDonuts'
 import Imposteur from './pages/Imposteur'
 import Serie from './pages/Serie'
 import EpisodePlayer from './pages/EpisodePlayer'
+import BoiteMystere from './pages/BoiteMystere'
 import ParentalGuard from './components/ParentalGuard'
 import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
@@ -150,6 +151,12 @@ export default function App() {
         path="/serie/:episodeId"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <EpisodePlayer />
+        }
+      />
+      <Route
+        path="/boites"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <BoiteMystere />
         }
       />
       <Route

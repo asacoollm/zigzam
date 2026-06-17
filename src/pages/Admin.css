@@ -726,3 +726,107 @@
     align-items: stretch;
   }
 }
+
+/* ---- Boîtes Mystères 🎁 ---- */
+.admin-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--texte);
+  margin-top: 6px;
+}
+.admin-label .admin-input,
+.admin-label select.admin-input {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.boite-mode { display: flex; gap: 8px; margin-bottom: 6px; }
+
+.boite-recipient { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.boite-recipient--picked {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  background: rgba(124, 58, 255, 0.07);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.boite-recipient__avatar, .boite-result__avatar { width: 34px; flex-shrink: 0; }
+.boite-recipient__pseudo { font-weight: 700; color: var(--texte); }
+.boite-recipient__num, .boite-result__num { font-size: 12.5px; color: var(--texte-doux); }
+.boite-recipient--picked .admin-btn { margin-left: auto; }
+
+.boite-search { display: flex; gap: 8px; }
+.boite-results { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+.boite-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid rgba(124, 58, 255, 0.14);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+.boite-result:hover { border-color: var(--violet); }
+.boite-result__pseudo { font-weight: 700; color: var(--texte); }
+
+.boite-niveaux { display: flex; flex-direction: column; gap: 8px; }
+.boite-niveau {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  border: 2px solid rgba(124, 58, 255, 0.14);
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 14px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.boite-niveau:hover { transform: translateY(-1px); }
+.boite-niveau__top { font-weight: 800; font-size: 15px; color: var(--texte); }
+.boite-niveau__desc { font-size: 12.5px; color: var(--texte-doux); }
+.boite-niveau--on { border-color: var(--violet); background: rgba(124, 58, 255, 0.1); }
+.boite-niveau--normal.boite-niveau--on { border-color: #3dd68c; }
+.boite-niveau--rare.boite-niveau--on { border-color: #00bfff; }
+.boite-niveau--super_rare.boite-niveau--on { border-color: #a855f7; }
+.boite-niveau--incroyable.boite-niveau--on { border-color: #ff8c42; }
+.boite-niveau--impossible.boite-niveau--on { border-color: #ef4444; }
+
+.boite-perso-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+.boite-perso-grid .admin-label { flex: 1; min-width: 130px; }
+
+.boite-send { margin-top: 12px; align-self: flex-start; }
+
+.boite-history-title {
+  margin: 18px 0 6px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--texte);
+}
+.boite-history { display: flex; flex-direction: column; gap: 8px; }
+.boite-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border: 1.5px solid rgba(124, 58, 255, 0.12);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.boite-row__dest { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.boite-row__avatar { width: 30px; flex-shrink: 0; }
+.boite-row__pseudo { font-weight: 700; color: var(--texte); font-size: 14px; }
+.boite-row__niveau { font-size: 12.5px; font-weight: 800; white-space: nowrap; }
+.boite-row__contenu { font-size: 13px; color: var(--texte-doux); flex: 1; min-width: 140px; }
+.boite-row__state { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.boite-row__state--open { background: rgba(61, 214, 140, 0.16); color: #1e8a5a; }
+.boite-row__state--closed { background: rgba(255, 140, 66, 0.16); color: #b25a17; }

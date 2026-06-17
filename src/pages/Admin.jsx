@@ -19,8 +19,13 @@ import {
   adminListSeriePropositions,
   adminMarkSeriePropositionLu,
   adminRefuseSerieProposition,
+  searchUsers,
+  adminCreateBoiteAleatoire,
+  adminCreateBoitePerso,
+  adminListBoites,
 } from '../lib/modules'
 import { EPISODES, isPublished } from '../data/episodes'
+import { CATEGORIES, getItem } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
@@ -842,6 +847,257 @@ function SectionPropositions({ adminId }) {
   )
 }
 
+// --------------- Boîtes Mystères 🎁 ---------------
+const NIVEAUX = [
+  { id: 'normal', label: 'Normal', emoji: '🟢', desc: '5-7 🍩 + 1 💎' },
+  { id: 'rare', label: 'Rare', emoji: '🔵', desc: '5-13 🍩 + 1-2 💎 · skin 1/5' },
+  { id: 'super_rare', label: 'Super Rare', emoji: '🟣', desc: '10-20 🍩 + 3-5 💎 · skin 1/3' },
+  { id: 'incroyable', label: 'Incroyable', emoji: '🟠', desc: '40-60 🍩 + 8-10 💎 · skin garanti' },
+  { id: 'impossible', label: 'IMPOSSIBLE !!!', emoji: '🔴', desc: '80-100 🍩 + 20-30 💎 · skin rare garanti' },
+]
+const NIVEAU_LABEL = Object.fromEntries(NIVEAUX.map((n) => [n.id, `${n.emoji} ${n.label}`]))
+// Catégories d'accessoires (hors « skin sur mesure »).
+const ACC_CATEGORIES = CATEGORIES.filter((c) => c.id !== 'special')
+
+// Recherche d'un destinataire par pseudo ou numéro.
+function RecipientPicker({ value, onPick }) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [searching, setSearching] = useState(false)
+
+  async function doSearch(e) {
+    e.preventDefault()
+    if (query.trim().length < 1) return
+    setSearching(true)
+    const data = await searchUsers(query.trim())
+    setSearching(false)
+    setResults(Array.isArray(data) ? data : [])
+  }
+
+  if (value) {
+    return (
+      <div className="boite-recipient boite-recipient--picked">
+        <FallGuy avatar={value.avatar ?? null} className="boite-recipient__avatar" role={value.role} />
+        <span className="boite-recipient__pseudo">{value.pseudo}</span>
+        <span className="boite-recipient__num">📞 {value.numero}</span>
+        <button className="admin-btn admin-btn--sm" onClick={() => onPick(null)}>Changer</button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="boite-recipient">
+      <form className="boite-search" onSubmit={doSearch}>
+        <input
+          className="admin-input"
+          placeholder="Chercher un élève (pseudo ou numéro)…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button className="admin-btn admin-btn--sm" type="submit" disabled={searching}>
+          {searching ? '…' : '🔍'}
+        </button>
+      </form>
+      {results.length > 0 && (
+        <div className="boite-results">
+          {results.map((u) => (
+            <button key={u.id} className="boite-result" onClick={() => { onPick(u); setResults([]); setQuery('') }}>
+              <FallGuy avatar={u.avatar ?? null} className="boite-result__avatar" role={u.role} />
+              <span className="boite-result__pseudo">{u.pseudo}</span>
+              <span className="boite-result__num">📞 {u.numero}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BoiteHistoryRow({ boite }) {
+  const c = boite.contenu || {}
+  const niveau = c.niveau || boite.type
+  let resume
+  if (boite.ouverte) {
+    const skin = c.skin ? ` + 🎁 ${getItem(c.skin.category, c.skin.item)?.label ?? c.skin.item}` : ''
+    resume = `${c.donuts ?? 0} 🍩 + ${c.gemmes ?? 0} 💎${skin}`
+  } else if (c.mode === 'fixe') {
+    const skin = c.skin ? ` + 🎁 ${getItem(c.skin.category, c.skin.item)?.label ?? c.skin.item}` : ''
+    resume = `${c.donuts ?? 0} 🍩 + ${c.gemmes ?? 0} 💎${skin}`
+  } else {
+    resume = 'Aléatoire (tiré à l\'ouverture)'
+  }
+  return (
+    <div className="boite-row">
+      <div className="boite-row__dest">
+        <FallGuy avatar={boite.destinataire?.avatar ?? null} className="boite-row__avatar" role={boite.destinataire?.role} />
+        <span className="boite-row__pseudo">{boite.destinataire?.pseudo ?? '—'}</span>
+      </div>
+      <span className={`boite-row__niveau boite-row__niveau--${niveau}`}>
+        {boite.type === 'personnalisee' ? '🎨 Personnalisée' : (NIVEAU_LABEL[niveau] ?? niveau)}
+      </span>
+      <span className="boite-row__contenu">{resume}</span>
+      <span className={`boite-row__state boite-row__state--${boite.ouverte ? 'open' : 'closed'}`}>
+        {boite.ouverte ? '✅ Ouverte' : '🎁 En attente'}
+      </span>
+    </div>
+  )
+}
+
+function SectionBoites({ adminId }) {
+  const [mode, setMode] = useState('aleatoire') // 'aleatoire' | 'perso'
+  const [dest, setDest] = useState(null)
+  const [niveau, setNiveau] = useState('normal')
+  const [donuts, setDonuts] = useState(10)
+  const [gemmes, setGemmes] = useState(2)
+  const [skinCat, setSkinCat] = useState('')
+  const [skinItem, setSkinItem] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState(null)
+  const [history, setHistory] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let on = true
+    adminListBoites(adminId).then((d) => {
+      if (!on) return
+      setHistory(Array.isArray(d) ? d : [])
+      setLoading(false)
+    })
+    return () => { on = false }
+  }, [adminId])
+
+  const catItems = ACC_CATEGORIES.find((c) => c.id === skinCat)?.items ?? []
+
+  async function refreshHistory() {
+    const d = await adminListBoites(adminId)
+    setHistory(Array.isArray(d) ? d : [])
+  }
+
+  async function send() {
+    if (!dest) {
+      setMsg({ type: 'err', text: 'Choisis un destinataire.' })
+      return
+    }
+    setBusy(true)
+    setMsg(null)
+    const res = mode === 'aleatoire'
+      ? await adminCreateBoiteAleatoire(adminId, dest.id, niveau)
+      : await adminCreateBoitePerso(adminId, dest.id, Number(donuts) || 0, Number(gemmes) || 0, skinCat, skinItem)
+    setBusy(false)
+    if (res.error) {
+      setMsg({ type: 'err', text: res.error })
+      return
+    }
+    setMsg({ type: 'ok', text: `🎁 Boîte envoyée à ${dest.pseudo} !` })
+    setDest(null)
+    await refreshHistory()
+  }
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">🎁 Boîtes Mystères</h2>
+
+      <div className="boite-mode">
+        <button
+          className={`admin-btn admin-btn--sm ${mode === 'aleatoire' ? 'admin-btn--primary' : ''}`}
+          onClick={() => setMode('aleatoire')}
+        >
+          🎲 Aléatoire
+        </button>
+        <button
+          className={`admin-btn admin-btn--sm ${mode === 'perso' ? 'admin-btn--primary' : ''}`}
+          onClick={() => setMode('perso')}
+        >
+          🎨 Personnalisée
+        </button>
+      </div>
+
+      <label className="admin-label">Destinataire</label>
+      <RecipientPicker value={dest} onPick={setDest} />
+
+      {mode === 'aleatoire' ? (
+        <>
+          <label className="admin-label">Niveau de rareté</label>
+          <div className="boite-niveaux">
+            {NIVEAUX.map((n) => (
+              <button
+                key={n.id}
+                className={`boite-niveau boite-niveau--${n.id} ${niveau === n.id ? 'boite-niveau--on' : ''}`}
+                onClick={() => setNiveau(n.id)}
+              >
+                <span className="boite-niveau__top">{n.emoji} {n.label}</span>
+                <span className="boite-niveau__desc">{n.desc}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="boite-perso-grid">
+            <label className="admin-label">
+              🍩 Donuts
+              <input
+                className="admin-input" type="number" min="0"
+                value={donuts} onChange={(e) => setDonuts(e.target.value)}
+              />
+            </label>
+            <label className="admin-label">
+              💎 Gemmes
+              <input
+                className="admin-input" type="number" min="0"
+                value={gemmes} onChange={(e) => setGemmes(e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="boite-perso-grid">
+            <label className="admin-label">
+              🎁 Accessoire (optionnel)
+              <select
+                className="admin-input"
+                value={skinCat}
+                onChange={(e) => { setSkinCat(e.target.value); setSkinItem('') }}
+              >
+                <option value="">— Aucun —</option>
+                {ACC_CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="admin-label">
+              Item
+              <select
+                className="admin-input"
+                value={skinItem}
+                onChange={(e) => setSkinItem(e.target.value)}
+                disabled={!skinCat}
+              >
+                <option value="">— Choisir —</option>
+                {catItems.map((it) => (
+                  <option key={it.id} value={it.id}>{it.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </>
+      )}
+
+      {msg && <p className={`admin-msg admin-msg--${msg.type === 'ok' ? 'ok' : 'err'}`}>{msg.text}</p>}
+      <button className="admin-btn admin-btn--primary boite-send" onClick={send} disabled={busy}>
+        {busy ? 'Envoi…' : 'Envoyer 🎁'}
+      </button>
+
+      <h3 className="boite-history-title">Historique des boîtes envoyées</h3>
+      {loading && <p className="admin-loading">Chargement…</p>}
+      {!loading && history.length === 0 && <p className="admin-empty">Aucune boîte envoyée pour l'instant 📦</p>}
+      {!loading && history.length > 0 && (
+        <div className="boite-history">
+          {history.map((b) => <BoiteHistoryRow key={b.id} boite={b} />)}
+        </div>
+      )}
+    </section>
+  )
+}
+
 // --------------- Page principale ---------------
 export default function Admin() {
   const { user } = useAuth()
@@ -880,6 +1136,7 @@ export default function Admin() {
           <SectionCodes adminId={user.id} />
           <SectionSerie adminId={user.id} />
           <SectionPropositions adminId={user.id} />
+          <SectionBoites adminId={user.id} />
         </>
       )}
     </div>

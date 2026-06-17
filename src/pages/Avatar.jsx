@@ -21,6 +21,7 @@ export default function Avatar() {
   const [skinForm, setSkinForm] = useState(false) // formulaire de demande de skin sur mesure
   const [skinDesc, setSkinDesc] = useState('')
   const [skinRef, setSkinRef] = useState('')
+  const [celebrate, setCelebrate] = useState(null) // avatar fêté après un achat (animation)
 
   const activeCategory = useMemo(
     () => CATEGORIES.find((c) => c.id === tab),
@@ -83,7 +84,10 @@ export default function Avatar() {
     setAvatar(nextAvatar)
     updateUser({ avatar: nextAvatar, gemmes: res.gemmes })
     setPending(null)
-    flash(`${pending.label} débloqué ! 🎉`)
+    // Animation de célébration : le bonhomme paraît avec son nouvel accessoire.
+    setCelebrate(nextAvatar)
+    window.clearTimeout(confirmBuy._t)
+    confirmBuy._t = window.setTimeout(() => setCelebrate(null), 2800)
   }
 
   // Envoi de la demande de skin sur mesure (débit 20 💎 + message à Asacool avec la description).
@@ -263,6 +267,30 @@ export default function Avatar() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Célébration plein écran après un achat d'accessoire */}
+      {celebrate && (
+        <div className="celebrate" onClick={() => setCelebrate(null)}>
+          <div className="celebrate__confetti" aria-hidden="true">
+            {Array.from({ length: 28 }).map((_, i) => (
+              <span key={i} className={`celebrate__bit celebrate__bit--${i % 6}`} />
+            ))}
+          </div>
+          <div className="celebrate__stars" aria-hidden="true">
+            {['✨', '⭐', '🌟', '✨', '⭐', '🌟', '✨', '⭐'].map((s, i) => (
+              <span key={i} className={`celebrate__star celebrate__star--${i}`}>{s}</span>
+            ))}
+          </div>
+          <div className="celebrate__bubble">Trop stylé ! 😎</div>
+          <FallGuy
+            className="celebrate__hero"
+            avatar={celebrate}
+            anim="pose"
+            expression="moque"
+            role={user.role}
+          />
         </div>
       )}
 
