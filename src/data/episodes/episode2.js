@@ -16,8 +16,8 @@ const episode2 = {
   title: 'Le Million de Donuts',
   emoji: '🍩',
   duration: '~2 min',
-  // Brouillon par défaut : visible uniquement par le superadmin.
-  publie: false,
+  // Publié : visible par tout le monde.
+  publie: true,
   synopsis: 'Notre héros n\'a que 10 donuts et décide qu\'il lui faut, sans plus attendre, un million.',
   accent: 'var(--vert)',
   thumbnailDecor: 'avatar',

@@ -22,8 +22,8 @@ const episode3 = {
   title: 'Six Seven',
   emoji: '6️⃣',
   duration: '~2 min',
-  // Brouillon par défaut : visible uniquement par le superadmin.
-  publie: false,
+  // Publié : visible par tout le monde.
+  publie: true,
   synopsis: 'Un minuscule bonhomme tout jaune apparaît aux pieds du héros et tente, coûte que coûte, de lui faire passer un message...',
   accent: 'var(--orange)',
   thumbnailDecor: 'neutral',
