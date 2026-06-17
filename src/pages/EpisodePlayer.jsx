@@ -15,6 +15,7 @@ const EMPTY = []
 const SILENT = /[\s.,!?…:;'"()«»\-—]/
 
 const CHAR_MS = 42   // vitesse de frappe (ms par lettre)
+const SYLLABLE = 3   // une note vocale toutes les N lettres sonores
 const START_MS = 320 // petit délai avant le premier caractère d'une bulle
 const NEXT_MS = 750  // pause avant la bulle suivante de la même scène
 
@@ -155,6 +156,7 @@ export default function EpisodePlayer() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTyped(0)
     let i = 0
+    let voiced = 0 // compteur de lettres « sonores » → un « mmh » par syllabe
     const tick = () => {
       i += 1
       setTyped(i)
@@ -166,8 +168,12 @@ export default function EpisodePlayer() {
       }
       const ch = b.text[i - 1]
       if (ch && !SILENT.test(ch)) {
-        // Légère variation de hauteur par lettre pour un babillage vivant.
-        playSpeech(freq + (ch.charCodeAt(0) % 5) * 12)
+        voiced += 1
+        // Une note vocale toutes les ~3 lettres (par « syllabe »), avec une
+        // légère variation de hauteur pour un chantonnement vivant.
+        if (voiced % SYLLABLE === 1) {
+          playSpeech(freq + (ch.charCodeAt(0) % 5) * 10)
+        }
       }
       if (i < b.text.length) {
         typeTimer.current = setTimeout(tick, CHAR_MS)
