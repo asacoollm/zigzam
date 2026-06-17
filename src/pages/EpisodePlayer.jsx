@@ -14,10 +14,13 @@ const EMPTY = []
 // Caractères silencieux (espaces & ponctuation) : pas de son de parole.
 const SILENT = /[\s.,!?…:;'"()«»\-—]/
 
-const CHAR_MS = 42   // vitesse de frappe (ms par lettre)
-const SYLLABLE = 3   // une note vocale toutes les N lettres sonores
 const START_MS = 320 // petit délai avant le premier caractère d'une bulle
 const NEXT_MS = 750  // pause avant la bulle suivante de la même scène
+
+// Ponctuation qui déclenche une vraie pause de parole (virgules, points…).
+const PAUSE = /[.,!?…;:]/
+// Nombre aléatoire dans [min, max] (frappe & rythme vocal irréguliers).
+const rand = (min, max) => min + Math.random() * (max - min)
 
 // Hauteur de voix d'un personnage selon qu'il est le héros ou sa couleur.
 function voiceFor(speaker) {
@@ -153,10 +156,13 @@ export default function EpisodePlayer() {
     const speaker = scene.cast.find((c) => c.id === b.from)
     const freq = voiceFor(speaker)
 
+    const text = b.text
+    const len = text.length
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTyped(0)
     let i = 0
-    let voiced = 0 // compteur de lettres « sonores » → un « mmh » par syllabe
+    let acc = 999       // ms écoulées depuis le dernier « mmh » (force le 1er son)
+    let nextGap = rand(80, 180) // rythme irrégulier entre deux sons
     const tick = () => {
       i += 1
       setTyped(i)
@@ -166,17 +172,31 @@ export default function EpisodePlayer() {
           if (c.transitionTo?.when === 'speak' && b.from === c.id) applyMorph(c)
         })
       }
-      const ch = b.text[i - 1]
+      const ch = text[i - 1]
+      const isPause = PAUSE.test(ch)
+
+      // Délai avant la lettre suivante : frappe légèrement irrégulière,
+      // + vraie pause silencieuse aux virgules / points.
+      let delay = rand(38, 56)
+      if (isPause) delay += rand(150, 250)
+
       if (ch && !SILENT.test(ch)) {
-        voiced += 1
-        // Une note vocale toutes les ~3 lettres (par « syllabe »), avec une
-        // légère variation de hauteur pour un chantonnement vivant.
-        if (voiced % SYLLABLE === 1) {
-          playSpeech(freq + (ch.charCodeAt(0) % 5) * 10)
+        // Son joué à un rythme irrégulier (≈ 80–180 ms entre deux notes),
+        // avec la courbe d'intonation selon la position dans la phrase.
+        acc += delay
+        if (acc >= nextGap) {
+          playSpeech(freq, (i - 1) / Math.max(1, len - 1))
+          acc = 0
+          nextGap = rand(80, 180)
         }
+      } else if (isPause) {
+        // À une ponctuation : on coupe la parole et on repart proprement après.
+        acc = 0
+        nextGap = rand(80, 180)
       }
-      if (i < b.text.length) {
-        typeTimer.current = setTimeout(tick, CHAR_MS)
+
+      if (i < len) {
+        typeTimer.current = setTimeout(tick, delay)
       } else {
         // Bulle terminée : transitions "après la bulle" puis bulle suivante.
         scene.cast.forEach((c) => {
