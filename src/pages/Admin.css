@@ -591,6 +591,72 @@
   font-family: inherit;
 }
 
+/* ---- Idées d'épisodes 💡 ---- */
+.propo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.propo-card {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1.5px solid rgba(124, 58, 255, 0.14);
+  border-left: 4px solid var(--texte-doux);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.propo-card--nouveau { border-left-color: #ff8c42; }
+.propo-card--lu { border-left-color: var(--bleu, #00bfff); }
+.propo-card--refuse { border-left-color: var(--texte-doux); opacity: 0.78; }
+
+.propo-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.propo-card__author { display: flex; align-items: center; gap: 10px; }
+.propo-card__avatar { width: 38px; flex-shrink: 0; filter: drop-shadow(0 3px 5px rgba(124, 58, 255, 0.2)); }
+.propo-card__meta { display: flex; flex-direction: column; }
+.propo-card__pseudo { font-weight: 700; font-size: 15px; color: var(--texte); }
+.propo-card__date { font-size: 12px; color: var(--texte-doux); }
+
+.propo-card__status {
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+.propo-card__status--nouveau { background: rgba(255, 140, 66, 0.15); color: #b25a17; }
+.propo-card__status--lu { background: rgba(0, 191, 255, 0.14); color: #0e7aa8; }
+.propo-card__status--refuse { background: rgba(43, 35, 80, 0.1); color: var(--texte-doux); }
+
+.propo-card__titre {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--texte);
+}
+.propo-card__desc {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--texte);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  background: rgba(124, 58, 255, 0.05);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.propo-card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.propo-card__actions .admin-btn:not(.admin-btn--danger) {
+  background: rgba(124, 58, 255, 0.1);
+  color: var(--violet);
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .admin-topbar {

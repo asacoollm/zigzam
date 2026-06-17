@@ -336,6 +336,18 @@ export default function EpisodePlayer() {
               </div>
             )}
 
+            {/* Pancarte brandie par un personnage (bien lisible) */}
+            {scene.sign && (
+              <div
+                className="ep-sign"
+                key={`sign-${sceneIndex}`}
+                style={{ left: `${scene.sign.x ?? 50}%` }}
+              >
+                <div className="ep-sign__board">{scene.sign.text}</div>
+                <div className="ep-sign__stick" />
+              </div>
+            )}
+
             {/* Bonhommes */}
             <div className="ep__cast">
               {scene.cast.map((ch) => {
@@ -346,7 +358,7 @@ export default function EpisodePlayer() {
                 return (
                   <div
                     key={ch.id}
-                    className={`ep-char ${ch.flip ? 'ep-char--flip' : ''} ${ch.burnt ? 'ep-char--burnt' : ''}`}
+                    className={`ep-char ${ch.flip ? 'ep-char--flip' : ''} ${ch.burnt ? 'ep-char--burnt' : ''} ${ch.pose ? `ep-char--${ch.pose}` : ''}`}
                     style={{ left: `${ch.x}%`, '--scale': ch.scale || 1 }}
                   >
                     <FallGuy
@@ -372,7 +384,12 @@ export default function EpisodePlayer() {
                 return (
                   <div
                     key={i}
-                    className="ep-bubble"
+                    className={[
+                      'ep-bubble',
+                      b.size === 'small' ? 'ep-bubble--small' : '',
+                      b.size === 'big' ? 'ep-bubble--big' : '',
+                      b.bold ? 'ep-bubble--bold' : '',
+                    ].filter(Boolean).join(' ')}
                     style={{ left: `${x}%`, '--tail': `${x < 50 ? 30 : 70}%` }}
                   >
                     {text}

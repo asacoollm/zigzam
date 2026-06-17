@@ -191,3 +191,44 @@
 @media (max-width: 420px) {
   .serie-thumb, .serie-thumb { flex-basis: 80px; width: 80px; }
 }
+
+/* ---------------- Propose un épisode ! ---------------- */
+.serie-propose {
+  margin: 22px auto 32px;
+  max-width: 560px;
+  padding: 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 22px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 34px rgba(124, 58, 255, 0.16);
+}
+.serie-propose__title {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--texte);
+}
+.serie-propose__sub {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--texte);
+  opacity: 0.85;
+}
+.serie-propose__btn {
+  min-height: 48px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--degrade-zigzam);
+  box-shadow: 0 10px 24px rgba(124, 58, 255, 0.4);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.2s;
+}
+.serie-propose__btn:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(124, 58, 255, 0.5); }
+.serie-propose__btn:active { transform: scale(0.97); }

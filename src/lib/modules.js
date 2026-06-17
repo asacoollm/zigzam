@@ -338,6 +338,33 @@ export async function adminSetSeriePublie(adminId, episodeId, publie) {
   if (r.data === 'forbidden') return { error: 'Permission refusée.' }
   return { ok: true }
 }
+// Propose une idée d'épisode (depuis la page /serie).
+export async function createSerieProposition(userId, titre, description) {
+  const r = await rpc('create_serie_proposition', {
+    p_user: userId, p_titre: titre, p_description: description,
+  })
+  if (r.error) return r
+  if (r.data?.error === 'empty') return { error: 'Donne un titre et décris ton idée 🙂' }
+  if (r.data?.error) return { error: ERR }
+  return { ok: true }
+}
+// Liste de toutes les propositions d'épisodes (panel admin).
+export async function adminListSeriePropositions(adminId) {
+  const r = await rpc('admin_list_serie_propositions', { p_admin: adminId })
+  return r.error ? [] : r.data
+}
+// Marque une proposition comme lue.
+export async function adminMarkSeriePropositionLu(adminId, propId) {
+  const r = await rpc('admin_mark_serie_proposition_lu', { p_admin: adminId, p_prop: propId })
+  if (r.error || r.data?.error) return { error: ERR }
+  return { ok: true }
+}
+// Refuse poliment une proposition (envoie un message à l'auteur dans Discuter).
+export async function adminRefuseSerieProposition(adminId, propId) {
+  const r = await rpc('admin_refuse_serie_proposition', { p_admin: adminId, p_prop: propId })
+  if (r.error || r.data?.error) return { error: ERR }
+  return { ok: true }
+}
 
 // ---------------- TUTORIEL ----------------
 // Marque le tutoriel de bienvenue comme vu (ne se relance plus automatiquement).

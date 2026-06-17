@@ -2,11 +2,125 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { EPISODES, isPublished } from '../data/episodes'
-import { getSerieVisibility } from '../lib/modules'
+import { getSerieVisibility, createSerieProposition } from '../lib/modules'
 import FallGuy from '../components/FallGuy'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
+import '../components/ReportButton.css'
 import './Serie.css'
+
+// Section « Propose un épisode ! » : un bouton qui ouvre une modale chat
+// (même style que le signalement de bug) où l'élève décrit son idée.
+function ProposeEpisode({ user }) {
+  const [open, setOpen] = useState(false)
+  const [titre, setTitre] = useState('')
+  const [description, setDescription] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
+
+  const openModal = () => {
+    setTitre('')
+    setDescription('')
+    setSent(false)
+    setError('')
+    setOpen(true)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
+  const handleSend = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!titre.trim() || !description.trim()) {
+      setError('Donne un titre et décris ton idée 🙂')
+      return
+    }
+    setSending(true)
+    const res = await createSerieProposition(user.id, titre.trim(), description.trim())
+    setSending(false)
+    if (res.error) {
+      setError(res.error)
+      return
+    }
+    setSent(true)
+  }
+
+  return (
+    <section className="serie-propose">
+      <h2 className="serie-propose__title">💡 Propose un épisode !</h2>
+      <p className="serie-propose__sub">
+        Tu as une idée géniale pour la série&nbsp;? Raconte-la, Asacool la lira 🎬
+      </p>
+      <button className="serie-propose__btn" onClick={openModal}>
+        ✏️ Proposer une idée
+      </button>
+
+      {open && (
+        <div className="report-modal" onMouseDown={() => setOpen(false)}>
+          <div
+            className="report-modal__panel"
+            role="dialog"
+            aria-label="Proposer un épisode"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <header className="report-modal__head">
+              <div className="report-modal__zig">
+                <FallGuy className="report-modal__avatar" color="bleu" anim="idle" role="admin" />
+                <div className="report-modal__zig-meta">
+                  <span className="report-modal__zig-name">Zigzam <span className="report-modal__badge">animateur</span></span>
+                  <span className="report-modal__zig-sub">Série Zigzam 🎬</span>
+                </div>
+              </div>
+              <button className="report-modal__close" onClick={() => setOpen(false)} aria-label="Fermer">✕</button>
+            </header>
+
+            {!sent ? (
+              <form className="report-modal__body" onSubmit={handleSend}>
+                <div className="report-bubble">
+                  Tu as une idée d'épisode&nbsp;? Raconte-moi&nbsp;! 🎬
+                </div>
+                <input
+                  className="report-modal__input"
+                  value={titre}
+                  onChange={(e) => setTitre(e.target.value)}
+                  placeholder="Titre de ton idée"
+                  maxLength={120}
+                  autoFocus
+                />
+                <textarea
+                  className="report-modal__textarea"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Décris ton histoire en quelques lignes…"
+                  rows={4}
+                />
+                {error && <p className="report-modal__error">{error}</p>}
+                <button className="report-modal__send" type="submit" disabled={sending}>
+                  {sending ? 'Envoi…' : 'Envoyer mon idée 🚀'}
+                </button>
+              </form>
+            ) : (
+              <div className="report-modal__body report-modal__body--done">
+                <div className="report-bubble">
+                  Merci&nbsp;! <strong>Asacool</strong> va lire ton idée 🎬
+                </div>
+                <button className="report-modal__send" onClick={() => setOpen(false)}>
+                  Fermer
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
 
 // Mini-décor de la vignette selon le type (rappelle l'ambiance de l'épisode).
 function Thumb({ episode, avatar }) {
@@ -81,6 +195,8 @@ export default function Serie() {
           )
         })}
       </main>
+
+      <ProposeEpisode user={user} />
     </div>
   )
 }

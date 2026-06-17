@@ -70,7 +70,16 @@
   100% { transform: translateY(14%) rotate(-78deg) scaleY(0.9); }
 }
 
+/* Petit signe de la main (Série Zigzam) : léger balancement amical en boucle */
+.fg--wave {
+  animation: fg-wave 0.9s ease-in-out infinite;
+}
+@keyframes fg-wave {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fg--idle, .fg--jump, .fg--walk, .fg--fall, .fg--shrug,
-  .fg--jumploop, .fg--collapse { animation: none; }
+  .fg--jumploop, .fg--collapse, .fg--wave { animation: none; }
 }

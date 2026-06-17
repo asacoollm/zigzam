@@ -16,6 +16,9 @@ import {
   adminUpdateBugReport,
   getSerieVisibility,
   adminSetSeriePublie,
+  adminListSeriePropositions,
+  adminMarkSeriePropositionLu,
+  adminRefuseSerieProposition,
 } from '../lib/modules'
 import { EPISODES, isPublished } from '../data/episodes'
 import Backdrop from '../components/Backdrop'
@@ -737,6 +740,108 @@ function SectionSerie({ adminId }) {
   )
 }
 
+// --------------- Idées d'épisodes 💡 ---------------
+const PROPO_STATUTS = {
+  nouveau: '🆕 Nouveau',
+  lu: '👀 Lu',
+  refuse: '🙅 Refusé',
+}
+
+function PropositionCard({ propo, adminId, onUpdate }) {
+  const [loading, setLoading] = useState(null) // 'lu' | 'refuse'
+
+  async function markLu() {
+    setLoading('lu')
+    const res = await adminMarkSeriePropositionLu(adminId, propo.id)
+    setLoading(null)
+    if (!res.error) onUpdate(propo.id, { statut: 'lu' })
+  }
+
+  async function refuse() {
+    setLoading('refuse')
+    const res = await adminRefuseSerieProposition(adminId, propo.id)
+    setLoading(null)
+    if (!res.error) onUpdate(propo.id, { statut: 'refuse' })
+  }
+
+  return (
+    <article className={`propo-card propo-card--${propo.statut}`}>
+      <div className="propo-card__head">
+        <div className="propo-card__author">
+          <FallGuy avatar={propo.auteur?.avatar ?? null} className="propo-card__avatar" role={propo.auteur?.role} />
+          <div className="propo-card__meta">
+            <span className="propo-card__pseudo">{propo.auteur?.pseudo ?? 'Anonyme'}</span>
+            <span className="propo-card__date">{new Date(propo.date).toLocaleString('fr-FR')}</span>
+          </div>
+        </div>
+        <span className={`propo-card__status propo-card__status--${propo.statut}`}>
+          {PROPO_STATUTS[propo.statut] ?? propo.statut}
+        </span>
+      </div>
+
+      <p className="propo-card__titre">{propo.titre}</p>
+      <p className="propo-card__desc">{propo.description}</p>
+
+      <div className="propo-card__actions">
+        <button
+          className="admin-btn admin-btn--sm"
+          onClick={markLu}
+          disabled={loading !== null || propo.statut === 'lu'}
+        >
+          {loading === 'lu' ? '…' : 'Marquer comme lu'}
+        </button>
+        <button
+          className="admin-btn admin-btn--sm admin-btn--danger"
+          onClick={refuse}
+          disabled={loading !== null || propo.statut === 'refuse'}
+        >
+          {loading === 'refuse' ? '…' : 'Refuser poliment'}
+        </button>
+      </div>
+    </article>
+  )
+}
+
+function SectionPropositions({ adminId }) {
+  const [propos, setPropos] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let on = true
+    adminListSeriePropositions(adminId).then((data) => {
+      if (!on) return
+      setPropos(Array.isArray(data) ? data : [])
+      setLoading(false)
+    })
+    return () => { on = false }
+  }, [adminId])
+
+  function patch(id, p) {
+    setPropos((prev) => prev.map((x) => (x.id === id ? { ...x, ...p } : x)))
+  }
+
+  const nouveaux = propos.filter((p) => p.statut === 'nouveau').length
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">
+        💡 Idées d'épisodes {nouveaux > 0 && <span className="bug-count">{nouveaux} nouveau{nouveaux > 1 ? 'x' : ''}</span>}
+      </h2>
+      {loading && <p className="admin-loading">Chargement…</p>}
+      {!loading && propos.length === 0 && (
+        <p className="admin-empty">Aucune proposition pour l'instant 💭</p>
+      )}
+      {!loading && propos.length > 0 && (
+        <div className="propo-list">
+          {propos.map((p) => (
+            <PropositionCard key={p.id} propo={p} adminId={adminId} onUpdate={patch} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 // --------------- Page principale ---------------
 export default function Admin() {
   const { user } = useAuth()
@@ -774,6 +879,7 @@ export default function Admin() {
           <SectionUtilisateurs adminId={user.id} refreshTrigger={refreshUsers} />
           <SectionCodes adminId={user.id} />
           <SectionSerie adminId={user.id} />
+          <SectionPropositions adminId={user.id} />
         </>
       )}
     </div>
