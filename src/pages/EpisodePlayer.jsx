@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getEpisode } from '../data/episodes'
-import { playSpeech, VOICES } from '../lib/sounds'
 import FallGuy from '../components/FallGuy'
 import './EpisodePlayer.css'
 
@@ -11,24 +10,13 @@ const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
 // Tableau vide partagé (référence stable pour les hooks).
 const EMPTY = []
 
-// Caractères silencieux (espaces & ponctuation) : pas de son de parole.
-const SILENT = /[\s.,!?…:;'"()«»\-—]/
-
 const START_MS = 320 // petit délai avant le premier caractère d'une bulle
 const NEXT_MS = 750  // pause avant la bulle suivante de la même scène
 
-// Ponctuation qui déclenche une vraie pause de parole (virgules, points…).
+// Ponctuation qui déclenche une petite pause de frappe (virgules, points…).
 const PAUSE = /[.,!?…;:]/
-// Nombre aléatoire dans [min, max] (frappe & rythme vocal irréguliers).
+// Nombre aléatoire dans [min, max] (frappe légèrement irrégulière).
 const rand = (min, max) => min + Math.random() * (max - min)
-
-// Hauteur de voix d'un personnage selon qu'il est le héros ou sa couleur.
-function voiceFor(speaker) {
-  if (!speaker) return VOICES.default
-  if (speaker.hero) return VOICES.hero
-  const color = speaker.avatar?.color
-  return VOICES[color] ?? VOICES.default
-}
 
 // Extrait d'une transition les champs d'état à appliquer.
 function morphPatch(t) {
@@ -147,22 +135,18 @@ export default function EpisodePlayer() {
     return () => { clearInterval(blinkId); clearTimers() }
   }, [sceneIndex, ended, scene, clearTimers])
 
-  // --- Machine à écrire : tape la bulle `cb` lettre par lettre, avec son de parole
+  // --- Machine à écrire : tape la bulle `cb` lettre par lettre, en silence
   useEffect(() => {
     if (ended || !scene || instant) return
     const sbubbles = scene.bubbles
     const b = sbubbles[cb]
     if (!b) return
-    const speaker = scene.cast.find((c) => c.id === b.from)
-    const freq = voiceFor(speaker)
 
     const text = b.text
     const len = text.length
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTyped(0)
     let i = 0
-    let acc = 999       // ms écoulées depuis le dernier « mmh » (force le 1er son)
-    let nextGap = rand(80, 180) // rythme irrégulier entre deux sons
     const tick = () => {
       i += 1
       setTyped(i)
@@ -173,27 +157,11 @@ export default function EpisodePlayer() {
         })
       }
       const ch = text[i - 1]
-      const isPause = PAUSE.test(ch)
 
       // Délai avant la lettre suivante : frappe légèrement irrégulière,
-      // + vraie pause silencieuse aux virgules / points.
+      // + petite pause aux virgules / points pour un rythme naturel.
       let delay = rand(38, 56)
-      if (isPause) delay += rand(150, 250)
-
-      if (ch && !SILENT.test(ch)) {
-        // Son joué à un rythme irrégulier (≈ 80–180 ms entre deux notes),
-        // avec la courbe d'intonation selon la position dans la phrase.
-        acc += delay
-        if (acc >= nextGap) {
-          playSpeech(freq, (i - 1) / Math.max(1, len - 1))
-          acc = 0
-          nextGap = rand(80, 180)
-        }
-      } else if (isPause) {
-        // À une ponctuation : on coupe la parole et on repart proprement après.
-        acc = 0
-        nextGap = rand(80, 180)
-      }
+      if (PAUSE.test(ch)) delay += rand(150, 250)
 
       if (i < len) {
         typeTimer.current = setTimeout(tick, delay)
