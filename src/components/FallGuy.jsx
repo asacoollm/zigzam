@@ -92,15 +92,105 @@ function RoleBadge({ role }) {
   return null
 }
 
+// ============================================================
+//  Expressions faciales (Série Zigzam) : modifient yeux + bouche.
+//  Repères : œil gauche ~ (49,60), œil droit ~ (71,60), bouche ~ y70-73.
+// ============================================================
+const LINE = { stroke: '#2b2350', strokeWidth: 3, strokeLinecap: 'round', fill: 'none' }
+
+// Yeux selon l'expression (null = yeux par défaut).
+function expressionEyes(expr) {
+  switch (expr) {
+    case 'fier': // mi-fermés satisfaits (petits arcs vers le haut)
+      return (
+        <>
+          <path d="M43 61 q6 -5 12 0" {...LINE} />
+          <path d="M65 61 q6 -5 12 0" {...LINE} />
+        </>
+      )
+    case 'gene': // pupilles décalées sur le côté + goutte de sueur
+      return (
+        <>
+          <circle cx="53" cy="61" r="4.6" fill="#2b2350" />
+          <circle cx="75" cy="61" r="4.6" fill="#2b2350" />
+          <circle cx="54.6" cy="59.4" r="1.5" fill="#fff" />
+          <circle cx="76.6" cy="59.4" r="1.5" fill="#fff" />
+          <path d="M88 49 q4.5 6 0 10 q-4.5 -4 0 -10 Z" fill="#7ce7ff" opacity="0.9" />
+        </>
+      )
+    case 'blase': // à moitié fermés (paupière basse + petite pupille)
+      return (
+        <>
+          <path d="M42 59 q7 2.5 14 0" {...LINE} strokeWidth="3.5" />
+          <path d="M64 59 q7 2.5 14 0" {...LINE} strokeWidth="3.5" />
+          <circle cx="49" cy="62.6" r="2.6" fill="#2b2350" />
+          <circle cx="71" cy="62.6" r="2.6" fill="#2b2350" />
+        </>
+      )
+    case 'moque': // clin d'œil : gauche ouvert, droit fermé
+      return (
+        <>
+          <circle cx="49" cy="60" r="6.5" fill="#2b2350" />
+          <circle cx="51.5" cy="57.5" r="2.2" fill="#fff" />
+          <path d="M65 61 q6 4 12 0" {...LINE} />
+        </>
+      )
+    case 'choque': // grands ouverts
+      return (
+        <>
+          <circle cx="49" cy="59" r="7.6" fill="#2b2350" />
+          <circle cx="71" cy="59" r="7.6" fill="#2b2350" />
+          <circle cx="51.6" cy="56.4" r="2.7" fill="#fff" />
+          <circle cx="73.6" cy="56.4" r="2.7" fill="#fff" />
+        </>
+      )
+    case 'triste': // tombants (pupilles + paupières inclinées)
+      return (
+        <>
+          <circle cx="49" cy="62" r="5" fill="#2b2350" />
+          <circle cx="71" cy="62" r="5" fill="#2b2350" />
+          <path d="M42 55 L56 60.5" {...LINE} />
+          <path d="M78 55 L64 60.5" {...LINE} />
+        </>
+      )
+    default:
+      return null
+  }
+}
+
+// Bouche selon l'expression (null = bouche par défaut / accessoire visage).
+function expressionMouth(expr) {
+  switch (expr) {
+    case 'fier': // sourire en coin confiant
+      return <path d="M50 70 q10 7 20 -2" {...LINE} />
+    case 'gene': // bouche tordue
+      return <path d="M50 71 q4 -4 8 0 t8 1" {...LINE} />
+    case 'blase': // bouche plate
+      return <path d="M51 71 h18" {...LINE} />
+    case 'moque': // sourire narquois asymétrique
+      return <path d="M49 70 q11 8 22 -5" {...LINE} />
+    case 'choque': // bouche en O
+      return <ellipse cx="60" cy="72" rx="5.5" ry="6.5" fill="#2b2350" />
+    case 'triste': // bouche en arc vers le bas
+      return <path d="M50 73 q10 -7 20 0" {...LINE} />
+    default:
+      return null
+  }
+}
+
 // Petit bonhomme « Fall Guys » (haricot) en SVG, personnalisable.
 // - `avatar`     : objet { color, hat, glasses, hair, sport, animal, face } (prioritaire)
 // - `color`      : couleur simple (id ou hex) pour les usages décoratifs
 // - `anim`       : 'idle' | 'jump' | 'walk' | 'fall' | 'shrug' (animations)
 // - `eyesClosed` : true → yeux fermés (petits arcs), pour la Série Zigzam
+// - `expression` : 'fier'|'gene'|'blase'|'moque'|'choque'|'triste'|'neutre' (Série Zigzam)
 // - `role`       : 'admin' | 'superadmin' → affiche un badge sur le ventre
 export default function FallGuy({
-  color = 'violet', avatar = null, anim = null, className = '', role = null, eyesClosed = false,
+  color = 'violet', avatar = null, anim = null, className = '', role = null,
+  eyesClosed = false, expression = null,
 }) {
+  // Une expression (≠ neutre) prend la main sur les yeux et la bouche.
+  const expr = expression && expression !== 'neutre' ? expression : null
   const a = avatar ? normalizeAvatar(avatar) : null
   const colorId = a?.color || color
   const { fill: bodyFill } = resolveColor(colorId)
@@ -143,12 +233,14 @@ export default function FallGuy({
       {/* Cheveux — couche AVANT : épouse le crâne + frange sur le front (par-dessus le visage, sous les yeux) */}
       {a?.hair && renderHair(a.hair)}
 
-      {/* Yeux — ouverts (cercles) ou fermés (petits arcs) pour la Série Zigzam */}
+      {/* Yeux — fermés > expression > défaut (Série Zigzam) */}
       {eyesClosed ? (
         <>
           <path d="M42 60 q7 7 14 0" stroke="#2b2350" strokeWidth="3" strokeLinecap="round" fill="none" />
           <path d="M64 60 q7 7 14 0" stroke="#2b2350" strokeWidth="3" strokeLinecap="round" fill="none" />
         </>
+      ) : expr ? (
+        expressionEyes(expr)
       ) : (
         <>
           <circle cx="49" cy="60" r="6.5" fill="#2b2350" />
@@ -161,8 +253,8 @@ export default function FallGuy({
       <circle cx="38" cy="70" r="4.5" fill="#ff8fb0" opacity="0.75" />
       <circle cx="82" cy="70" r="4.5" fill="#ff8fb0" opacity="0.75" />
 
-      {/* Bouche / visage */}
-      {a?.face && renderFace(a.face)}
+      {/* Bouche — expression (Série Zigzam) sinon accessoire visage */}
+      {expr ? expressionMouth(expr) : a?.face && renderFace(a.face)}
 
       {/* Lunettes (devant les yeux) */}
       {a?.glasses && renderGlasses(a.glasses)}

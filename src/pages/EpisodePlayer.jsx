@@ -1,12 +1,39 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getEpisode } from '../data/episodes'
-import { playBloop } from '../lib/bloop'
+import { playSpeech, VOICES } from '../lib/sounds'
 import FallGuy from '../components/FallGuy'
 import './EpisodePlayer.css'
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+// Tableau vide partagé (référence stable pour les hooks).
+const EMPTY = []
+
+// Caractères silencieux (espaces & ponctuation) : pas de son de parole.
+const SILENT = /[\s.,!?…:;'"()«»\-—]/
+
+const CHAR_MS = 42   // vitesse de frappe (ms par lettre)
+const START_MS = 320 // petit délai avant le premier caractère d'une bulle
+const NEXT_MS = 750  // pause avant la bulle suivante de la même scène
+
+// Hauteur de voix d'un personnage selon qu'il est le héros ou sa couleur.
+function voiceFor(speaker) {
+  if (!speaker) return VOICES.default
+  if (speaker.hero) return VOICES.hero
+  const color = speaker.avatar?.color
+  return VOICES[color] ?? VOICES.default
+}
+
+// Extrait d'une transition les champs d'état à appliquer.
+function morphPatch(t) {
+  const p = {}
+  if ('expression' in t) p.expression = t.expression
+  if ('eyesClosed' in t) p.eyesClosed = t.eyesClosed
+  if ('anim' in t) p.anim = t.anim
+  return p
+}
 
 // Décor de la scène (dessiné en CSS/SVG, derrière les bonhommes).
 function Decor({ scene }) {
@@ -55,59 +82,138 @@ export default function EpisodePlayer() {
   const { episodeId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const episode = getEpisode(episodeId)
+  const episode = useMemo(() => getEpisode(episodeId), [episodeId])
 
   const [sceneIndex, setSceneIndex] = useState(0)
-  const [revealed, setRevealed] = useState(0)
+  const [cb, setCb] = useState(0)          // index de la bulle en cours de frappe
+  const [typed, setTyped] = useState(0)    // nb de lettres déjà tapées dans `cb`
+  const [instant, setInstant] = useState(false) // true = tout le texte affiché d'un coup
   const [ended, setEnded] = useState(false)
   const [fading, setFading] = useState(false)
+  const [castState, setCastState] = useState({}) // état dynamique par perso (expression…)
+  const [blink, setBlink] = useState(false)
+
   const timersRef = useRef([])
+  const typeTimer = useRef(null)
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout)
     timersRef.current = []
+    clearTimeout(typeTimer.current)
   }, [])
 
-  const scenes = episode?.scenes ?? []
+  // Applique une transition (changement d'expression/yeux/anim) à un perso.
+  const applyMorph = useCallback((c) => {
+    setCastState((s) => ({ ...s, [c.id]: { ...s[c.id], ...morphPatch(c.transitionTo) } }))
+  }, [])
+
+  const scenes = episode ? episode.scenes : EMPTY
   const scene = scenes[sceneIndex]
 
-  // Apparition automatique des bulles, une par une, avec un « bloop » mignon.
+  const bubbles = scene ? scene.bubbles : EMPTY
+  const lastIdx = bubbles.length - 1
+  const curLen = bubbles[cb]?.text.length ?? 0
+  const sceneComplete = instant || (cb >= lastIdx && typed >= curLen)
+
+  // --- Mise en place d'une scène : reset des bulles + état des persos + clignements
   useEffect(() => {
     if (ended || !scene) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRevealed(0)
     clearTimers()
-    scene.bubbles.forEach((_, i) => {
-      const id = setTimeout(() => {
-        setRevealed((r) => Math.max(r, i + 1))
-        playBloop()
-      }, 500 + i * 1400)
-      timersRef.current.push(id)
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setCb(0)
+    setTyped(0)
+    setInstant(false)
+    const init = {}
+    scene.cast.forEach((c) => {
+      init[c.id] = { expression: c.expression, eyesClosed: c.eyesClosed, anim: c.anim }
     })
-    return clearTimers
+    setCastState(init)
+    setBlink(false)
+    /* eslint-enable react-hooks/set-state-in-effect */
+
+    // Clignement lent pour les persos marqués `blink`.
+    let blinkId
+    if (scene.cast.some((c) => c.blink)) {
+      blinkId = setInterval(() => {
+        setBlink(true)
+        const t = setTimeout(() => setBlink(false), 150)
+        timersRef.current.push(t)
+      }, 2600)
+    }
+    return () => { clearInterval(blinkId); clearTimers() }
   }, [sceneIndex, ended, scene, clearTimers])
+
+  // --- Machine à écrire : tape la bulle `cb` lettre par lettre, avec son de parole
+  useEffect(() => {
+    if (ended || !scene || instant) return
+    const sbubbles = scene.bubbles
+    const b = sbubbles[cb]
+    if (!b) return
+    const speaker = scene.cast.find((c) => c.id === b.from)
+    const freq = voiceFor(speaker)
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTyped(0)
+    let i = 0
+    const tick = () => {
+      i += 1
+      setTyped(i)
+      // Au tout premier caractère : transitions "quand il parle".
+      if (i === 1) {
+        scene.cast.forEach((c) => {
+          if (c.transitionTo?.when === 'speak' && b.from === c.id) applyMorph(c)
+        })
+      }
+      const ch = b.text[i - 1]
+      if (ch && !SILENT.test(ch)) {
+        // Légère variation de hauteur par lettre pour un babillage vivant.
+        playSpeech(freq + (ch.charCodeAt(0) % 5) * 12)
+      }
+      if (i < b.text.length) {
+        typeTimer.current = setTimeout(tick, CHAR_MS)
+      } else {
+        // Bulle terminée : transitions "après la bulle" puis bulle suivante.
+        scene.cast.forEach((c) => {
+          if (c.transitionTo?.when === 'after' && b.from === c.id) {
+            const tid = setTimeout(() => applyMorph(c), c.transitionTo.delay || 0)
+            timersRef.current.push(tid)
+          }
+        })
+        if (cb < sbubbles.length - 1) {
+          typeTimer.current = setTimeout(() => setCb((n) => n + 1), NEXT_MS)
+        }
+      }
+    }
+    typeTimer.current = setTimeout(tick, START_MS)
+    return () => clearTimeout(typeTimer.current)
+  }, [sceneIndex, cb, ended, scene, instant, applyMorph])
 
   const advance = useCallback(() => {
     if (fading || !scene) return
-    // 1) S'il reste des bulles à révéler dans la scène → tout afficher d'un coup.
-    if (revealed < scene.bubbles.length) {
+    // 1) Texte encore en cours → tout afficher d'un coup, couper le son.
+    if (!sceneComplete) {
       clearTimers()
-      setRevealed(scene.bubbles.length)
-      playBloop()
+      setInstant(true)
+      // Applique immédiatement toutes les transitions pour figer l'état final.
+      scene.cast.forEach((c) => { if (c.transitionTo) applyMorph(c) })
       return
     }
-    // 2) Sinon, on enchaîne la scène suivante (fondu) ou l'écran de fin.
+    // 2) Scène terminée → scène suivante (fondu) ou écran de fin.
     if (sceneIndex < scenes.length - 1) {
+      clearTimers()
       setFading(true)
       const id = setTimeout(() => {
         setSceneIndex((i) => i + 1)
+        setCb(0)
+        setTyped(0)
+        setInstant(false)
         setFading(false)
       }, 340)
       timersRef.current.push(id)
     } else {
       setEnded(true)
     }
-  }, [fading, scene, revealed, sceneIndex, scenes.length, clearTimers])
+  }, [fading, scene, sceneComplete, sceneIndex, scenes.length, clearTimers, applyMorph])
 
   // Clavier : flèche droite / espace / entrée pour avancer.
   useEffect(() => {
@@ -126,8 +232,10 @@ export default function EpisodePlayer() {
     clearTimers()
     setEnded(false)
     setFading(false)
-    setRevealed(0)
     setSceneIndex(0)
+    setCb(0)
+    setTyped(0)
+    setInstant(false)
   }
 
   if (!episode) {
@@ -138,6 +246,8 @@ export default function EpisodePlayer() {
       </div>
     )
   }
+
+  const visibleCount = instant ? bubbles.length : Math.min(cb + 1, bubbles.length)
 
   return (
     <div className="ep">
@@ -158,8 +268,10 @@ export default function EpisodePlayer() {
             {/* Bonhommes */}
             <div className="ep__cast">
               {scene.cast.map((ch) => {
+                const st = castState[ch.id] || {}
                 const avatar = ch.hero ? user.avatar : ch.avatar
                 const role = ch.hero ? user.role : null
+                const eyesClosed = (st.eyesClosed ?? ch.eyesClosed) || (ch.blink && blink)
                 return (
                   <div
                     key={ch.id}
@@ -168,27 +280,32 @@ export default function EpisodePlayer() {
                   >
                     <FallGuy
                       avatar={avatar}
-                      anim={ch.anim}
+                      anim={st.anim ?? ch.anim}
                       role={role}
-                      eyesClosed={ch.eyesClosed}
+                      eyesClosed={eyesClosed}
+                      expression={st.expression ?? ch.expression}
                     />
                   </div>
                 )
               })}
             </div>
 
-            {/* Bulles de dialogue (apparition une par une) */}
+            {/* Bulles de dialogue (machine à écrire) */}
             <div className="ep__bubbles">
-              {scene.bubbles.slice(0, revealed).map((b, i) => {
+              {bubbles.slice(0, visibleCount).map((b, i) => {
                 const speaker = scene.cast.find((c) => c.id === b.from)
                 const x = clamp(speaker?.x ?? 50, 20, 80)
+                const full = instant || i < cb
+                const text = full ? b.text : b.text.slice(0, typed)
+                const typing = !full
                 return (
                   <div
                     key={i}
                     className="ep-bubble"
                     style={{ left: `${x}%`, '--tail': `${x < 50 ? 30 : 70}%` }}
                   >
-                    {b.text}
+                    {text}
+                    {typing && <span className="ep-caret" />}
                   </div>
                 )
               })}

@@ -190,6 +190,22 @@
   100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
 
+/* Curseur clignotant pendant la frappe (machine à écrire) */
+.ep-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 1px;
+  vertical-align: -0.12em;
+  background: var(--violet);
+  border-radius: 1px;
+  animation: ep-caret-blink 0.8s steps(1) infinite;
+}
+@keyframes ep-caret-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
 /* ---------------- Barre du bas ---------------- */
 .ep__bar {
   position: relative;
@@ -277,6 +293,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ep-lava__cell.is-lava, .ep-fire span, .ep__next { animation: none; }
+  .ep-lava__cell.is-lava, .ep-fire span, .ep__next, .ep-caret { animation: none; }
   .ep__scene { transition: none; }
 }
