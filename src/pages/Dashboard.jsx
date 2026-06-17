@@ -20,6 +20,7 @@ const MODULES = [
   { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor', flava: true },
   { emoji: '🃏', label: 'Poker Donuts', color: 'var(--rose)', to: '/poker-donuts', key: 'poker', flava: true },
   { emoji: '🕵️', label: "L'Imposteur", color: 'var(--violet)', to: '/imposteur', key: 'imposteur', flava: true },
+  { emoji: '🎬', label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
 ]
 
 // Étapes du tutoriel de bienvenue (pointent vers les éléments via data-tut).

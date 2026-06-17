@@ -93,11 +93,14 @@ function RoleBadge({ role }) {
 }
 
 // Petit bonhomme « Fall Guys » (haricot) en SVG, personnalisable.
-// - `avatar` : objet { color, hat, glasses, hair, sport, animal, face } (prioritaire)
-// - `color`  : couleur simple (id ou hex) pour les usages décoratifs
-// - `anim`   : 'idle' | 'jump' | 'walk' (animations du compagnon)
-// - `role`   : 'admin' | 'superadmin' → affiche un badge sur le ventre
-export default function FallGuy({ color = 'violet', avatar = null, anim = null, className = '', role = null }) {
+// - `avatar`     : objet { color, hat, glasses, hair, sport, animal, face } (prioritaire)
+// - `color`      : couleur simple (id ou hex) pour les usages décoratifs
+// - `anim`       : 'idle' | 'jump' | 'walk' | 'fall' | 'shrug' (animations)
+// - `eyesClosed` : true → yeux fermés (petits arcs), pour la Série Zigzam
+// - `role`       : 'admin' | 'superadmin' → affiche un badge sur le ventre
+export default function FallGuy({
+  color = 'violet', avatar = null, anim = null, className = '', role = null, eyesClosed = false,
+}) {
   const a = avatar ? normalizeAvatar(avatar) : null
   const colorId = a?.color || color
   const { fill: bodyFill } = resolveColor(colorId)
@@ -140,11 +143,20 @@ export default function FallGuy({ color = 'violet', avatar = null, anim = null, 
       {/* Cheveux — couche AVANT : épouse le crâne + frange sur le front (par-dessus le visage, sous les yeux) */}
       {a?.hair && renderHair(a.hair)}
 
-      {/* Yeux */}
-      <circle cx="49" cy="60" r="6.5" fill="#2b2350" />
-      <circle cx="71" cy="60" r="6.5" fill="#2b2350" />
-      <circle cx="51.5" cy="57.5" r="2.2" fill="#fff" />
-      <circle cx="73.5" cy="57.5" r="2.2" fill="#fff" />
+      {/* Yeux — ouverts (cercles) ou fermés (petits arcs) pour la Série Zigzam */}
+      {eyesClosed ? (
+        <>
+          <path d="M42 60 q7 7 14 0" stroke="#2b2350" strokeWidth="3" strokeLinecap="round" fill="none" />
+          <path d="M64 60 q7 7 14 0" stroke="#2b2350" strokeWidth="3" strokeLinecap="round" fill="none" />
+        </>
+      ) : (
+        <>
+          <circle cx="49" cy="60" r="6.5" fill="#2b2350" />
+          <circle cx="71" cy="60" r="6.5" fill="#2b2350" />
+          <circle cx="51.5" cy="57.5" r="2.2" fill="#fff" />
+          <circle cx="73.5" cy="57.5" r="2.2" fill="#fff" />
+        </>
+      )}
       {/* Joues */}
       <circle cx="38" cy="70" r="4.5" fill="#ff8fb0" opacity="0.75" />
       <circle cx="82" cy="70" r="4.5" fill="#ff8fb0" opacity="0.75" />
