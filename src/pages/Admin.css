@@ -317,13 +317,31 @@
 
 .user-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
   background: rgba(255, 255, 255, 0.5);
   border: 1.5px solid rgba(124, 58, 255, 0.1);
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 12px 14px;
+}
+
+/* Chaque ligne d'une carte utilisateur : flex aligné avec gap. */
+.user-row__line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
+}
+.user-row__line--info { gap: 8px; }
+.user-row__line--balance { gap: 10px; }
+/* Ligne d'actions : boutons tous de même hauteur, alignés. */
+.user-row__line--actions { gap: 8px; }
+.user-row__line--actions .admin-btn {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-row__info {
@@ -387,7 +405,6 @@
   font-weight: 600;
   border-radius: 8px;
   padding: 2px 7px;
-  align-self: flex-start;
 }
 .user-row__badge--admin {
   color: var(--violet);
@@ -836,6 +853,9 @@
 /* Boutons bien lisibles : texte blanc sur fond coloré. */
 .admin-btn--mdp { background: #7c3aff; color: #fff; }
 .admin-btn--num { background: #00bfff; color: #fff; }
+/* Bouton secondaire lisible (ex. « Annuler » des modales). */
+.admin-btn--ghost { background: rgba(124, 58, 255, 0.12); color: var(--violet); }
+.admin-btn--ghost:hover:not(:disabled) { background: rgba(124, 58, 255, 0.2); opacity: 1; }
 
 /* ---- Modale réinitialisation (mot de passe / numéro) ---- */
 .user-modal {

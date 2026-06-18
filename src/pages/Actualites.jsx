@@ -20,12 +20,13 @@ function formatDate(iso) {
   return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
 }
 
-// Fusionne les actus publiées (tous auteurs) + mes actus non publiées (badge auteur).
+// Fusionne les actus publiées (tous auteurs) + mes actus EN ATTENTE (badge auteur).
+// Les actus refusées n'apparaissent jamais dans le fil (visibles seulement /admin).
 function mergeActus(published, mine) {
   const map = new Map()
   published.forEach((a) => map.set(a.id, { ...a, statut: 'publie' }))
   mine.forEach((a) => {
-    if (a.statut !== 'publie') map.set(a.id, a)
+    if (a.statut === 'en_attente') map.set(a.id, a)
   })
   return [...map.values()].sort((x, y) => new Date(y.date) - new Date(x.date))
 }

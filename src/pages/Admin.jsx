@@ -394,16 +394,17 @@ function UserRow({ u, adminId, onDelete, onRoleChange }) {
 
   return (
     <div className="user-row">
-      <div className="user-row__info">
+      {/* Ligne 1 : identité */}
+      <div className="user-row__line user-row__line--info">
         <FallGuy avatar={u.avatar ?? null} className="user-row__avatar" role={u.role} />
-        <div className="user-row__meta">
-          <span className="user-row__pseudo">{u.pseudo}</span>
-          <span className="user-row__num">#{numero}</span>
-          {u.role === 'admin' && <span className="user-row__badge user-row__badge--admin">🛡️ admin</span>}
-          {u.role === 'superadmin' && <span className="user-row__badge user-row__badge--superadmin">⭐ superadmin</span>}
-        </div>
+        <span className="user-row__pseudo">{u.pseudo}</span>
+        <span className="user-row__num">#{numero}</span>
+        {u.role === 'admin' && <span className="user-row__badge user-row__badge--admin">🛡️ admin</span>}
+        {u.role === 'superadmin' && <span className="user-row__badge user-row__badge--superadmin">⭐ superadmin</span>}
       </div>
-      <div className="user-row__balance">
+
+      {/* Ligne 2 : soldes éditables + enregistrer + rôle */}
+      <div className="user-row__line user-row__line--balance">
         <label className="user-row__label">
           🍩
           <input
@@ -431,50 +432,43 @@ function UserRow({ u, adminId, onDelete, onRoleChange }) {
         >
           {saving ? '…' : '💾 Enregistrer'}
         </button>
-        {savMsg && (
-          <span className={`admin-inline-msg admin-inline-msg--${savMsg.type}`}>{savMsg.text}</span>
-        )}
-      </div>
-
-      {/* Bouton de gestion du rôle — uniquement si pas superadmin */}
-      {u.role !== 'superadmin' && (
-        <div className="user-row__role-actions">
+        {u.role !== 'superadmin' && (
           <button
             className={`admin-btn admin-btn--sm ${u.role === 'admin' ? 'admin-btn--role-revoke' : 'admin-btn--role-promote'}`}
             onClick={handleRoleChange}
             disabled={roleLoading}
           >
-            {roleLoading
-              ? '…'
-              : u.role === 'admin'
-              ? '🔽 Révoquer admin'
-              : '🛡️ Nommer admin'}
+            {roleLoading ? '…' : u.role === 'admin' ? '🔽 Révoquer admin' : '🛡️ Nommer admin'}
           </button>
-          {roleMsg && (
-            <span className={`admin-inline-msg admin-inline-msg--${roleMsg.type}`}>{roleMsg.text}</span>
-          )}
-        </div>
-      )}
+        )}
+        {savMsg && (
+          <span className={`admin-inline-msg admin-inline-msg--${savMsg.type}`}>{savMsg.text}</span>
+        )}
+        {roleMsg && (
+          <span className={`admin-inline-msg admin-inline-msg--${roleMsg.type}`}>{roleMsg.text}</span>
+        )}
+      </div>
 
-      {/* Actions superadmin : mot de passe + numéro (pas sur un superadmin) */}
-      {u.role !== 'superadmin' && (
-        <div className="user-row__sa-actions">
-          <button className="admin-btn admin-btn--sm admin-btn--mdp" onClick={() => openModal('pwd')}>
-            🔑 Changer le mdp
-          </button>
-          <button className="admin-btn admin-btn--sm admin-btn--num" onClick={() => openModal('num')}>
-            📞 Changer le numéro
-          </button>
-        </div>
-      )}
-
-      <button
-        className="admin-btn admin-btn--danger admin-btn--sm"
-        onClick={handleDelete}
-        disabled={deleting}
-      >
-        {deleting ? '…' : '🗑️ Supprimer'}
-      </button>
+      {/* Ligne 3 : mot de passe + numéro + supprimer */}
+      <div className="user-row__line user-row__line--actions">
+        {u.role !== 'superadmin' && (
+          <>
+            <button className="admin-btn admin-btn--sm admin-btn--mdp" onClick={() => openModal('pwd')}>
+              🔑 Changer le mdp
+            </button>
+            <button className="admin-btn admin-btn--sm admin-btn--num" onClick={() => openModal('num')}>
+              📞 Changer le numéro
+            </button>
+          </>
+        )}
+        <button
+          className="admin-btn admin-btn--danger admin-btn--sm"
+          onClick={handleDelete}
+          disabled={deleting}
+        >
+          {deleting ? '…' : '🗑️ Supprimer'}
+        </button>
+      </div>
 
       {modal && (
         <div className="user-modal" onMouseDown={() => !modalBusy && setModal(null)}>
