@@ -168,6 +168,27 @@ export async function moderateActu(adminId, actuId, statut) {
   const r = await rpc('moderate_actu', { p_admin: adminId, p_actu: actuId, p_statut: statut })
   return r.error ? r : { status: r.data }
 }
+// Superadmin : réinitialise le mot de passe d'un membre (→ premiere_connexion).
+export async function resetUserPassword(adminId, targetId, newPassword) {
+  const r = await rpc('reset_password', { p_admin: adminId, p_target: targetId, p_new: newPassword })
+  if (r.error) return r
+  const e = r.data?.error
+  if (e === 'forbidden') return { error: 'Permission refusée.' }
+  if (e === 'empty') return { error: 'Entre un nouveau mot de passe.' }
+  if (e) return { error: ERR }
+  return { ok: true }
+}
+// Superadmin : change le numéro d'un membre (4 chiffres, unique).
+export async function resetUserNumero(adminId, targetId, numero) {
+  const r = await rpc('reset_numero', { p_admin: adminId, p_target: targetId, p_numero: numero })
+  if (r.error) return r
+  const e = r.data?.error
+  if (e === 'forbidden') return { error: 'Permission refusée.' }
+  if (e === 'numero_invalide') return { error: 'Le numéro doit avoir exactement 4 chiffres.' }
+  if (e === 'numero_pris') return { error: `Ce numéro est déjà utilisé par ${r.data.pseudo}.` }
+  if (e) return { error: ERR }
+  return { ok: true }
+}
 
 // ---------------- ÉCONOMIE ----------------
 export async function exchange(userId, sens) {

@@ -23,6 +23,8 @@ import {
   adminCreateBoiteAleatoire,
   adminCreateBoitePerso,
   adminListBoites,
+  resetUserPassword,
+  resetUserNumero,
 } from '../lib/modules'
 import { EPISODES, isPublished } from '../data/episodes'
 import { CATEGORIES, getItem } from '../lib/avatar'
@@ -35,7 +37,6 @@ import './Admin.css'
 const ONGLETS_ACTUS = [
   { id: 'en_attente', label: 'En attente ⏳' },
   { id: 'publie',     label: 'Publiées ✅'   },
-  { id: 'refuse',     label: 'Refusées ❌'   },
 ]
 
 function ActuCard({ actu, onglet, adminId, onAction }) {
@@ -45,7 +46,7 @@ function ActuCard({ actu, onglet, adminId, onAction }) {
     setLoading(statut)
     await moderateActu(adminId, actu.id, statut)
     setLoading(null)
-    onAction(actu.id)
+    onAction(actu.id, statut)
   }
 
   return (
@@ -118,6 +119,9 @@ function SectionActus({ adminId }) {
   const [ongletActif, setOngletActif] = useState('en_attente')
   const [actus, setActus] = useState([])
   const [loading, setLoading] = useState(true)
+  // Actus refusées : section rétractable séparée, fermée par défaut.
+  const [refused, setRefused] = useState([])
+  const [refusedOpen, setRefusedOpen] = useState(false)
 
   function loadActus(statut) {
     setLoading(true)
@@ -127,10 +131,20 @@ function SectionActus({ adminId }) {
     })
   }
 
+  function loadRefused() {
+    getAdminActus(adminId, 'refuse').then((data) => setRefused(data ?? []))
+  }
+
   useEffect(() => {
     loadActus(ongletActif)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminId, ongletActif])
+
+  // Compte des refusées chargé au montage (pour afficher le total même fermé).
+  useEffect(() => {
+    loadRefused()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminId])
 
   function handleChangeOnglet(id) {
     if (id === ongletActif) return
@@ -138,8 +152,16 @@ function SectionActus({ adminId }) {
     setOngletActif(id)
   }
 
-  function removeActu(id) {
+  // Retrait d'une actu de l'onglet courant ; si elle vient d'être refusée,
+  // on rafraîchit la liste des refusées.
+  function removeActu(id, statut) {
     setActus((prev) => prev.filter((a) => a.id !== id))
+    if (statut === 'refuse') loadRefused()
+  }
+
+  // Une actu refusée qui est ré-acceptée quitte la section refusées.
+  function removeRefused(id) {
+    setRefused((prev) => prev.filter((a) => a.id !== id))
   }
 
   return (
@@ -165,9 +187,7 @@ function SectionActus({ adminId }) {
         <p className="admin-empty">
           {ongletActif === 'en_attente'
             ? 'Aucune actu en attente 🎉'
-            : ongletActif === 'publie'
-            ? 'Aucune actu publiée.'
-            : 'Aucune actu refusée.'}
+            : 'Aucune actu publiée.'}
         </p>
       )}
       {!loading && actus.length > 0 && (
@@ -183,6 +203,35 @@ function SectionActus({ adminId }) {
           ))}
         </div>
       )}
+
+      {/* Section rétractable des actus refusées */}
+      <div className="actus-refused">
+        <button
+          className="actus-refused__head"
+          onClick={() => setRefusedOpen((v) => !v)}
+          aria-expanded={refusedOpen}
+        >
+          <span>🗑️ Actualités refusées ({refused.length})</span>
+          <span className="actus-refused__chevron">{refusedOpen ? '▾' : '▸'}</span>
+        </button>
+        {refusedOpen && (
+          refused.length === 0 ? (
+            <p className="admin-empty">Aucune actu refusée.</p>
+          ) : (
+            <div className="actus-list">
+              {refused.map((a) => (
+                <ActuCard
+                  key={a.id}
+                  actu={a}
+                  onglet="refuse"
+                  adminId={adminId}
+                  onAction={removeRefused}
+                />
+              ))}
+            </div>
+          )
+        )}
+      </div>
     </section>
   )
 }
@@ -253,6 +302,45 @@ function UserRow({ u, adminId, onDelete, onRoleChange }) {
   const [deleting, setDeleting] = useState(false)
   const [roleLoading, setRoleLoading] = useState(false)
   const [roleMsg, setRoleMsg] = useState(null)
+  // Modale superadmin : réinitialiser le mot de passe / le numéro.
+  const [modal, setModal] = useState(null) // null | 'pwd' | 'num'
+  const [modalInput, setModalInput] = useState('')
+  const [modalBusy, setModalBusy] = useState(false)
+  const [modalMsg, setModalMsg] = useState(null) // { type, text }
+  const [numero, setNumero] = useState(u.numero)
+
+  function openModal(kind) {
+    setModal(kind)
+    setModalInput('')
+    setModalMsg(null)
+  }
+
+  async function handleResetPwd() {
+    if (!modalInput.trim()) {
+      setModalMsg({ type: 'err', text: 'Entre un nouveau mot de passe.' })
+      return
+    }
+    setModalBusy(true)
+    const res = await resetUserPassword(adminId, u.id, modalInput.trim())
+    setModalBusy(false)
+    if (res.error) {
+      setModalMsg({ type: 'err', text: res.error })
+      return
+    }
+    setModalMsg({ type: 'ok', text: 'Mot de passe réinitialisé ! L\'utilisateur devra le changer à sa prochaine connexion.' })
+  }
+
+  async function handleResetNum() {
+    setModalBusy(true)
+    const res = await resetUserNumero(adminId, u.id, modalInput.trim())
+    setModalBusy(false)
+    if (res.error) {
+      setModalMsg({ type: 'err', text: res.error })
+      return
+    }
+    setNumero(modalInput.trim())
+    setModalMsg({ type: 'ok', text: 'Numéro mis à jour !' })
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -310,7 +398,7 @@ function UserRow({ u, adminId, onDelete, onRoleChange }) {
         <FallGuy avatar={u.avatar ?? null} className="user-row__avatar" role={u.role} />
         <div className="user-row__meta">
           <span className="user-row__pseudo">{u.pseudo}</span>
-          <span className="user-row__num">#{u.numero}</span>
+          <span className="user-row__num">#{numero}</span>
           {u.role === 'admin' && <span className="user-row__badge user-row__badge--admin">🛡️ admin</span>}
           {u.role === 'superadmin' && <span className="user-row__badge user-row__badge--superadmin">⭐ superadmin</span>}
         </div>
@@ -368,6 +456,18 @@ function UserRow({ u, adminId, onDelete, onRoleChange }) {
         </div>
       )}
 
+      {/* Actions superadmin : mot de passe + numéro (pas sur un superadmin) */}
+      {u.role !== 'superadmin' && (
+        <div className="user-row__sa-actions">
+          <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={() => openModal('pwd')}>
+            🔑 Changer le mdp
+          </button>
+          <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={() => openModal('num')}>
+            📞 Changer le numéro
+          </button>
+        </div>
+      )}
+
       <button
         className="admin-btn admin-btn--danger admin-btn--sm"
         onClick={handleDelete}
@@ -375,6 +475,58 @@ function UserRow({ u, adminId, onDelete, onRoleChange }) {
       >
         {deleting ? '…' : '🗑️ Supprimer'}
       </button>
+
+      {modal && (
+        <div className="user-modal" onMouseDown={() => !modalBusy && setModal(null)}>
+          <div className="user-modal__panel" role="dialog" onMouseDown={(e) => e.stopPropagation()}>
+            <h3 className="user-modal__title">
+              {modal === 'pwd' ? '🔑 Nouveau mot de passe' : '📞 Nouveau numéro'} — {u.pseudo}
+            </h3>
+            {modalMsg?.type === 'ok' ? (
+              <>
+                <p className={`admin-msg admin-msg--ok`}>{modalMsg.text}</p>
+                <div className="user-modal__actions">
+                  <button className="admin-btn admin-btn--primary admin-btn--sm" onClick={() => setModal(null)}>
+                    Fermer
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <input
+                  className="admin-input"
+                  type={modal === 'pwd' ? 'text' : 'text'}
+                  inputMode={modal === 'num' ? 'numeric' : undefined}
+                  maxLength={modal === 'num' ? 4 : undefined}
+                  placeholder={modal === 'pwd' ? 'Nouveau mot de passe temporaire' : 'Nouveau numéro à 4 chiffres'}
+                  value={modalInput}
+                  onChange={(e) => setModalInput(e.target.value)}
+                  autoFocus
+                />
+                {modalMsg?.type === 'err' && (
+                  <p className="admin-msg admin-msg--err">{modalMsg.text}</p>
+                )}
+                <div className="user-modal__actions">
+                  <button
+                    className="admin-btn admin-btn--sm admin-btn--ghost"
+                    onClick={() => setModal(null)}
+                    disabled={modalBusy}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    className="admin-btn admin-btn--primary admin-btn--sm"
+                    onClick={modal === 'pwd' ? handleResetPwd : handleResetNum}
+                    disabled={modalBusy}
+                  >
+                    {modalBusy ? '…' : 'Confirmer'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
