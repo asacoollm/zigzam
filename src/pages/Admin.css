@@ -833,6 +833,9 @@
 
 /* ---- Actions superadmin sur un utilisateur (mdp / numéro) ---- */
 .user-row__sa-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* Boutons bien lisibles : texte blanc sur fond coloré. */
+.admin-btn--mdp { background: #7c3aff; color: #fff; }
+.admin-btn--num { background: #00bfff; color: #fff; }
 
 /* ---- Modale réinitialisation (mot de passe / numéro) ---- */
 .user-modal {

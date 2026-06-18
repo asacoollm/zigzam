@@ -459,10 +459,10 @@ function UserRow({ u, adminId, onDelete, onRoleChange }) {
       {/* Actions superadmin : mot de passe + numéro (pas sur un superadmin) */}
       {u.role !== 'superadmin' && (
         <div className="user-row__sa-actions">
-          <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={() => openModal('pwd')}>
+          <button className="admin-btn admin-btn--sm admin-btn--mdp" onClick={() => openModal('pwd')}>
             🔑 Changer le mdp
           </button>
-          <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={() => openModal('num')}>
+          <button className="admin-btn admin-btn--sm admin-btn--num" onClick={() => openModal('num')}>
             📞 Changer le numéro
           </button>
         </div>
