@@ -24,7 +24,7 @@ function isWide(avatar) {
 }
 
 export default function FloorMulti({ onBack }) {
-  const { user, updateUser } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   const [data, setData] = useState(null)     // { session, players }
@@ -186,16 +186,6 @@ export default function FloorMulti({ onBack }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [now, burnedUntil])
-
-  // Crédite les donuts gagnés (victoire commune) une seule fois.
-  const wonRef = useRef(false)
-  useEffect(() => {
-    if (finished && session?.resultat === 'win' && myAlive && !wonRef.current) {
-      wonRef.current = true
-      updateUser({ donuts: user.donuts + 6 })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finished, session?.resultat])
 
   // Pilote des bots : seul l'hôte (1er humain) déplace les bots (évitent la
   // lave, foncent sur les zones) et active les zones qu'ils atteignent.
@@ -564,7 +554,7 @@ export default function FloorMulti({ onBack }) {
             <p className="flava__panel-text">
               Toutes les zones sont activées&nbsp;!{' '}
               {myAlive
-                ? <>Tu gagnes <strong>6 🍩</strong> donuts&nbsp;!</>
+                ? 'Bravo, vous avez réussi&nbsp;!'
                 : 'Dommage, tu avais été éliminé — mais l\'équipe a réussi&nbsp;!'}
             </p>
             <div className="flava__panel-actions">

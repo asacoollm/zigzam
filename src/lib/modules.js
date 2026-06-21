@@ -337,11 +337,11 @@ export async function getFlavaLevel(userId) {
   const r = await rpc('get_flava_level', { p_user: userId })
   return r.error ? 1 : (r.data || 1)
 }
-// Victoire d'un niveau : crédite la récompense (barème serveur) + sauvegarde.
+// Victoire d'un niveau : sauvegarde du niveau max atteint (plus de récompense).
 export async function flavaWin(userId, level) {
   const r = await rpc('flava_win', { p_user: userId, p_level: level })
   if (r.error || r.data?.error) return { error: ERR }
-  return { ok: true, donuts: r.data.donuts, reward: r.data.reward, niveau: r.data.niveau }
+  return { ok: true, niveau: r.data.niveau }
 }
 
 // ---------------- SÉRIE ZIGZAM 🎬 ----------------

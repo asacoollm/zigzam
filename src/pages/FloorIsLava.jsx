@@ -62,21 +62,20 @@ function reducer(state, action) {
 }
 
 export default function FloorIsLava() {
-  const { user, updateUser } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode] = useState(null)          // null (choix) | 'solo' | 'multi'
   const [state, dispatch] = useReducer(reducer, 1, makeLevel)
   const [airborne, setAirborne] = useState(false)
   const [started, setStarted] = useState(false)   // écran d'intro tant que false
   const [loadedLevel, setLoadedLevel] = useState(1) // niveau sauvegardé (Supabase)
-  const [reward, setReward] = useState(null)        // donuts gagnés à la victoire
 
   // Refs pour les handlers (évite les closures périmées).
   const airborneRef = useRef(false)
   const jumpReadyRef = useRef(0)
   const playingRef = useRef(false)
   const landTimer = useRef(null)
-  const awardedRef = useRef(0) // niveau déjà récompensé (anti-double crédit)
+  const awardedRef = useRef(0) // niveau déjà sauvegardé (anti-double appel)
   useEffect(() => { playingRef.current = started && state.status === 'playing' }, [started, state.status])
 
   // Charge le niveau sauvegardé au montage (le joueur reprend où il en était).
@@ -86,16 +85,12 @@ export default function FloorIsLava() {
     return () => { on = false }
   }, [user.id])
 
-  // Crédite les donuts à chaque victoire (barème serveur), une seule fois par niveau.
+  // Sauvegarde le niveau atteint à chaque victoire, une seule fois par niveau.
   useEffect(() => {
     if (!started || state.status !== 'won' || awardedRef.current === state.level) return
     awardedRef.current = state.level
     flavaWin(user.id, state.level).then((res) => {
-      if (res.ok) {
-        setReward(res.reward)
-        updateUser({ donuts: res.donuts })
-        setLoadedLevel((lv) => Math.max(lv, res.niveau))
-      }
+      if (res.ok) setLoadedLevel((lv) => Math.max(lv, res.niveau))
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [started, state.status, state.level])
@@ -180,7 +175,6 @@ export default function FloorIsLava() {
     airborneRef.current = false
     setAirborne(false)
     jumpReadyRef.current = 0
-    setReward(null)
   }
   const startGame = () => { resetTransient(); dispatch({ type: 'NEW_GAME', level: loadedLevel }); setStarted(true) }
   const nextLevel = () => { resetTransient(); dispatch({ type: 'NEW_GAME', level: state.level + 1 }) }
@@ -372,11 +366,7 @@ export default function FloorIsLava() {
           <div className="flava__panel flava__panel--win">
             <h2 className="flava__panel-title">🎉 Niveau {state.level} terminé&nbsp;!</h2>
             <FallGuy className="flava__win-buddy" avatar={user?.avatar} role={user?.role} anim="jump" />
-            <p className="flava__panel-text">
-              {reward != null
-                ? <>Bravo&nbsp;! Tu gagnes <strong>{reward} 🍩</strong> donuts&nbsp;!</>
-                : 'Bravo, niveau réussi&nbsp;!'}
-            </p>
+            <p className="flava__panel-text">Bravo, niveau réussi&nbsp;!</p>
             <div className="flava__panel-actions">
               <button className="flava__btn" onClick={nextLevel}>Niveau suivant →</button>
               <button className="flava__btn flava__btn--ghost" onClick={() => navigate('/dashboard')}>
