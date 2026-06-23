@@ -84,16 +84,6 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Récompense « vraie pause » (#3) : message de bienvenue à la connexion.
-  useEffect(() => {
-    if (user.pause_recompense) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      flash('Bon retour ! 🌟 Tu as gagné 2 🍩 donuts pour ta pause !')
-      updateUser({ pause_recompense: false })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   // Relance manuelle depuis Paramètres ("Revoir le tutoriel").
   useEffect(() => {
     if (location.state?.revoirTuto) {
