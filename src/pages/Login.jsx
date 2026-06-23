@@ -54,34 +54,52 @@ export default function Login() {
   }
 
   // --- Connexion ---
+  // Connexion « normale » : elle doit TOUJOURS fonctionner avec le pseudo + mot de
+  // passe saisis, quel que soit l'état du localStorage (vide, pseudo mémorisé
+  // différent, données d'un autre utilisateur…). On ne lit jamais le localStorage
+  // ici : on s'appuie uniquement sur les champs du formulaire.
   const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
-    if (!pseudo.trim() || !password) {
+    const pseudoSaisi = pseudo.trim()
+    if (!pseudoSaisi || !password) {
       setError('Remplis ton pseudo et ton mot de passe 😊')
       return
     }
     setLoading(true)
-    const result = await login(pseudo, password)
-    if (result.error) {
+    try {
+      const result = await login(pseudoSaisi, password)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      // Contrôle parental : blocage horaire éventuel (ne doit jamais bloquer si KO).
+      let parental = null
+      try {
+        parental = await getParental(result.user.id)
+      } catch (err) {
+        console.error('[login] contrôle parental indisponible :', err)
+      }
+      if (isOutsideAllowedHours(parental)) {
+        setError(PAUSE_MESSAGE_HORAIRE)
+        return
+      }
+      // « Se souvenir de moi » : on mémorise seulement le pseudo saisi (jamais le
+      // mot de passe). Sinon on efface toute trace mémorisée sur cet appareil — y
+      // compris un éventuel pseudo d'un autre utilisateur.
+      if (remember) rememberPseudo(pseudoSaisi)
+      else forgetDevice()
+      signIn({ ...result.user, parental })
+      navigate(result.user.premiere_connexion ? '/onboarding' : '/dashboard', {
+        replace: true,
+      })
+    } catch (err) {
+      // Garde-fou : aucune exception inattendue ne doit laisser le bouton bloqué.
+      console.error('[login] erreur inattendue :', err)
+      setError('Oups, une erreur est survenue. Réessaie !')
+    } finally {
       setLoading(false)
-      setError(result.error)
-      return
     }
-    // Contrôle parental : blocage horaire éventuel
-    const parental = await getParental(result.user.id)
-    setLoading(false)
-    if (isOutsideAllowedHours(parental)) {
-      setError(PAUSE_MESSAGE_HORAIRE)
-      return
-    }
-    // « Se souvenir de moi » : on mémorise seulement le pseudo (jamais le mot de passe).
-    if (remember) rememberPseudo(pseudo.trim())
-    else forgetDevice()
-    signIn({ ...result.user, parental })
-    navigate(result.user.premiere_connexion ? '/onboarding' : '/dashboard', {
-      replace: true,
-    })
   }
 
   // --- Étape code d'invitation ---

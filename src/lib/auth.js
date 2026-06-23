@@ -51,17 +51,27 @@ export function forgetDevice() {
 // --- Connexion : appelle la fonction SQL login() ---
 // Renvoie { user } si ok, ou { error } sinon.
 export async function login(pseudo, password) {
-  const { data, error } = await supabase.rpc('login', {
-    p_pseudo: pseudo.trim(),
-    p_password: password,
-  })
+  try {
+    const { data, error } = await supabase.rpc('login', {
+      p_pseudo: pseudo.trim(),
+      p_password: password,
+    })
 
-  if (error) return { error: 'Oups, une erreur est survenue. Réessaie !' }
-  if (!data || data.length === 0) {
-    return { error: 'Pseudo ou mot de passe incorrect 🙈' }
+    if (error) {
+      // On journalise l'erreur réelle pour pouvoir déboguer (réseau, RPC, droits…).
+      console.error('[login] erreur RPC Supabase :', error)
+      return { error: 'Oups, une erreur est survenue. Réessaie !' }
+    }
+    if (!data || data.length === 0) {
+      return { error: 'Pseudo ou mot de passe incorrect 🙈' }
+    }
+
+    return { user: data[0] }
+  } catch (e) {
+    // Exception réseau / client (ex : appareil hors-ligne) : on ne casse pas l'UI.
+    console.error('[login] exception réseau/client :', e)
+    return { error: 'Oups, une erreur est survenue. Réessaie !' }
   }
-
-  return { user: data[0] }
 }
 
 // --- Onboarding : change le mot de passe + enregistre le numéro ---
