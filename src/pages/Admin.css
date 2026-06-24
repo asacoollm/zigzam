@@ -908,3 +908,92 @@
 .actus-refused__head:hover { background: rgba(124, 58, 255, 0.12); }
 .actus-refused__chevron { font-size: 12px; opacity: 0.7; }
 .actus-refused .actus-list { margin-top: 12px; }
+
+/* --------------- Saisons 🦕 --------------- */
+.saison-row {
+  border: 1.5px solid rgba(45, 139, 45, 0.3);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, rgba(61, 214, 140, 0.07), rgba(45, 139, 45, 0.04));
+}
+.saison-row__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.saison-row__name { font-size: 18px; font-weight: 700; color: var(--texte); }
+.saison-badge {
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 4px 10px;
+}
+.saison-badge--on { background: rgba(61, 214, 140, 0.2); color: #1f9d68; }
+.saison-badge--off { background: rgba(120, 120, 120, 0.16); color: #6b7280; }
+.saison-row__dates {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+  font-size: 13px;
+  color: var(--texte-doux);
+}
+.saison-row__controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.saison-row__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.saison-row__form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.saison-row__hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--texte-doux);
+  line-height: 1.4;
+}
+.saison-stats {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(45, 139, 45, 0.3);
+}
+.saison-stats__totals {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.saison-stats__list { display: flex; flex-direction: column; gap: 6px; }
+.saison-stats__item {
+  display: grid;
+  grid-template-columns: 1fr auto 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(45, 139, 45, 0.18);
+}
+.saison-stats__label { font-weight: 600; color: var(--texte); }
+.saison-stats__cat { font-size: 12px; color: var(--texte-doux); }
+.saison-stats__count {
+  font-weight: 800;
+  text-align: center;
+  color: #1f9d68;
+  background: rgba(61, 214, 140, 0.18);
+  border-radius: 8px;
+  padding: 2px 0;
+}

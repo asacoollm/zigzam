@@ -306,6 +306,56 @@ const HAIR = {
       <path d="M33 25 Q49 14 69 16 Q53 22 42 39 Z" fill="#fff" opacity="0.25" />
     </g>
   ),
+
+  // ====== 🦕 JURASSIC WEB — coiffures exclusives de saison ======
+
+  // Queue de Dino : calotte écailleuse (la longue queue est dans HAIR_BACK).
+  jtail: () => (
+    <g>
+      <path d={skull(46)} fill="#3f8a4a" />
+      <g stroke="#235e2b" strokeWidth="1.1" fill="none" opacity="0.55">
+        <path d="M28 28 q6 4 12 0 q6 4 12 0 q6 4 12 0 q5 3 10 0" />
+        <path d="M26 38 q6 4 12 0 q6 4 12 0 q6 4 12 0 q5 3 10 0" />
+        <path d="M28 46 q6 3 12 0 q6 3 12 0 q6 3 12 0" />
+      </g>
+      <path d="M33 25 Q49 16 69 17 Q53 22 42 37 Z" fill="#7ed07e" opacity="0.35" />
+    </g>
+  ),
+
+  // Crête de Dilophosaure : 2 crêtes colorées dressées (Jurassic Park).
+  jdilo: () => (
+    <g>
+      <path d={skull(47)} fill="#5aa05a" />
+      <path d="M44 17 Q39 -7 57 -5 Q52 8 52 19 Z" fill="#ff5a3c" stroke="#c43a1f" strokeWidth="1.5" />
+      <path d="M76 17 Q81 -7 63 -5 Q68 8 68 19 Z" fill="#ff5a3c" stroke="#c43a1f" strokeWidth="1.5" />
+      <path d="M46 14 Q44 -3 56 -3" stroke="#ffd23f" strokeWidth="2" fill="none" />
+      <path d="M74 14 Q76 -3 64 -3" stroke="#ffd23f" strokeWidth="2" fill="none" />
+      <g fill="#235e2b" opacity="0.4">
+        <circle cx="40" cy="34" r="1.4" /><circle cx="60" cy="30" r="1.4" /><circle cx="80" cy="34" r="1.4" />
+      </g>
+    </g>
+  ),
+
+  // Dreadlocks Dino : locks verts avec une petite tête de dino au bout.
+  jdreads: () => (
+    <g>
+      <path d={skull(48)} fill="#3b5a2a" />
+      {[16, 27, 93, 104].map((x, k) => (
+        <g key={k}>
+          <rect x={x - 4} y="44" width="8" height="54" rx="4" fill="#2f4a22" />
+          {[0, 1, 2, 3].map((i) => (
+            <ellipse key={i} cx={x} cy={52 + i * 12} rx="5" ry="6.5" fill="#3f6e2c" />
+          ))}
+          <g transform={`translate(${x} 101)`}>
+            <ellipse cx="0" cy="0" rx="5.5" ry="4.5" fill="#5aa05a" />
+            <path d="M3 -1 q6 0 7 3 q-4 1 -7 1 Z" fill="#5aa05a" />
+            <circle cx="1" cy="-1.5" r="1" fill="#000" />
+            <path d="M-3 -4 l1 -3 1 3 M2 -4 l1 -3 1 3" fill="#2f6b3a" />
+          </g>
+        </g>
+      ))}
+    </g>
+  ),
 }
 
 // Couche ARRIÈRE (derrière le corps) : longueurs qui tombent dans le dos / sur les côtés.
@@ -330,6 +380,23 @@ const HAIR_BACK = {
       <path d="M98 38 Q118 52 112 92 Q110 100 102 100 Q108 78 94 50 Z" />
       <g stroke={H.chat.dark} strokeWidth="1.4" fill="none" opacity="0.45">
         <path d="M14 54 Q10 78 15 96" /><path d="M106 54 Q110 78 105 96" />
+      </g>
+    </g>
+  ),
+
+  // 🦕 Queue de Dino : longue queue écailleuse à épines, qui se balance.
+  jtail: () => (
+    <g className="dino-tail">
+      <path d="M58 22 Q116 30 108 86 Q103 116 84 126 Q102 104 94 76 Q86 44 56 36 Z"
+        fill="#3f8a4a" stroke="#235e2b" strokeWidth="2" />
+      <path d="M60 30 Q104 38 98 80 Q94 104 82 116 Q94 96 88 72 Q80 46 58 40 Z"
+        fill="#7ed07e" opacity="0.35" />
+      <g fill="#2f6b3a" stroke="#235e2b" strokeWidth="0.8">
+        <path d="M92 34 l9 -7 -1 9 Z" />
+        <path d="M104 52 l10 -3 -4 9 Z" />
+        <path d="M106 74 l9 2 -6 7 Z" />
+        <path d="M98 96 l7 6 -8 4 Z" />
+        <path d="M86 114 l3 9 -8 1 Z" />
       </g>
     </g>
   ),
@@ -553,6 +620,58 @@ const FACE = {
       <path d="M50 68 q10 11 20 0 Z" fill={C.noir} />
       <rect x="54" y="69" width="4" height="5" fill={C.or} /><rect x="58" y="70" width="4" height="5" fill={C.or} />
       <rect x="62" y="69" width="4" height="5" fill={C.or} />
+    </g>
+  ),
+
+  // ====== 🦕 JURASSIC WEB — visages exclusifs de saison ======
+
+  // Yeux de Raptor : pupilles verticales reptiliennes, regard perçant.
+  //  (rendu après les yeux par défaut → les recouvre.)
+  jraptoreyes: () => (
+    <g>
+      <ellipse cx="49" cy="60" rx="7" ry="7.6" fill="#f5c400" stroke="#b88a00" strokeWidth="1" />
+      <ellipse cx="71" cy="60" rx="7" ry="7.6" fill="#f5c400" stroke="#b88a00" strokeWidth="1" />
+      <ellipse cx="49" cy="60" rx="1.9" ry="6.6" fill="#0a0a0a" />
+      <ellipse cx="71" cy="60" rx="1.9" ry="6.6" fill="#0a0a0a" />
+      <circle cx="51" cy="56.5" r="1.2" fill="#fff" /><circle cx="73" cy="56.5" r="1.2" fill="#fff" />
+      <path d="M41 52 q8 -3 15 1" stroke="#235e2b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      <path d="M64 53 q7 -4 15 -1" stroke="#235e2b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      <path d="M53 72 q7 3 14 0" stroke={C.noir} strokeWidth="2.4" fill="none" strokeLinecap="round" />
+    </g>
+  ),
+
+  // Sourire de T-Rex : énorme mâchoire pleine de dents.
+  jtrexjaw: () => (
+    <g>
+      <path d="M44 65 Q60 86 76 65 Q60 73 44 65 Z" fill="#7a1f1f" stroke={C.noir} strokeWidth="2" />
+      <g fill="#fff" stroke="#d8d8d8" strokeWidth="0.5">
+        {[46, 51, 56, 61, 66, 71].map((x, i) => (
+          <path key={i} d={`M${x} 66 l2.4 ${5 - (i === 2 || i === 3 ? -1 : 0)} l2.4 -5 Z`} />
+        ))}
+        {[49, 55, 61, 67].map((x, i) => (
+          <path key={`b${i}`} d={`M${x} 75 l2.2 -5 l2.2 5 Z`} />
+        ))}
+      </g>
+      <path d="M44 65 Q60 60 76 65" stroke={C.noir} strokeWidth="1.5" fill="none" />
+    </g>
+  ),
+
+  // Écailles : le visage recouvert d'écailles vertes (regard reptilien conservé).
+  jscalesface: () => (
+    <g>
+      <g fill="#3f8a4a" stroke="#235e2b" strokeWidth="0.6">
+        {[48, 56, 64, 72].map((y, r) =>
+          [38, 48, 58, 68, 78].map((x, c) => (
+            <path key={`${r}-${c}`} d={`M${x + (r % 2 ? 4 : 0)} ${y} a5 4.5 0 0 1 10 0 Z`} />
+          )),
+        )}
+      </g>
+      {/* zone des yeux dégagée + yeux reptiliens */}
+      <ellipse cx="49" cy="60" rx="6" ry="5.5" fill="#9bd99b" />
+      <ellipse cx="71" cy="60" rx="6" ry="5.5" fill="#9bd99b" />
+      <ellipse cx="49" cy="60" rx="1.6" ry="5" fill="#0a0a0a" />
+      <ellipse cx="71" cy="60" rx="1.6" ry="5" fill="#0a0a0a" />
+      <path d="M53 72 q7 3 14 0" stroke="#1c4a26" strokeWidth="2.4" fill="none" strokeLinecap="round" />
     </g>
   ),
 }
@@ -972,6 +1091,87 @@ const ANIMAL = {
       <circle cx="0" cy="9" r="1" fill={C.rose} />
     </g>
   ),
+
+  // ====== 🦕 JURASSIC WEB — compagnons exclusifs de saison ======
+
+  // Meute de Raptors : 3 vélociraptors qui courent (animation de course).
+  jraptors: () => ground(
+    <g>
+      {[
+        { t: 'translate(2 8) scale(1.05)', d: '0s' },
+        { t: 'translate(-6 -8) scale(0.8)', d: '0.18s' },
+        { t: 'translate(10 0) scale(0.92)', d: '0.36s' },
+      ].map((r, i) => (
+        <g key={i} className="dino-raptor" style={{ animationDelay: r.d }} transform={r.t}>
+          <path d="M9 0 Q19 -3 22 3" stroke="#6a8a3a" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <ellipse cx="2" cy="2" rx="8" ry="5" fill="#7caa4a" />
+          <path d="M-5 0 Q-13 -4 -16 2 Q-11 4 -5 4 Z" fill="#7caa4a" />
+          <path d="M-4 -2 q6 -3 12 0" stroke="#4a6a2a" strokeWidth="1.5" fill="none" />
+          <circle cx="-13" cy="0.5" r="1" fill="#000" />
+          <path d="M-16 2 l-3 0.5" stroke="#5a7a3a" strokeWidth="1" />
+          <path d="M0 6 l-2 7 M4 6 l1 7" stroke="#5a7a3a" strokeWidth="2" strokeLinecap="round" />
+          <path d="M-2 13 l-3 1 M5 13 l3 1" stroke="#5a7a3a" strokeWidth="1.4" strokeLinecap="round" />
+        </g>
+      ))}
+    </g>,
+  ),
+
+  // Bébé Brachiosaure : immense, son long cou dépasse au-dessus de l'avatar.
+  jbrachio: () => ground(
+    <g>
+      <rect x="-14" y="6" width="6" height="22" rx="3" fill="#5a7a90" />
+      <rect x="-2" y="8" width="6" height="20" rx="3" fill="#6a8aa0" />
+      <rect x="10" y="6" width="6" height="22" rx="3" fill="#5a7a90" />
+      <path d="M16 0 Q34 0 40 12" stroke="#7a9ab0" strokeWidth="6" fill="none" strokeLinecap="round" />
+      <ellipse cx="0" cy="2" rx="20" ry="13" fill="#7a9ab0" />
+      <ellipse cx="-2" cy="6" rx="14" ry="7" fill="#bcd0de" opacity="0.55" />
+      <g className="dino-brachio">
+        <path d="M-12 -6 Q-28 -38 -22 -68 Q-20 -77 -13 -76 Q-17 -44 -3 -10 Z"
+          fill="#7a9ab0" stroke="#5a7a90" strokeWidth="1.5" />
+        <ellipse cx="-16" cy="-76" rx="7.5" ry="5.5" fill="#8aa6bc" />
+        <path d="M-22 -77 q-5 -1 -7 1 q4 2 7 1 Z" fill="#8aa6bc" />
+        <circle cx="-20" cy="-78" r="1.2" fill="#000" />
+        <path d="M-14 -82 l1 -4 1 4 M-18 -82 l1 -4 1 4" fill="#6a8aa0" />
+      </g>
+    </g>,
+  ),
+
+  // T-Rex Compagnon : aussi grand que l'avatar, à côté, qui rugit.
+  jtrexbuddy: () => ground(
+    <g>
+      <path d="M14 4 Q40 0 50 16" stroke="#3f8a4a" strokeWidth="7" fill="none" strokeLinecap="round" />
+      <path d="M0 14 L-4 40 L7 40 L7 16 Z" fill="#2f6b3a" />
+      <path d="M10 14 L8 40 L19 40 L17 14 Z" fill="#3f8a4a" />
+      <path d="M-18 -2 Q-22 18 0 22 Q20 22 18 0 Q14 -16 -4 -14 Q-16 -12 -18 -2 Z"
+        fill="#3f8a4a" stroke="#235e2b" strokeWidth="2" />
+      <path d="M-10 8 Q2 18 14 10 Q4 14 -8 12 Z" fill="#7ed07e" opacity="0.7" />
+      <path d="M-12 -10 l3 -6 3 6 3 -6 3 6 3 -6 3 6" fill="#235e2b" />
+      <path d="M-6 4 q-6 2 -8 7" stroke="#235e2b" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <g transform="translate(-18 -10)">
+        <path d="M0 0 Q-22 -2 -26 8 Q-24 13 -10 12 Q2 12 4 4 Z" fill="#3f8a4a" stroke="#235e2b" strokeWidth="2" />
+        <path d="M-20 9 Q-8 13 0 7 Q-10 11 -18 10 Z" fill="#7a1f1f" />
+        <path d="M-22 7 l1 4 2 -3 M-16 7 l1 4 2 -3 M-10 6 l1 4 2 -3" fill="#fff" />
+        <g className="dino-roar-jaw">
+          <path d="M-24 10 Q-12 20 2 12 Q-10 16 -22 14 Z" fill="#2f6b3a" stroke="#235e2b" strokeWidth="1.5" />
+          <path d="M-18 13 l1 -3 2 3 M-10 14 l1 -3 2 3" fill="#fff" />
+        </g>
+        <circle cx="-6" cy="0" r="2.4" fill="#f5d000" /><circle cx="-6" cy="0" r="1.1" fill="#000" />
+        <circle cx="-22" cy="6" r="0.9" fill="#235e2b" />
+      </g>
+    </g>,
+  ),
+
+  // Ptérosaure Volant : tourne en cercle au-dessus de la tête (ailes qui battent).
+  jpterofly: () => (
+    <g className="dino-ptero-orbit">
+      <g className="dino-ptero-wingL"><path d="M0 0 Q-26 -10 -36 2 Q-20 -2 -4 4 Z" fill="#7a6a9a" stroke="#5a4a7a" strokeWidth="1" /></g>
+      <g className="dino-ptero-wingR"><path d="M0 0 Q26 -10 36 2 Q20 -2 4 4 Z" fill="#7a6a9a" stroke="#5a4a7a" strokeWidth="1" /></g>
+      <ellipse cx="0" cy="3" rx="4" ry="7" fill="#8a6aaa" />
+      <path d="M0 -4 Q2 -12 10 -12 Q4 -8 6 -2 Z" fill="#8a6aaa" />
+      <path d="M2 -3 l15 -2 -13 4 Z" fill="#9a7aba" />
+      <circle cx="3" cy="-3" r="1" fill="#000" />
+    </g>
+  ),
 }
 
 // Position + échelle finales de chaque animal : TOUJOURS à droite du bonhomme,
@@ -1009,6 +1209,11 @@ const ANIMAL_PLACEMENT = {
   // --- Aquatiques : à droite, flottent à mi-hauteur ---
   fish: 'translate(150 96) scale(2.3)',
   shark: 'translate(152 96) scale(2.5)',
+  // --- 🦕 Jurassic Web ---
+  jraptors: 'translate(150 86) scale(2.2)',   // meute au sol, à droite
+  jbrachio: 'translate(152 118) scale(1.85)', // immense, cou qui dépasse au-dessus
+  jtrexbuddy: 'translate(152 80) scale(1.85)', // aussi grand que l'avatar
+  jpterofly: 'translate(60 0) scale(1.5)',     // tourne au-dessus de la tête
 }
 
 // Tous les animaux étant désormais placés à DROITE du bonhomme, ils
@@ -1199,6 +1404,76 @@ const HATS = {
     <g>
       <ellipse cx="60" cy="0" rx="28" ry="9" fill="none" stroke={C.or} strokeWidth="5" />
       <ellipse cx="60" cy="0" rx="28" ry="9" fill="none" stroke="#fff3b0" strokeWidth="1.5" />
+    </g>
+  ),
+
+  // ====== 🦕 JURASSIC WEB — chapeaux exclusifs de saison ======
+
+  // Capuche T-Rex : capuche verte + tête de T-Rex rugissante au-dessus,
+  // mâchoires ouvertes et dents visibles. La mâchoire inférieure s'anime.
+  jtrex: () => (
+    <g>
+      <path d="M24 26 Q26 -4 60 -6 Q94 -4 96 26 Q60 16 24 26 Z" fill="#2f6b3a" />
+      <path d="M24 26 Q60 16 96 26" stroke="#1c4a26" strokeWidth="2" fill="none" />
+      <path d="M30 22 Q60 14 90 22" stroke="#3f8a4a" strokeWidth="2" fill="none" opacity="0.7" />
+      <g transform="translate(60 -12)">
+        <path d="M-20 6 Q-24 -10 -6 -12 Q14 -14 22 -2 Q26 4 20 8 Z" fill="#3f8a4a" stroke="#235e2b" strokeWidth="2" />
+        <path d="M-12 -10 l3 -5 3 5 3 -5 3 5 3 -5 3 5" fill="#235e2b" />
+        <g className="dino-roar-jaw">
+          <path d="M-18 8 Q-4 18 16 11 Q4 15 -10 12 Z" fill="#2f6b3a" stroke="#235e2b" strokeWidth="1.5" />
+          <path d="M-8 11 l1 -3 2 3 M0 12 l1 -3 2 3" fill="#fff" />
+        </g>
+        <path d="M-14 8 Q0 13 14 9 Q2 12 -10 10 Z" fill="#7a1f1f" />
+        <path d="M-12 7 l1.5 4 2 -4 M-5 7 l1.5 4 2 -4 M2 6 l1.5 4 2 -4 M9 6 l1.5 4 2 -4" fill="#fff" />
+        <circle cx="7" cy="-4" r="2.4" fill="#f5d000" /><circle cx="7" cy="-4" r="1.1" fill="#000" />
+        <circle cx="18" cy="0" r="1" fill="#235e2b" />
+      </g>
+    </g>
+  ),
+
+  // Casque Tricératops : collerette à pointes + 3 cornes.
+  jtrike: () => (
+    <g>
+      <path d="M28 18 Q60 -18 92 18 Q86 26 60 24 Q34 26 28 18 Z" fill="#8a9a5a" stroke="#5f6e3a" strokeWidth="2" />
+      <g fill="#6f7e44">
+        <path d="M30 14 l-8 -5 8 -1 Z" /><path d="M48 -6 l-3 -9 6 4 Z" />
+        <path d="M60 -10 l0 -10 5 7 Z" /><path d="M72 -6 l3 -9 -6 4 Z" /><path d="M90 14 l8 -5 -8 -1 Z" />
+      </g>
+      <path d="M30 24 Q60 8 90 24 Q60 30 30 24 Z" fill="#a7b56a" />
+      <path d="M58 18 l2 -11 2 11 Z" fill="#eee3c8" stroke="#c9bd9c" strokeWidth="1" />
+      <path d="M42 14 Q34 -4 46 -7 Q43 8 50 14 Z" fill="#eee3c8" stroke="#c9bd9c" strokeWidth="1" />
+      <path d="M78 14 Q86 -4 74 -7 Q77 8 70 14 Z" fill="#eee3c8" stroke="#c9bd9c" strokeWidth="1" />
+    </g>
+  ),
+
+  // Couronne Stégosaure : plaques dorsales en éventail.
+  jstego: () => (
+    <g>
+      <path d="M28 25 Q60 15 92 25 L90 31 Q60 23 30 31 Z" fill="#5a7a3a" />
+      <g stroke="#3f5a28" strokeWidth="1.5">
+        <path d="M34 23 Q28 4 46 16 Z" fill="#7caa4a" />
+        <path d="M47 17 Q44 -6 60 10 Z" fill="#86b855" />
+        <path d="M60 12 Q60 -14 72 11 Z" fill="#7caa4a" />
+        <path d="M74 17 Q80 -6 87 19 Z" fill="#86b855" />
+      </g>
+      <g fill="#ff8c42">
+        <circle cx="38" cy="11" r="2" /><circle cx="52" cy="2" r="2" />
+        <circle cx="66" cy="0" r="2" /><circle cx="81" cy="4" r="2" />
+      </g>
+    </g>
+  ),
+
+  // Chapeau Ptérosaure : ailes membranées de part et d'autre + crête + bec.
+  jptero: () => (
+    <g>
+      <path d="M40 18 Q8 6 2 22 Q18 18 38 26 Z" fill="#6a5a8a" stroke="#4a3a6a" strokeWidth="1.5" className="dino-ptero-wingL" />
+      <path d="M80 18 Q112 6 118 22 Q102 18 82 26 Z" fill="#6a5a8a" stroke="#4a3a6a" strokeWidth="1.5" className="dino-ptero-wingR" />
+      <path d="M36 22 L8 16 M36 24 L12 22" stroke="#4a3a6a" strokeWidth="1" />
+      <path d="M84 22 L112 16 M84 24 L108 22" stroke="#4a3a6a" strokeWidth="1" />
+      <path d="M40 24 Q60 8 80 24 Q60 28 40 24 Z" fill="#7a6a9a" />
+      <path d="M60 10 Q44 2 40 12 Q54 10 60 17 Z" fill="#8a6aaa" stroke="#5a4a7a" strokeWidth="1" />
+      <path d="M60 15 Q80 11 98 7 Q82 17 64 21 Z" fill="#7a6a9a" />
+      <circle cx="82" cy="13" r="1.6" fill="#000" />
     </g>
   ),
 }

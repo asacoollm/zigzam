@@ -258,6 +258,41 @@
   background: rgba(0, 191, 255, 0.16);
   color: #0782a8;
 }
+.acc__tag--closed {
+  background: rgba(120, 120, 120, 0.18);
+  color: #5b5b5b;
+}
+
+/* 🦕 Onglet exclusif de saison + skins de saison terminée */
+.av__tab--saison {
+  background: linear-gradient(120deg, #1a5c1a, #3dd68c);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(26, 92, 26, 0.35);
+}
+.av__tab--saison.av__tab--on {
+  background: linear-gradient(120deg, #0d3b0d, #2d8b2d);
+  outline: 2px solid #8ff196;
+}
+.av__saison-note {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #14491f;
+  background: linear-gradient(120deg, rgba(61, 214, 140, 0.18), rgba(45, 139, 45, 0.12));
+  border: 1.5px solid rgba(45, 139, 45, 0.3);
+}
+.av__saison-note--over {
+  color: #6b5b3a;
+  background: rgba(180, 160, 120, 0.16);
+  border-color: rgba(150, 130, 90, 0.3);
+}
+.acc--closed {
+  opacity: 0.62;
+  filter: grayscale(0.85) sepia(0.2);
+}
 .acc__check {
   position: absolute;
   top: -8px;

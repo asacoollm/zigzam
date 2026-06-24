@@ -64,6 +64,33 @@ function ColorDefs() {
         <ellipse cx="28" cy="8" rx="6" ry="5" fill="#86a85a" />
         <ellipse cx="8" cy="32" rx="6" ry="5" fill="#86a85a" />
       </pattern>
+
+      {/* ====== 🦕 JURASSIC WEB — couleurs exclusives de saison ====== */}
+      {/* Camouflage Jungle : taches de vert sombre/clair. */}
+      <pattern id="body-jcamo" width="46" height="46" patternUnits="userSpaceOnUse">
+        <rect width="46" height="46" fill="#2f6b3a" />
+        <ellipse cx="11" cy="13" rx="11" ry="9" fill="#1c4a26" />
+        <ellipse cx="34" cy="31" rx="12" ry="10" fill="#1c4a26" />
+        <ellipse cx="32" cy="9" rx="7" ry="6" fill="#5fa05a" />
+        <ellipse cx="8" cy="35" rx="7" ry="6" fill="#5fa05a" />
+        <ellipse cx="23" cy="22" rx="5" ry="4" fill="#86b855" />
+      </pattern>
+      {/* Écailles T-Rex : écailles gris-vert qui se chevauchent. */}
+      <pattern id="body-jtrexskin" width="20" height="16" patternUnits="userSpaceOnUse">
+        <rect width="20" height="16" fill="#566a54" />
+        <path d="M0 8 a5 5 0 0 1 10 0 Z M10 8 a5 5 0 0 1 10 0 Z" fill="#3f5a3c" stroke="#2c3f2a" strokeWidth="0.6" />
+        <path d="M-5 0 a5 5 0 0 1 10 0 Z M5 0 a5 5 0 0 1 10 0 Z M15 0 a5 5 0 0 1 10 0 Z" fill="#6b7d64" stroke="#2c3f2a" strokeWidth="0.6" />
+      </pattern>
+      {/* Dino Doré : or brillant façon fossile précieux. */}
+      <linearGradient id="body-jdinogold" x1="0" y1="0" x2="0.6" y2="1">
+        <stop offset="0" stopColor="#fff1c0" /><stop offset="0.45" stopColor="#e6b23a" />
+        <stop offset="1" stopColor="#9a6a12" />
+      </linearGradient>
+      {/* Raptor Bleu : bleu électrique de « Blue » (Jurassic World). */}
+      <linearGradient id="body-jraptorblue" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#7fd4ff" /><stop offset="0.5" stopColor="#1f6fd6" />
+        <stop offset="1" stopColor="#123a8a" />
+      </linearGradient>
     </>
   )
 }

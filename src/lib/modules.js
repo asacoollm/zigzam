@@ -460,3 +460,34 @@ export async function adminUpdateBugReport(adminId, reportId, statut, note) {
   if (r.error || r.data?.error) return { error: ERR }
   return { ok: true }
 }
+
+// ---------------- SAISONS 🦕 ----------------
+// Lit la ligne de la saison active (publique, pour SaisonContext).
+//  Renvoie l'objet { id, slug, nom, actif, date_debut, date_fin, theme } ou null.
+export async function getSaisonActive(slug) {
+  const r = await rpc('get_saison_active', { p_slug: slug })
+  return r.error ? null : (r.data || null)
+}
+// Superadmin : liste toutes les saisons connues en base.
+export async function adminListSaisons(adminId) {
+  const r = await rpc('admin_list_saisons', { p_admin: adminId })
+  return r.error ? [] : r.data
+}
+// Superadmin : met à jour le commutateur + les dates d'une saison.
+//  actif: bool | null (null = inchangé), dates: ISO string | '' (vide = effacer) | null (inchangé).
+export async function adminUpdateSaison(adminId, slug, { actif, debut, fin } = {}) {
+  const r = await rpc('admin_update_saison', {
+    p_admin: adminId,
+    p_slug: slug,
+    p_actif: typeof actif === 'boolean' ? actif : null,
+    p_debut: debut === undefined ? null : debut,
+    p_fin: fin === undefined ? null : fin,
+  })
+  if (r.error || r.data?.error) return { error: ERR }
+  return { ok: true, saison: r.data?.saison ?? null }
+}
+// Superadmin : statistiques des skins de saison achetés (par item + total).
+export async function adminSaisonStats(adminId, slug) {
+  const r = await rpc('admin_saison_stats', { p_admin: adminId, p_slug: slug })
+  return r.error ? null : r.data
+}

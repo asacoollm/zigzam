@@ -20,6 +20,7 @@ import ParentalGuard from './components/ParentalGuard'
 import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
 import ReportButton from './components/ReportButton'
+import SaisonAnnounce from './components/SaisonAnnounce'
 
 export default function App() {
   const { user } = useAuth()
@@ -168,6 +169,7 @@ export default function App() {
     </Routes>
     <OnlineWidget />
     <ReportButton />
+    <SaisonAnnounce />
     </>
   )
 }

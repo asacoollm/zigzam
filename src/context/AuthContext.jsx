@@ -16,6 +16,8 @@ export function AuthProvider({ children }) {
   // signOut(message) : message non vide = déconnexion « pause » (contrôle parental)
   const signOut = (message = '') => {
     clearStoredUser()
+    // L'annonce de saison se réaffiche à la prochaine connexion.
+    try { sessionStorage.removeItem('zigzam:saison-annonce-vue') } catch { /* ignore */ }
     setUser(null)
     setPauseMessage(message)
   }

@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useSaison } from '../context/SaisonContext'
 import { saveAvatar, buyAccessory } from '../lib/auth'
 import { buyCustomSkin } from '../lib/modules'
-import { CATEGORIES, normalizeAvatar, isUnlocked, accKey } from '../lib/avatar'
+import {
+  CATEGORIES, normalizeAvatar, isUnlocked, accKey, getSaisonItems, SAISON_LABELS,
+} from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -11,10 +14,29 @@ import './Avatar.css'
 
 export default function Avatar() {
   const { user, updateUser } = useAuth()
+  const { active: saisonActive, terminee: saisonTerminee, slug: saisonSlug } = useSaison()
   const navigate = useNavigate()
 
   const [avatar, setAvatar] = useState(() => normalizeAvatar(user.avatar))
-  const [tab, setTab] = useState(CATEGORIES[0].id)
+
+  // Items exclusifs de la saison courante (ex. Jurassic Web), agrégés dans un
+  // onglet virtuel. Onglet visible pendant la saison OU si l'élève en possède
+  // déjà (skins gardés à vie, ré-équipables après la fin).
+  const saisonItems = useMemo(() => getSaisonItems(saisonSlug || 'jurassic'), [saisonSlug])
+  const ownsAnySaison = saisonItems.some((it) =>
+    (avatar.owned ?? []).includes(accKey(it._cat, it.id)))
+  const showSaisonTab = !!saisonSlug && (saisonActive || ownsAnySaison)
+
+  // Liste des onglets : l'onglet saison (virtuel) en tête s'il est visible.
+  const TABS = useMemo(() => {
+    if (!showSaisonTab) return CATEGORIES
+    return [
+      { id: '__saison', label: SAISON_LABELS[saisonSlug] || 'Exclusif', emoji: '🦕', virtual: true },
+      ...CATEGORIES,
+    ]
+  }, [showSaisonTab, saisonSlug])
+
+  const [tab, setTab] = useState(showSaisonTab ? '__saison' : CATEGORIES[0].id)
   const [pending, setPending] = useState(null) // accessoire payant en attente de confirmation
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
@@ -23,10 +45,20 @@ export default function Avatar() {
   const [skinRef, setSkinRef] = useState('')
   const [celebrate, setCelebrate] = useState(null) // avatar fêté après un achat (animation)
 
+  const isSaisonTab = tab === '__saison'
   const activeCategory = useMemo(
     () => CATEGORIES.find((c) => c.id === tab),
     [tab],
   )
+
+  // Catégorie native d'un item (pour l'onglet saison, chaque item porte _cat).
+  const catOf = (item) => item._cat || tab
+
+  // Items affichés dans la grille : onglet saison = items de saison ;
+  // onglets normaux = leurs items SANS les exclusifs de saison.
+  const gridItems = isSaisonTab
+    ? saisonItems
+    : (activeCategory?.items ?? []).filter((it) => !it.saison)
 
   const flash = (msg) => {
     setToast(msg)
@@ -44,14 +76,21 @@ export default function Avatar() {
   }
 
   const pickItem = (item) => {
+    const cat = catOf(item)
+    const owned = (avatar.owned ?? []).includes(accKey(cat, item.id))
+    // Skin de saison terminée non possédé : plus achetable (mais conservé si acquis).
+    if (item.saison && saisonTerminee && !owned) {
+      flash('🦕 Saison terminée — ce skin n’est plus disponible à l’achat.')
+      return
+    }
     // Retirer l'accessoire déjà équipé (sauf la couleur, toujours présente).
-    if (avatar[tab] === item.id) {
-      if (tab !== 'color') applyFree({ [tab]: null })
+    if (avatar[cat] === item.id) {
+      if (cat !== 'color') applyFree({ [cat]: null })
       return
     }
     // Gratuit ou déjà acheté → on équipe directement.
-    if (isUnlocked(avatar, tab, item)) {
-      applyFree({ [tab]: item.id })
+    if (isUnlocked(avatar, cat, item)) {
+      applyFree({ [cat]: item.id })
       return
     }
     // Payant non possédé → popup d'aperçu (achat possible si assez de gemmes).
@@ -62,7 +101,7 @@ export default function Avatar() {
     if (!pending) return
 
     // Cas spécial : skin sur mesure → on demande d'abord la description du skin de rêve.
-    if (tab === 'special') {
+    if (catOf(pending) === 'special') {
       setPending(null)
       setSkinDesc('')
       setSkinRef('')
@@ -71,7 +110,7 @@ export default function Avatar() {
     }
 
     setBusy(true)
-    const res = await buyAccessory(user.id, tab, pending.id, pending.price)
+    const res = await buyAccessory(user.id, catOf(pending), pending.id, pending.price)
     setBusy(false)
 
     if (res.error) {
@@ -129,14 +168,14 @@ export default function Avatar() {
         </section>
 
         <section className="av__panel">
-          {/* Onglets de catégories */}
+          {/* Onglets de catégories (+ onglet exclusif de saison en tête) */}
           <div className="av__tabs" role="tablist">
-            {CATEGORIES.map((c) => (
+            {TABS.map((c) => (
               <button
                 key={c.id}
                 role="tab"
                 aria-selected={tab === c.id}
-                className={`av__tab ${tab === c.id ? 'av__tab--on' : ''}`}
+                className={`av__tab ${tab === c.id ? 'av__tab--on' : ''} ${c.virtual ? 'av__tab--saison' : ''}`}
                 onClick={() => setTab(c.id)}
               >
                 <span className="av__tab-emoji">{c.emoji}</span>
@@ -145,29 +184,42 @@ export default function Avatar() {
             ))}
           </div>
 
+          {/* Bandeau de l'onglet exclusif de saison */}
+          {isSaisonTab && (
+            <p className={`av__saison-note ${saisonTerminee ? 'av__saison-note--over' : ''}`}>
+              {saisonTerminee
+                ? '🦕 Saison terminée — tu gardes à vie les skins déjà acquis, mais les autres ne sont plus achetables.'
+                : '🦕 Skins exclusifs de la saison ! Achète-les pendant la saison : ils restent à vie sur ton compte.'}
+            </p>
+          )}
+
           {/* Grille d'accessoires de la catégorie active */}
           <div className="av__grid">
-            {activeCategory.items.map((item) => {
-              const equipped = avatar[tab] === item.id
-              const unlocked = isUnlocked(avatar, tab, item)
-              const owned = (avatar.owned ?? []).includes(accKey(tab, item.id))
+            {gridItems.map((item) => {
+              const cat = catOf(item)
+              const equipped = avatar[cat] === item.id
+              const unlocked = isUnlocked(avatar, cat, item)
+              const owned = (avatar.owned ?? []).includes(accKey(cat, item.id))
               const affordable = user.gemmes >= item.price
-              const locked = !unlocked && !affordable
+              const closed = item.saison && saisonTerminee && !owned
+              const locked = closed || (!unlocked && !affordable)
 
               return (
                 <button
-                  key={item.id}
+                  key={`${cat}:${item.id}`}
                   className={`acc ${equipped ? 'acc--on' : ''} ${
                     locked ? 'acc--locked' : ''
-                  }`}
+                  } ${closed ? 'acc--closed' : ''}`}
                   onClick={() => pickItem(item)}
                 >
                   <FallGuy
                     className="acc__preview"
-                    avatar={{ color: '#c9cde0', [tab]: item.id }}
+                    avatar={{ color: '#c9cde0', [cat]: item.id }}
                   />
                   <span className="acc__label">{item.label}</span>
-                  {item.price === 0 ? (
+                  {closed ? (
+                    <span className="acc__tag acc__tag--closed">Saison terminée</span>
+                  ) : item.price === 0 ? (
                     <span className="acc__tag acc__tag--free">Gratuit</span>
                   ) : owned ? (
                     <span className="acc__tag acc__tag--owned">✓ Acquis</span>
@@ -190,7 +242,7 @@ export default function Avatar() {
           <div className="modal__card" onClick={(e) => e.stopPropagation()}>
             <FallGuy
               className="modal__preview"
-              avatar={{ ...avatar, [tab]: pending.id }}
+              avatar={{ ...avatar, [catOf(pending)]: pending.id }}
               anim="idle"
             />
             <h3 className="modal__title">{pending.label}</h3>

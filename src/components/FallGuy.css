@@ -94,3 +94,78 @@
   .fg--idle, .fg--jump, .fg--walk, .fg--fall, .fg--shrug,
   .fg--jumploop, .fg--collapse, .fg--wave, .fg--pose { animation: none; }
 }
+
+/* ============================================================
+   🦕 JURASSIC WEB — animations des skins de saison (dans le SVG).
+   Les skins sont gardés à vie : ces animations tournent en continu.
+   ============================================================ */
+.dino-tail {
+  transform-box: fill-box;
+  transform-origin: 5% 8%;
+  animation: dino-tail-sway 3.4s ease-in-out infinite;
+}
+@keyframes dino-tail-sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.dino-roar-jaw {
+  transform-box: fill-box;
+  transform-origin: 90% 0%;
+  animation: dino-roar 2.4s ease-in-out infinite;
+}
+@keyframes dino-roar {
+  0%, 60%, 100% { transform: rotate(0) translateY(0); }
+  72% { transform: rotate(10deg) translateY(2px); }
+  85% { transform: rotate(4deg) translateY(1px); }
+}
+
+.dino-raptor {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: dino-raptor-run 0.45s ease-in-out infinite;
+}
+@keyframes dino-raptor-run {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-2.5px) rotate(2deg); }
+}
+
+.dino-brachio {
+  transform-box: fill-box;
+  transform-origin: 80% 100%;
+  animation: dino-brachio-graze 5s ease-in-out infinite;
+}
+@keyframes dino-brachio-graze {
+  0%, 100% { transform: rotate(0); }
+  40% { transform: rotate(7deg); }
+  55% { transform: rotate(8deg); }
+}
+
+.dino-ptero-orbit {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dino-ptero-orbit 4.5s linear infinite;
+}
+@keyframes dino-ptero-orbit {
+  0% { transform: translate(-10px, 2px); }
+  25% { transform: translate(0, -3px); }
+  50% { transform: translate(10px, 2px); }
+  75% { transform: translate(0, 5px); }
+  100% { transform: translate(-10px, 2px); }
+}
+.dino-ptero-wingL, .dino-ptero-wingR { transform-box: fill-box; }
+.dino-ptero-wingL { transform-origin: 100% 0; animation: dino-flap-l 0.5s ease-in-out infinite; }
+.dino-ptero-wingR { transform-origin: 0 0; animation: dino-flap-r 0.5s ease-in-out infinite; }
+@keyframes dino-flap-l {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-16deg); }
+}
+@keyframes dino-flap-r {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(16deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dino-tail, .dino-roar-jaw, .dino-raptor, .dino-brachio,
+  .dino-ptero-orbit, .dino-ptero-wingL, .dino-ptero-wingR { animation: none; }
+}

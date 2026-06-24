@@ -33,8 +33,72 @@
   font-size: 64px;
 }
 
+/* ============================================================
+   Saison « Jurassic Web 🦕 » : texture écailles de dino + tremblement.
+   La lettre garde sa couleur ; un pseudo-élément calque un motif d'écailles
+   par-dessus (mêmes glyphes via data-ch), et tout l'ensemble vibre.
+   ============================================================ */
+.zlogo-wrap--saison {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.zlogo--saison {
+  animation: zlogo-tremble 0.5s ease-in-out infinite;
+}
+.zlogo--saison .zlogo__letter {
+  position: relative;
+  /* relief plus marqué, façon écaille épaisse */
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.28), 0 0 10px rgba(61, 214, 140, 0.35);
+  animation: zlogo-letter-tremble 0.32s ease-in-out infinite;
+}
+/* Calque « écailles » clippé sur le glyphe (motif d'arcs en demi-cercles). */
+.zlogo--saison .zlogo__letter::after {
+  content: attr(data-ch);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  background-image:
+    radial-gradient(circle at 50% 0, rgba(0, 0, 0, 0.45) 38%, transparent 40%),
+    radial-gradient(circle at 0 50%, rgba(255, 255, 255, 0.3) 38%, transparent 40%),
+    radial-gradient(circle at 100% 50%, rgba(255, 255, 255, 0.3) 38%, transparent 40%);
+  background-size: 9px 9px;
+  background-position: 0 0, 4.5px 4.5px, 4.5px 4.5px;
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: overlay;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.zlogo__sub {
+  font-size: 0.34em;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: #d8ffe0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+@keyframes zlogo-tremble {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+}
+@keyframes zlogo-letter-tremble {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-2px) rotate(2deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .zlogo__letter {
+    animation: none;
+  }
+  .zlogo--saison,
+  .zlogo--saison .zlogo__letter {
     animation: none;
   }
 }

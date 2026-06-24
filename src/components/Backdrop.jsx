@@ -1,9 +1,26 @@
 import FallGuy from './FallGuy'
+import JurassicDecor from './JurassicDecor'
+import { useSaison } from '../context/SaisonContext'
 import './Backdrop.css'
 
-// Décor de fond partagé par toutes les pages :
-// anneaux colorés 3D, boules radiales lumineuses et bonhommes Fall Guys.
+// Décor de fond partagé par toutes les pages.
+//  - Hors saison : anneaux colorés 3D, boules radiales lumineuses et bonhommes.
+//  - Pendant une saison : décor immersif dédié (ex. Jurassic Web) + bonhommes
+//    qui prennent l'attitude de la saison (idle « apeuré ») via le thème CSS.
 export default function Backdrop() {
+  const { active } = useSaison()
+
+  if (active) {
+    return (
+      <div className="backdrop backdrop--saison" aria-hidden="true">
+        <JurassicDecor />
+        {/* Bonhommes : conservés mais discrets, ils tremblent face aux dinos. */}
+        <FallGuy className="guy guy--1" color="#3dd68c" />
+        <FallGuy className="guy guy--2" color="#8ff196" />
+      </div>
+    )
+  }
+
   return (
     <div className="backdrop" aria-hidden="true">
       {/* Anneaux 3D */}
