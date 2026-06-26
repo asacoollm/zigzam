@@ -176,80 +176,59 @@ export function VocalBubble({ msg, isMine, onPlay }) {
   const url = msg.audio_url
   const waveform = bars(msg.id)
 
+  // 1+4+5) Debug : on logge l'URL et on teste son accessibilité (fetch HEAD).
   useEffect(() => {
     if (!url) return undefined
+    console.log('[vocal] audio_url =', url)
+    let on = true
+    fetch(url, { method: 'HEAD' })
+      .then((r) => { if (on) console.log('[vocal] HEAD', r.status, r.headers.get('content-type')) })
+      .catch((e) => { if (on) console.error('[vocal] test fetch échoué :', e) })
+    return () => { on = false }
+  }, [url])
 
-    // Élément de LECTURE : on ne le manipule jamais pour mesurer la durée,
-    // sinon la lecture casse (les blobs MediaRecorder réagissent mal au seek).
-    const a = new Audio()
-    a.preload = 'metadata'
-    a.src = url
-    audioRef.current = a
-
-    const onMeta = () => { if (Number.isFinite(a.duration)) setDuration(a.duration) }
-    const onTime = () => setCurrent(a.currentTime || 0)
-    const onEnd = () => { setPlaying(false); setCurrent(0); a.currentTime = 0 }
-    const onPlayEvt = () => setPlaying(true)
-    const onPauseEvt = () => setPlaying(false)
-    a.addEventListener('loadedmetadata', onMeta)
-    a.addEventListener('durationchange', onMeta)
-    a.addEventListener('timeupdate', onTime)
-    a.addEventListener('ended', onEnd)
-    a.addEventListener('play', onPlayEvt)
-    a.addEventListener('pause', onPauseEvt)
-
-    // Mesure de la durée sur un élément SÉPARÉ (les blobs MediaRecorder webm
-    // rapportent souvent une durée « Infinity »). Le seek destructif reste donc
-    // confiné à cet élément jetable → la lecture n'est jamais perturbée.
+  // Mesure de la durée sur un élément <audio> SÉPARÉ et jetable : les blobs
+  // MediaRecorder webm rapportent souvent « Infinity ». Le seek destructif reste
+  // confiné ici → l'élément de lecture (dans le DOM) n'est jamais perturbé.
+  useEffect(() => {
+    if (!url) return undefined
     const probe = new Audio()
     probe.preload = 'metadata'
     probe.src = url
-    const cleanProbe = () => {
+    const clean = () => {
       probe.ontimeupdate = null
       probe.removeEventListener('loadedmetadata', onProbe)
       probe.removeAttribute('src')
     }
     function onProbe() {
-      if (Number.isFinite(probe.duration)) { setDuration((d) => d || probe.duration); cleanProbe() }
+      if (Number.isFinite(probe.duration)) { setDuration((d) => d || probe.duration); clean() }
       else {
         probe.currentTime = 1e101
         probe.ontimeupdate = () => {
-          if (Number.isFinite(probe.duration)) { setDuration((d) => d || probe.duration); cleanProbe() }
+          if (Number.isFinite(probe.duration)) { setDuration((d) => d || probe.duration); clean() }
         }
       }
     }
     probe.addEventListener('loadedmetadata', onProbe)
-
-    return () => {
-      a.pause()
-      a.removeEventListener('loadedmetadata', onMeta)
-      a.removeEventListener('durationchange', onMeta)
-      a.removeEventListener('timeupdate', onTime)
-      a.removeEventListener('ended', onEnd)
-      a.removeEventListener('play', onPlayEvt)
-      a.removeEventListener('pause', onPauseEvt)
-      a.removeAttribute('src')
-      audioRef.current = null
-      cleanProbe()
-    }
+    return clean
   }, [url])
 
   if (!url) {
     return <span className="disc__vocal-expired">🎤 Vocal expiré</span>
   }
 
-  // On se base sur l'état réel de l'élément (a.paused) plutôt que sur le state
-  // React, et on capture le rejet éventuel de play().
+  // 3) On appelle play() sur l'élément <audio> réel du DOM et on logge toute erreur.
   const toggle = () => {
     const a = audioRef.current
-    if (!a) return
+    if (!a) { console.warn('[vocal] élément <audio> introuvable'); return }
     if (a.paused) {
       if (!markedRef.current) {
         markedRef.current = true
         onPlay?.()
       }
+      console.log('[vocal] play() — src =', a.currentSrc || a.src)
       const p = a.play()
-      if (p && p.catch) p.catch(() => {})
+      if (p && p.catch) p.catch((err) => console.error('[vocal] play() a échoué :', err))
     } else {
       a.pause()
     }
@@ -260,6 +239,20 @@ export function VocalBubble({ msg, isMine, onPlay }) {
 
   return (
     <div className={`disc__vocal ${isMine ? 'disc__vocal--mine' : ''}`}>
+      {/* 2) Vrai élément <audio> dans le DOM avec src → le navigateur charge bien
+          le fichier (visible dans Network) et la lecture est fiable. */}
+      <audio
+        ref={audioRef}
+        src={url}
+        preload="auto"
+        onLoadedMetadata={(e) => { if (Number.isFinite(e.currentTarget.duration)) setDuration(e.currentTarget.duration) }}
+        onDurationChange={(e) => { if (Number.isFinite(e.currentTarget.duration)) setDuration(e.currentTarget.duration) }}
+        onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime || 0)}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={(e) => { setPlaying(false); setCurrent(0); e.currentTarget.currentTime = 0 }}
+        onError={(e) => console.error('[vocal] erreur <audio> :', e.currentTarget.error)}
+      />
       <button type="button" className="disc__vocal-play" onClick={toggle} aria-label={playing ? 'Pause' : 'Lecture'}>
         {playing ? '⏸' : '▶'}
       </button>
