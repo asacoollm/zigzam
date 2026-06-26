@@ -1,17 +1,23 @@
-// Sélecteur de date de naissance « jour / mois / année » (3 menus déroulants).
-// value : chaîne ISO 'AAAA-MM-JJ' (ou '' si incomplet).
-// onChange(iso) : appelé avec l'ISO complète, ou '' tant que les 3 champs ne
-// sont pas tous renseignés.
+import { useState } from 'react'
+
+// Sélecteur de date de naissance « jour / mois / année » (3 vrais <select>).
+// value : chaîne ISO 'AAAA-MM-JJ' (sert uniquement de valeur initiale).
+// onChange(iso) : appelé avec l'ISO complète dès que les 3 champs sont remplis,
+//   sinon '' tant que la date est incomplète.
+//
+// Important : le composant garde son propre état interne (jour/mois/année).
+// Sans cela, une sélection partielle renverrait '' au parent, qui réinitialiserait
+// les menus → impossible de remplir les 3 champs (bug corrigé).
 
 const MOIS = [
   'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
 ]
+// Élèves de CM1/CM2 → années de naissance 2010 à 2016.
+const ANNEES = [2010, 2011, 2012, 2013, 2014, 2015, 2016]
+const JOURS = Array.from({ length: 31 }, (_, i) => i + 1) // 1 à 31
 
-// Année courante figée au chargement du module (évite Date.now() au rendu).
-const ANNEE_COURANTE = new Date().getFullYear()
-const ANNEES = Array.from({ length: 100 }, (_, i) => ANNEE_COURANTE - i)
-const JOURS = Array.from({ length: 31 }, (_, i) => i + 1)
+const pad = (n) => String(Number(n)).padStart(2, '0')
 
 function parse(value) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '')
@@ -20,15 +26,19 @@ function parse(value) {
 }
 
 export default function BirthdatePicker({ value, onChange, autoFocus }) {
-  const { y, mo, d } = parse(value)
+  const init = parse(value)
+  const [d, setD] = useState(init.d)
+  const [mo, setMo] = useState(init.mo)
+  const [y, setY] = useState(init.y)
 
-  const emit = (ny, nmo, nd) => {
-    if (ny && nmo && nd) {
-      onChange(`${ny}-${String(Number(nmo)).padStart(2, '0')}-${String(Number(nd)).padStart(2, '0')}`)
-    } else {
-      onChange('')
-    }
+  // Émet l'ISO complète (ou '' si incomplet) à partir des 3 valeurs courantes.
+  const emit = (nd, nmo, ny) => {
+    onChange(nd && nmo && ny ? `${ny}-${pad(nmo)}-${pad(nd)}` : '')
   }
+
+  const onDay = (e) => { const v = e.target.value; setD(v); emit(v, mo, y) }
+  const onMonth = (e) => { const v = e.target.value; setMo(v); emit(d, v, y) }
+  const onYear = (e) => { const v = e.target.value; setY(v); emit(d, mo, v) }
 
   return (
     <div className="birthdate">
@@ -36,7 +46,7 @@ export default function BirthdatePicker({ value, onChange, autoFocus }) {
         className="birthdate__select"
         value={d}
         autoFocus={autoFocus}
-        onChange={(e) => emit(y, mo, e.target.value)}
+        onChange={onDay}
         aria-label="Jour"
       >
         <option value="">Jour</option>
@@ -47,7 +57,7 @@ export default function BirthdatePicker({ value, onChange, autoFocus }) {
       <select
         className="birthdate__select"
         value={mo}
-        onChange={(e) => emit(y, e.target.value, d)}
+        onChange={onMonth}
         aria-label="Mois"
       >
         <option value="">Mois</option>
@@ -58,7 +68,7 @@ export default function BirthdatePicker({ value, onChange, autoFocus }) {
       <select
         className="birthdate__select"
         value={y}
-        onChange={(e) => emit(e.target.value, mo, d)}
+        onChange={onYear}
         aria-label="Année"
       >
         <option value="">Année</option>
