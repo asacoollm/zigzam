@@ -1,0 +1,41 @@
+/* PATATOR 🥔 — animations mignonnes */
+
+.pat {
+  display: block;
+  transform-origin: center bottom;
+  animation: pat-bob 2.6s ease-in-out infinite;
+}
+@keyframes pat-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3%) rotate(-1.5deg); }
+}
+
+/* Mode « yeux qui brillent » : la patate frétille un peu de bonheur */
+.pat--sparkle { animation: pat-happy 1.4s ease-in-out infinite; }
+@keyframes pat-happy {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-5%) rotate(0deg) scale(1.04); }
+}
+
+/* Le petit bras qui fait coucou */
+.pat__arm-right { transform-origin: 116px 100px; }
+.pat__arm-right--wave { animation: pat-wave 0.7s ease-in-out infinite; }
+@keyframes pat-wave {
+  0%, 100% { transform: rotate(-38deg); }
+  50% { transform: rotate(-66deg); }
+}
+
+/* Étoiles de bonheur qui scintillent */
+.pat__star { transform-box: fill-box; transform-origin: center; }
+.pat__stars .pat__star { animation: pat-twinkle 1.2s ease-in-out infinite; }
+.pat__star--1 { animation-delay: 0.3s; }
+.pat__star--2 { animation-delay: 0.6s; }
+.pat__star--3 { animation-delay: 0.9s; }
+@keyframes pat-twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pat, .pat--sparkle, .pat__arm-right--wave, .pat__stars .pat__star { animation: none; }
+}

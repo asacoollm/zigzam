@@ -144,6 +144,17 @@ function expressionEyes(expr) {
           <circle cx="73.6" cy="56.4" r="2.7" fill="#fff" />
         </>
       )
+    case 'vexe': // contrarié / boudeur : sourcils froncés vers le centre
+      return (
+        <>
+          <circle cx="49" cy="62" r="5.4" fill="#2b2350" />
+          <circle cx="71" cy="62" r="5.4" fill="#2b2350" />
+          <circle cx="51" cy="60" r="1.8" fill="#fff" />
+          <circle cx="73" cy="60" r="1.8" fill="#fff" />
+          <path d="M42 52 L57 58" {...LINE} />
+          <path d="M78 52 L63 58" {...LINE} />
+        </>
+      )
     case 'triste': // tombants (pupilles + paupières inclinées)
       return (
         <>
@@ -171,6 +182,8 @@ function expressionMouth(expr) {
       return <path d="M49 70 q11 8 22 -5" {...LINE} />
     case 'choque': // bouche en O
       return <ellipse cx="60" cy="72" rx="5.5" ry="6.5" fill="#2b2350" />
+    case 'vexe': // petite moue boudeuse
+      return <path d="M53 73 q7 -4 14 0" {...LINE} />
     case 'triste': // bouche en arc vers le bas
       return <path d="M50 73 q10 -7 20 0" {...LINE} />
     default:
@@ -183,7 +196,7 @@ function expressionMouth(expr) {
 // - `color`      : couleur simple (id ou hex) pour les usages décoratifs
 // - `anim`       : 'idle'|'jump'|'walk'|'fall'|'shrug'|'jumploop'|'collapse'
 // - `eyesClosed` : true → yeux fermés (petits arcs), pour la Série Zigzam
-// - `expression` : 'fier'|'gene'|'blase'|'moque'|'choque'|'triste'|'neutre' (Série Zigzam)
+// - `expression` : 'fier'|'gene'|'blase'|'moque'|'choque'|'vexe'|'triste'|'neutre' (Série Zigzam)
 // - `role`       : 'admin' | 'superadmin' → affiche un badge sur le ventre
 export default function FallGuy({
   color = 'violet', avatar = null, anim = null, className = '', role = null,

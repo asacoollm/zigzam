@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { getEpisode, isPublished } from '../data/episodes'
 import { getSerieVisibility } from '../lib/modules'
 import FallGuy from '../components/FallGuy'
+import Patator from '../components/Patator'
 import './EpisodePlayer.css'
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
@@ -355,19 +356,29 @@ export default function EpisodePlayer() {
                 const avatar = ch.hero ? user.avatar : ch.avatar
                 const role = ch.hero ? user.role : null
                 const eyesClosed = (st.eyesClosed ?? ch.eyesClosed) || (ch.blink && blink)
+                const anim = st.anim ?? ch.anim
+                const expression = st.expression ?? ch.expression
                 return (
                   <div
                     key={ch.id}
                     className={`ep-char ${ch.flip ? 'ep-char--flip' : ''} ${ch.burnt ? 'ep-char--burnt' : ''} ${ch.pose ? `ep-char--${ch.pose}` : ''}`}
-                    style={{ left: `${ch.x}%`, '--scale': ch.scale || 1 }}
+                    style={{
+                      left: `${ch.x}%`,
+                      '--scale': ch.scale || 1,
+                      ...(ch.bottom != null ? { bottom: `${ch.bottom}%` } : null),
+                    }}
                   >
-                    <FallGuy
-                      avatar={avatar}
-                      anim={st.anim ?? ch.anim}
-                      role={role}
-                      eyesClosed={eyesClosed}
-                      expression={st.expression ?? ch.expression}
-                    />
+                    {ch.kind === 'patator' ? (
+                      <Patator expression={expression} eyesClosed={eyesClosed} anim={anim} />
+                    ) : (
+                      <FallGuy
+                        avatar={avatar}
+                        anim={anim}
+                        role={role}
+                        eyesClosed={eyesClosed}
+                        expression={expression}
+                      />
+                    )}
                   </div>
                 )
               })}
