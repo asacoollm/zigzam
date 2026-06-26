@@ -12,7 +12,6 @@ import Economie from './pages/Economie'
 import Parametres from './pages/Parametres'
 import Admin from './pages/Admin'
 import FloorIsLava from './pages/FloorIsLava'
-import PokerDonuts from './pages/PokerDonuts'
 import Serie from './pages/Serie'
 import EpisodePlayer from './pages/EpisodePlayer'
 import BoiteMystere from './pages/BoiteMystere'
@@ -20,6 +19,7 @@ import ParentalGuard from './components/ParentalGuard'
 import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
 import ReportButton from './components/ReportButton'
+import BirthdayModal from './components/BirthdayModal'
 
 export default function App() {
   const { user } = useAuth()
@@ -55,6 +55,7 @@ export default function App() {
     <>
     {user && !user.premiere_connexion && <ParentalGuard />}
     {user && !user.premiere_connexion && <InactivityGuard />}
+    {user && !user.premiere_connexion && !user.date_naissance && <BirthdayModal />}
     <Routes>
       <Route
         path="/login"
@@ -126,12 +127,6 @@ export default function App() {
         path="/floor-is-lava"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <FloorIsLava />
-        }
-      />
-      <Route
-        path="/poker-donuts"
-        element={
-          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <PokerDonuts />
         }
       />
       <Route

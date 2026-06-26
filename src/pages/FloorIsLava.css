@@ -334,6 +334,24 @@
 .flava__jump-fab:active { transform: scale(0.92); }
 .flava__jump-fab:disabled { opacity: 0.55; }
 .flava__jump-fab--cd { background: radial-gradient(circle at 35% 30%, #c9cde0, #8b94a3); }
+.flava__jump-fab--cd:disabled { opacity: 0.9; cursor: not-allowed; }
+.flava__jump-fab-num { font-size: 18px; font-weight: 900; line-height: 1; }
+/* Barre de progression de la recharge (se remplit pendant la recharge). */
+.flava__jump-fab-prog {
+  margin-top: 6px;
+  width: 48px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+.flava__jump-fab-prog-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #fff;
+  transition: width 0.08s linear;
+}
 
 /* Overlays (intro + fin de partie) */
 .flava__overlay {

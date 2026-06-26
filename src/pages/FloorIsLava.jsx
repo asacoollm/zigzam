@@ -13,8 +13,9 @@ import ZigzamLogo from '../components/ZigzamLogo'
 import FloorMulti from './FloorMulti'
 import './FloorIsLava.css'
 
-const AIRBORNE_MS = 1500  // durée du saut (immunité à la lave en l'air) ~1,5 s
-const JUMP_CD = 800       // temps de recharge du saut
+const AIRBORNE_MS = 1000     // durée du saut (immunité à la lave en l'air) = 1 s pile
+const JUMP_CD = 1000         // recharge du saut APRÈS l'atterrissage = 1 s
+const MOVE_THROTTLE_MS = 200 // délai mini entre deux déplacements tactiles (vitesse fixe)
 
 // Confettis de victoire (positions/couleurs déterministes).
 const CONFETTI_COLORS = ['#ff4d8d', '#ff8c42', '#fbbf24', '#3dd68c', '#00bfff', '#7c3aff']
@@ -69,6 +70,8 @@ export default function FloorIsLava() {
   const [airborne, setAirborne] = useState(false)
   const [started, setStarted] = useState(false)   // écran d'intro tant que false
   const [loadedLevel, setLoadedLevel] = useState(1) // niveau sauvegardé (Supabase)
+  const [jumpReadyAt, setJumpReadyAt] = useState(0) // instant (ms) où le saut redevient possible
+  const [now, setNow] = useState(() => Date.now())  // horloge pour la barre de recharge
 
   // Refs pour les handlers (évite les closures périmées).
   const airborneRef = useRef(false)
@@ -102,18 +105,30 @@ export default function FloorIsLava() {
 
   const jump = useCallback(() => {
     if (!playingRef.current) return
-    const now = Date.now()
-    if (now < jumpReadyRef.current) return
-    jumpReadyRef.current = now + JUMP_CD
+    // Anti-triche : pas de re-saut tant qu'on est en l'air ou en recharge.
+    if (airborneRef.current) return
+    const t = Date.now()
+    if (t < jumpReadyRef.current) return
+    // Recharge comptée APRÈS l'atterrissage : immunité (saut) + 1 s de recharge.
+    jumpReadyRef.current = t + AIRBORNE_MS + JUMP_CD
+    setJumpReadyAt(jumpReadyRef.current)
     airborneRef.current = true
     setAirborne(true)
     clearTimeout(landTimer.current)
     landTimer.current = setTimeout(() => {
       airborneRef.current = false
       setAirborne(false)
+      setNow(Date.now())
       dispatch({ type: 'LAND' })
     }, AIRBORNE_MS)
   }, [])
+
+  // Horloge fine pour la barre de recharge (active uniquement pendant la recharge).
+  useEffect(() => {
+    if (now >= jumpReadyAt) return
+    const id = setInterval(() => setNow(Date.now()), 80)
+    return () => clearInterval(id)
+  }, [now, jumpReadyAt])
 
   // Détection d'un appareil tactile → contrôles au doigt (glisser + bouton saut).
   const isTouch = useMemo(
@@ -121,16 +136,17 @@ export default function FloorIsLava() {
     [],
   )
   const stageRef = useRef(null)
-  const dragRef = useRef({ x: 0, y: 0, ax: 0, ay: 0, cell: 48 })
+  const dragRef = useRef({ x: 0, y: 0, ax: 0, ay: 0, cell: 48, last: 0 })
 
-  // Glisser-déplacer sur le plateau : on déplace le perso case par case
-  // dans la direction du glissement, autant de cases que le doigt parcourt.
+  // Glisser-déplacer sur le plateau : le perso avance UNE case dans la direction
+  // du glissement, à vitesse fixe (max une case toutes les 200 ms) — on ignore
+  // la vitesse réelle du doigt.
   const onBoardTouchStart = useCallback((e) => {
     const t = e.touches[0]
     if (!t) return
     const rect = stageRef.current?.getBoundingClientRect()
     const cell = rect ? rect.width / SIZE : 48
-    dragRef.current = { x: t.clientX, y: t.clientY, ax: 0, ay: 0, cell }
+    dragRef.current = { x: t.clientX, y: t.clientY, ax: 0, ay: 0, cell, last: 0 }
   }, [])
 
   const onBoardTouchMove = useCallback((e) => {
@@ -142,19 +158,18 @@ export default function FloorIsLava() {
     d.ay += t.clientY - d.y
     d.x = t.clientX
     d.y = t.clientY
-    const th = Math.max(18, d.cell * 0.7) // seuil ≈ 0,7 case → réactif
-    let guard = 0
-    while ((Math.abs(d.ax) >= th || Math.abs(d.ay) >= th) && guard++ < SIZE + 1) {
-      if (Math.abs(d.ax) >= Math.abs(d.ay)) {
-        const dir = d.ax > 0 ? 1 : -1
-        move(0, dir)
-        d.ax -= dir * th
-      } else {
-        const dir = d.ay > 0 ? 1 : -1
-        move(dir, 0)
-        d.ay -= dir * th
-      }
+    const th = Math.max(18, d.cell * 0.7) // seuil ≈ 0,7 case
+    if (Math.abs(d.ax) < th && Math.abs(d.ay) < th) return
+    const tm = Date.now()
+    if (tm - d.last < MOVE_THROTTLE_MS) return // vitesse fixe : 1 case / 200 ms
+    if (Math.abs(d.ax) >= Math.abs(d.ay)) {
+      move(0, d.ax > 0 ? 1 : -1)
+    } else {
+      move(d.ay > 0 ? 1 : -1, 0)
     }
+    d.last = tm
+    d.ax = 0
+    d.ay = 0 // une seule case par pas
   }, [move])
 
   // Listeners natifs non-passifs (preventDefault fiable, glissement fluide).
@@ -175,6 +190,7 @@ export default function FloorIsLava() {
     airborneRef.current = false
     setAirborne(false)
     jumpReadyRef.current = 0
+    setJumpReadyAt(0)
   }
   const startGame = () => { resetTransient(); dispatch({ type: 'NEW_GAME', level: loadedLevel }); setStarted(true) }
   const nextLevel = () => { resetTransient(); dispatch({ type: 'NEW_GAME', level: state.level + 1 }) }
@@ -207,6 +223,13 @@ export default function FloorIsLava() {
 
   const zonesOn = state.zones.filter((z) => z.active).length
   const zonesTotal = state.zones.length
+
+  // Recharge du saut (bouton grisé + barre de progression).
+  const jumpCooling = !airborne && now < jumpReadyAt
+  const jumpRemain = jumpCooling ? Math.ceil((jumpReadyAt - now) / 1000) : 0
+  const jumpProgress = jumpCooling
+    ? Math.min(1, Math.max(0, 1 - (jumpReadyAt - now) / JUMP_CD))
+    : 1
 
   // #1 — niveau de lave (0..1) pour la submersion des boutons.
   const submerge = useMemo(() => {
@@ -320,9 +343,25 @@ export default function FloorIsLava() {
       {/* Commande tactile (mobile) : gros bouton de saut fixé à droite.
           Le déplacement se fait en glissant le doigt sur le plateau. */}
       {isTouch && started && state.status === 'playing' && (
-        <button className="flava__jump-fab flava-submerge" onClick={jump} aria-label="Sauter">
-          <span className="flava__jump-fab-arrow">⬆</span>
-          SAUT
+        <button
+          className={`flava__jump-fab flava-submerge ${jumpCooling ? 'flava__jump-fab--cd' : ''}`}
+          onClick={jump}
+          disabled={airborne || jumpCooling}
+          aria-label="Sauter"
+        >
+          {jumpCooling ? (
+            <>
+              <span className="flava__jump-fab-num">{jumpRemain}s</span>
+              <span className="flava__jump-fab-prog">
+                <span className="flava__jump-fab-prog-fill" style={{ width: `${jumpProgress * 100}%` }} />
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="flava__jump-fab-arrow">⬆</span>
+              SAUT
+            </>
+          )}
         </button>
       )}
 

@@ -25,6 +25,7 @@ import {
   adminListBoites,
   resetUserPassword,
   resetUserNumero,
+  adminBirthdaysToday,
 } from '../lib/modules'
 import { EPISODES, isPublished } from '../data/episodes'
 import { CATEGORIES, getItem } from '../lib/avatar'
@@ -1244,6 +1245,35 @@ function SectionBoites({ adminId }) {
   )
 }
 
+// --------------- Anniversaires du jour 🎂 ---------------
+function SectionAnniversaires({ adminId }) {
+  const [birthdays, setBirthdays] = useState([])
+
+  useEffect(() => {
+    let on = true
+    adminBirthdaysToday(adminId).then((data) => {
+      if (on) setBirthdays(Array.isArray(data) ? data : [])
+    })
+    return () => { on = false }
+  }, [adminId])
+
+  if (birthdays.length === 0) return null
+
+  return (
+    <div className="admin-birthdays">
+      {birthdays.map((u) => (
+        <div key={u.id} className="admin-birthday">
+          <FallGuy avatar={u.avatar ?? null} className="admin-birthday__avatar" role={u.role} />
+          <span className="admin-birthday__text">
+            🎂 C'est l'anniversaire de <strong>{u.pseudo}</strong> aujourd'hui !
+            Pense à lui envoyer une boîte mystère 🎁
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // --------------- Page principale ---------------
 export default function Admin() {
   const { user } = useAuth()
@@ -1270,6 +1300,8 @@ export default function Admin() {
           {user?.role}
         </span>
       </header>
+
+      <SectionAnniversaires adminId={user.id} />
 
       <SectionActus adminId={user.id} />
 

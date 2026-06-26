@@ -9,6 +9,8 @@ export function AuthProvider({ children }) {
 
   const signIn = (u) => {
     setPauseMessage('')
+    // La modale « date de naissance » se réaffiche à chaque nouvelle connexion.
+    try { sessionStorage.removeItem('zigzam:birthday-dismissed') } catch { /* ignore */ }
     storeUser(u)
     setUser(u)
   }

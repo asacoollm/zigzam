@@ -12,8 +12,9 @@ import { animalWide } from '../components/avatarParts'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 
-const AIRBORNE_MS = 1500
-const JUMP_CD = 1000          // recharge du saut APRÈS l'atterrissage
+const AIRBORNE_MS = 1000      // durée du saut (immunité à la lave) = 1 s pile
+const JUMP_CD = 1000          // recharge du saut APRÈS l'atterrissage = 1 s
+const MOVE_THROTTLE_MS = 200  // délai mini entre deux déplacements tactiles (vitesse fixe)
 const BURN_MS = 5000          // durée « brûlé » avant résurrection
 const REVIVE_GRACE_MS = 1500  // immunité brève après la résurrection
 
@@ -245,6 +246,8 @@ export default function FloorMulti({ onBack }) {
 
   const jump = useCallback(() => {
     if (finished || burnedUntilRef.current > Date.now()) return
+    // Anti-triche : pas de re-saut tant qu'on est en l'air ou en recharge.
+    if (airborneRef.current) return
     const t = Date.now()
     if (t < jumpReadyRef.current) return // en recharge
     // Prêt de nouveau après l'immunité (saut) + la recharge.
@@ -282,7 +285,7 @@ export default function FloorMulti({ onBack }) {
     [],
   )
   const stageRef = useRef(null)
-  const dragRef = useRef({ x: 0, y: 0, ax: 0, ay: 0, cell: 48 })
+  const dragRef = useRef({ x: 0, y: 0, ax: 0, ay: 0, cell: 48, last: 0 })
 
   const onBoardTouchStart = useCallback((e) => {
     const t = e.touches[0]
@@ -290,9 +293,11 @@ export default function FloorMulti({ onBack }) {
     const rect = stageRef.current?.getBoundingClientRect()
     const size = sessionRef.current?.taille || 8
     const cell = rect ? rect.width / size : 48
-    dragRef.current = { x: t.clientX, y: t.clientY, ax: 0, ay: 0, cell }
+    dragRef.current = { x: t.clientX, y: t.clientY, ax: 0, ay: 0, cell, last: 0 }
   }, [])
 
+  // Le perso avance UNE case dans la direction du glissement, à vitesse fixe
+  // (max une case toutes les 200 ms) — on ignore la vitesse réelle du doigt.
   const onBoardTouchMove = useCallback((e) => {
     const t = e.touches[0]
     if (!t) return
@@ -303,18 +308,17 @@ export default function FloorMulti({ onBack }) {
     d.x = t.clientX
     d.y = t.clientY
     const th = Math.max(18, d.cell * 0.7)
-    let guard = 0
-    while ((Math.abs(d.ax) >= th || Math.abs(d.ay) >= th) && guard++ < 20) {
-      if (Math.abs(d.ax) >= Math.abs(d.ay)) {
-        const dir = d.ax > 0 ? 1 : -1
-        move(0, dir)
-        d.ax -= dir * th
-      } else {
-        const dir = d.ay > 0 ? 1 : -1
-        move(dir, 0)
-        d.ay -= dir * th
-      }
+    if (Math.abs(d.ax) < th && Math.abs(d.ay) < th) return
+    const tm = Date.now()
+    if (tm - d.last < MOVE_THROTTLE_MS) return // vitesse fixe : 1 case / 200 ms
+    if (Math.abs(d.ax) >= Math.abs(d.ay)) {
+      move(0, d.ax > 0 ? 1 : -1)
+    } else {
+      move(d.ay > 0 ? 1 : -1, 0)
     }
+    d.last = tm
+    d.ax = 0
+    d.ay = 0 // une seule case par pas
   }, [move])
 
   useEffect(() => {
@@ -393,6 +397,9 @@ export default function FloorMulti({ onBack }) {
   const isBurned = (p) => p.burned_until && p.burned_until > now // autres joueurs
   const jumpCooling = !airborne && now < jumpReadyAt
   const jumpRemain = jumpCooling ? Math.ceil((jumpReadyAt - now) / 1000) : 0
+  const jumpProgress = jumpCooling
+    ? Math.min(1, Math.max(0, 1 - (jumpReadyAt - now) / JUMP_CD))
+    : 1
 
   // ----- Salle d'attente multijoueur -----
   if (session.statut === 'waiting') {
@@ -541,7 +548,19 @@ export default function FloorMulti({ onBack }) {
           disabled={airborne || jumpCooling || burned}
           aria-label="Sauter"
         >
-          {jumpCooling ? <>⏳<br />{jumpRemain}s</> : <><span className="flava__jump-fab-arrow">⬆</span>SAUT</>}
+          {jumpCooling ? (
+            <>
+              <span className="flava__jump-fab-num">{jumpRemain}s</span>
+              <span className="flava__jump-fab-prog">
+                <span className="flava__jump-fab-prog-fill" style={{ width: `${jumpProgress * 100}%` }} />
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="flava__jump-fab-arrow">⬆</span>
+              SAUT
+            </>
+          )}
         </button>
       )}
 

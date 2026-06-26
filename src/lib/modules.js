@@ -70,6 +70,33 @@ export function broadcastMessage(channel, message) {
   channel.send({ type: 'broadcast', event: 'message', payload: message })
 }
 
+// ---- Messages vocaux 🎤 ----
+// Upload d'un fichier audio vers le bucket Storage "vocaux". Renvoie { url } public.
+export async function uploadVocal(userId, blob, ext = 'webm') {
+  const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const { error } = await supabase.storage
+    .from('vocaux')
+    .upload(path, blob, { cacheControl: '3600', upsert: false, contentType: blob.type })
+  if (error) return { error: "Impossible d'envoyer le vocal, réessaie 🎤" }
+  const { data } = supabase.storage.from('vocaux').getPublicUrl(path)
+  return { url: data.publicUrl }
+}
+// Envoi d'un message vocal (URL déjà uploadée).
+export async function sendVocalMessage(discussionId, auteurId, audioUrl) {
+  const r = await rpc('send_vocal_message', {
+    p_discussion: discussionId, p_auteur: auteurId, p_audio_url: audioUrl,
+  })
+  return r.error ? r : { message: r.data }
+}
+// Marque un vocal comme écouté par l'utilisateur (au moment de la lecture).
+export async function markVocalEcoute(messageId, userId) {
+  return rpc('mark_vocal_ecoute', { p_message: messageId, p_user: userId })
+}
+// Nettoyage : supprime du Storage les vocaux écoutés par tous depuis +24h.
+export async function cleanupVocaux() {
+  return rpc('cleanup_vocaux')
+}
+
 // ---------------- ACTUALITÉS ----------------
 export async function getActus() {
   const r = await rpc('get_actus')
@@ -261,15 +288,31 @@ export async function validateInviteCode(code) {
   const r = await rpc('validate_invite_code', { p_code: code.trim().toUpperCase() })
   return r.error ? false : r.data === true
 }
-export async function signupWithCode(code, pseudo, password) {
+export async function signupWithCode(code, pseudo, password, naissance) {
   const r = await rpc('signup_with_code', {
     p_code: code.trim().toUpperCase(), p_pseudo: pseudo.trim(), p_password: password,
+    p_naissance: naissance,
   })
   if (r.error) return r
   if (r.data?.error === 'code_invalide') return { error: "Ce code d'invitation n'est pas valide 😕" }
   if (r.data?.error === 'pseudo_pris') return { error: 'Ce pseudo est déjà pris, choisis-en un autre 🙂' }
   if (r.data?.error) return { error: ERR }
   return { ok: true }
+}
+
+// ---------------- DATE DE NAISSANCE 🎂 ----------------
+// Renseigne la date de naissance d'un utilisateur déjà inscrit (modale rappel).
+export async function setDateNaissance(userId, naissance) {
+  const r = await rpc('set_date_naissance', { p_user: userId, p_naissance: naissance })
+  if (r.error) return r
+  if (r.data?.error === 'empty') return { error: 'Choisis ta date de naissance 🙂' }
+  if (r.data?.error) return { error: ERR }
+  return { ok: true, date_naissance: r.data.date_naissance }
+}
+// Anniversaires du jour (panel admin) — liste des utilisateurs.
+export async function adminBirthdaysToday(adminId) {
+  const r = await rpc('admin_birthdays_today', { p_admin: adminId })
+  return r.error ? [] : r.data
 }
 export async function createInviteCode(adminId, code) {
   const r = await rpc('create_invite_code', { p_admin: adminId, p_code: code || '' })

@@ -1,0 +1,47 @@
+.bday-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(43, 35, 80, 0.55);
+  backdrop-filter: blur(5px);
+}
+.bday-modal__panel {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 24px;
+  padding: 26px 22px;
+  box-shadow: 0 30px 70px rgba(43, 35, 80, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  animation: bday-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes bday-pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.bday-modal__emoji { font-size: 46px; line-height: 1; }
+.bday-modal__title { margin: 0; font-size: 19px; font-weight: 900; color: var(--texte); }
+.bday-modal__text { margin: 0; font-size: 14px; color: #5a5470; line-height: 1.45; }
+.bday-modal__error { margin: 0; color: #e2326a; font-size: 13px; font-weight: 700; }
+.bday-modal__actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+}
+.bday-modal__btn {
+  flex: 1;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.bday-modal__btn--ghost { background: #ece9f5; color: #5a5470; }
+.bday-modal__btn--main { background: linear-gradient(135deg, #ff8c42, #ef4444); color: #fff; }
+.bday-modal__btn:disabled { opacity: 0.6; cursor: default; }

@@ -77,3 +77,26 @@ h3 {
     min-height: 44px;
   }
 }
+
+/* ── Sélecteur de date de naissance (jour / mois / année) ── */
+.birthdate {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.birthdate__select {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 8px;
+  border-radius: 12px;
+  border: 2px solid rgba(124, 58, 255, 0.25);
+  background: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--texte, #2b2350);
+  cursor: pointer;
+}
+.birthdate__select:focus {
+  outline: none;
+  border-color: #7c3aff;
+}

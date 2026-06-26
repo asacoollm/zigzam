@@ -878,8 +878,9 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  animation: poker-pop 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: admin-modal-pop 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+@keyframes admin-modal-pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .user-modal__title { margin: 0; font-size: 17px; font-weight: 800; color: var(--texte); }
 .user-modal__panel .admin-input { flex: none; width: 100%; min-width: 0; }
 .user-modal__actions { display: flex; gap: 10px; justify-content: flex-end; }
@@ -908,3 +909,23 @@
 .actus-refused__head:hover { background: rgba(124, 58, 255, 0.12); }
 .actus-refused__chevron { font-size: 12px; opacity: 0.7; }
 .actus-refused .actus-list { margin-top: 12px; }
+
+/* ── Bandeau anniversaires du jour ── */
+.admin-birthdays {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.admin-birthday {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff0f6, #ffe9d6);
+  border: 2px solid #ffb3d1;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
+}
+.admin-birthday__avatar { width: 42px; height: 42px; flex: none; }
+.admin-birthday__text { font-size: 14px; font-weight: 600; color: var(--texte, #2b2350); line-height: 1.4; }

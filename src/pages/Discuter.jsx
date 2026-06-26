@@ -14,10 +14,15 @@ import {
   sendMessage,
   subscribeToDiscussion,
   broadcastMessage,
+  uploadVocal,
+  sendVocalMessage,
+  markVocalEcoute,
+  cleanupVocaux,
 } from '../lib/modules'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
+import { VoiceRecorder, VocalBubble } from '../components/VoiceMessage'
 import './Discuter.css'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -156,6 +161,7 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
   const [loadingMsg, setLoadingMsg] = useState(true)
   const [saisie, setSaisie] = useState('')
   const [sending, setSending] = useState(false)
+  const [vocalActive, setVocalActive] = useState(false)
   const [erreur, setErreur] = useState('')
   const [showAddPart, setShowAddPart] = useState(false)
   const [numerosAjout, setNumerosAjout] = useState('')
@@ -222,6 +228,30 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
     }
     setSending(false)
     inputRef.current?.focus()
+  }
+
+  // Envoi d'un message vocal : upload du fichier puis enregistrement en base.
+  async function handleSendVocal(blob, ext) {
+    setErreur('')
+    const up = await uploadVocal(userId, blob, ext)
+    if (up.error) {
+      setErreur(up.error)
+      return
+    }
+    const res = await sendVocalMessage(disc.id, userId, up.url)
+    if (res.error) {
+      setErreur(res.error)
+    } else if (res.message) {
+      setMessages((prev) => [...prev, res.message])
+      if (channelRef.current) {
+        broadcastMessage(channelRef.current, res.message)
+      }
+    }
+  }
+
+  // À la lecture d'un vocal : on note que cet utilisateur l'a écouté.
+  function handlePlayVocal(messageId) {
+    markVocalEcoute(messageId, userId)
   }
 
   async function handleSupprimer() {
@@ -350,7 +380,11 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
                   </div>
                 )}
                 <div className={`disc__bubble${isMine ? ' disc__bubble--mine' : ' disc__bubble--other'}`}>
-                  <span className="disc__bubble-text">{msg.contenu}</span>
+                  {msg.type === 'vocal' ? (
+                    <VocalBubble msg={msg} isMine={isMine} onPlay={() => handlePlayVocal(msg.id)} />
+                  ) : (
+                    <span className="disc__bubble-text">{msg.contenu}</span>
+                  )}
                   <span className="disc__bubble-time">{formatDate(msg.date)}</span>
                 </div>
               </div>
@@ -364,23 +398,32 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
       <form className="disc__saisie" onSubmit={handleEnvoyer}>
         {erreur && <p className="disc__erreur disc__erreur--saisie">{erreur}</p>}
         <div className="disc__saisie-row">
-          <input
-            ref={inputRef}
-            className="disc__input disc__input--msg"
-            type="text"
-            placeholder="Écris ton message… ✍️"
-            value={saisie}
-            onChange={(e) => setSaisie(e.target.value)}
-            maxLength={500}
-            autoComplete="off"
+          {!vocalActive && (
+            <>
+              <input
+                ref={inputRef}
+                className="disc__input disc__input--msg"
+                type="text"
+                placeholder="Écris ton message… ✍️"
+                value={saisie}
+                onChange={(e) => setSaisie(e.target.value)}
+                maxLength={500}
+                autoComplete="off"
+              />
+              <button
+                className="disc__btn disc__btn--send"
+                type="submit"
+                disabled={sending || !saisie.trim()}
+              >
+                {sending ? '…' : '➤'}
+              </button>
+            </>
+          )}
+          <VoiceRecorder
+            onSend={handleSendVocal}
+            onActiveChange={setVocalActive}
+            disabled={sending}
           />
-          <button
-            className="disc__btn disc__btn--send"
-            type="submit"
-            disabled={sending || !saisie.trim()}
-          >
-            {sending ? '…' : '➤'}
-          </button>
         </div>
       </form>
     </div>
@@ -423,6 +466,11 @@ export default function Discuter() {
   useEffect(() => {
     loadListes()
   }, [loadListes])
+
+  // Nettoyage des vocaux écoutés par tous depuis +24h (au chargement du module).
+  useEffect(() => {
+    cleanupVocaux()
+  }, [])
 
   // Prefill depuis location.state
   useEffect(() => {

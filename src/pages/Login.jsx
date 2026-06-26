@@ -9,6 +9,7 @@ import { isOutsideAllowedHours, PAUSE_MESSAGE_HORAIRE } from '../lib/parental'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
+import BirthdatePicker from '../components/BirthdatePicker'
 import './Login.css'
 
 export default function Login() {
@@ -20,6 +21,7 @@ export default function Login() {
   const [mode, setMode] = useState('login') // 'login' | 'invite' | 'signup'
   const [pseudo, setPseudo] = useState(rememberedPseudo || '')
   const [password, setPassword] = useState('')
+  const [naissance, setNaissance] = useState('') // date de naissance ISO (inscription)
   const [code, setCode] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -129,8 +131,12 @@ export default function Login() {
       setError('Choisis un pseudo et un mot de passe 😊')
       return
     }
+    if (!naissance) {
+      setError('Indique ta date de naissance 📅')
+      return
+    }
     setLoading(true)
-    const res = await signupWithCode(code, pseudo, password)
+    const res = await signupWithCode(code, pseudo, password, naissance)
     setLoading(false)
     if (res.error) {
       setError(res.error)
@@ -254,6 +260,10 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••" autoComplete="new-password"
               />
+            </label>
+            <label className="field">
+              <span className="field__label">📅 Ta date de naissance</span>
+              <BirthdatePicker value={naissance} onChange={setNaissance} />
             </label>
             {error && <p className="login__error">{error}</p>}
             <button className="login__button" type="submit" disabled={loading}>

@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getBadges, markTutorialDone, getMyBoites } from '../lib/modules'
 import { isModuleBlocked } from '../lib/parental'
-import { FLAVA_UNLOCK_TS, flavaCountdown } from '../lib/flavaCountdown'
 import Backdrop from '../components/Backdrop'
 import Buddy from '../components/Buddy'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -18,7 +17,6 @@ const MODULES = [
   { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
   { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
-  { emoji: '🃏', label: 'Poker Donuts', color: 'var(--rose)', to: '/poker-donuts', key: 'poker', flava: true },
   { emoji: '🎬', label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
 ]
 
@@ -47,11 +45,6 @@ export default function Dashboard() {
   const [rulesOpen, setRulesOpen] = useState(true)
   // Le tutoriel se lance auto à la 1re connexion (tutoriel_vu === false).
   const [showTut, setShowTut] = useState(() => user.tutoriel_vu === false)
-  // Décompte Floor is Lava (#5) — tic chaque seconde tant que verrouillé.
-  const [now, setNow] = useState(() => Date.now())
-  const [flavaParty, setFlavaParty] = useState(false)
-  const flavaUnlocked = now >= FLAVA_UNLOCK_TS
-  const cd = flavaCountdown(now)
 
   const toastTimer = useRef(null)
   const flash = useCallback((m) => {
@@ -66,23 +59,6 @@ export default function Dashboard() {
     getMyBoites(user.id).then((b) => on && setBoiteCount(Array.isArray(b) ? b.length : 0))
     return () => { on = false }
   }, [user.id])
-
-  // Tic du décompte (1 s). S'arrête dès que le module est déverrouillé.
-  useEffect(() => {
-    if (Date.now() >= FLAVA_UNLOCK_TS) return
-    const id = setInterval(() => {
-      const t = Date.now()
-      setNow(t)
-      if (t >= FLAVA_UNLOCK_TS) {
-        // Transition en direct : déverrouillage + célébration.
-        setFlavaParty(true)
-        flash('🎉 Les nouveaux jeux sont disponibles !')
-        clearInterval(id)
-      }
-    }, 1000)
-    return () => clearInterval(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   // Relance manuelle depuis Paramètres ("Revoir le tutoriel").
   useEffect(() => {
@@ -100,15 +76,8 @@ export default function Dashboard() {
   }
 
   const isAdmin = user.role === 'admin' || user.role === 'superadmin'
-  // Seuls les SUPERADMIN ont l'aperçu anticipé des jeux verrouillés par le décompte.
-  const isSuperadmin = user.role === 'superadmin'
 
   const handleTile = (m, blocked) => {
-    // Décompte : verrouillé pour tout le monde sauf les superadmin (aperçu).
-    if (m.flava && !flavaUnlocked && !isSuperadmin) {
-      flash(`🔒 ${m.label} ouvre dans ${cd.d}j ${cd.h}h ${cd.m}min ${cd.s}s !`)
-      return
-    }
     if (m.soon) {
       flash('🌋 Bientôt disponible ! Ce module est en cours de développement.')
       return
@@ -172,11 +141,6 @@ export default function Dashboard() {
         {modules.map((m) => {
           const count = m.badge ? badges[m.badge] : 0
           const blocked = isModuleBlocked(user.parental, m.key)
-          // Verrou décompte : grisé + décompte pour tout le monde ; aperçu
-          // en couleur normale (cliquable) pour les superadmin uniquement.
-          const flavaLocked = m.flava && !flavaUnlocked && !isSuperadmin
-          const flavaPreview = m.flava && !flavaUnlocked && isSuperadmin
-          const flavaReady = m.flava && flavaUnlocked
           return (
             <button
               key={m.label}
@@ -185,9 +149,6 @@ export default function Dashboard() {
                 'tile',
                 blocked ? 'tile--locked' : '',
                 m.soon ? 'tile--soon' : '',
-                flavaLocked ? 'tile--flava-locked' : '',
-                flavaReady ? 'tile--flava-ready' : '',
-                flavaReady && flavaParty ? 'tile--flava-party' : '',
               ].filter(Boolean).join(' ')}
               style={{ '--tile-color': m.color }}
               onClick={() => handleTile(m, blocked)}
@@ -197,22 +158,6 @@ export default function Dashboard() {
               {!blocked && count > 0 && <span className="tile__badge">{count}</span>}
               <span className="tile__emoji">{m.emoji}</span>
               <span className="tile__label">{m.label}</span>
-
-              {/* Élèves & admins : grisé + décompte */}
-              {flavaLocked && (
-                <div className="tile__countdown" aria-label="Décompte avant ouverture">
-                  <span className="tile__countdown-lock">🔒 Ouverture dans</span>
-                  <span className="tile__countdown-clock">
-                    <b>{cd.d}</b>j <b>{String(cd.h).padStart(2, '0')}</b>h{' '}
-                    <b>{String(cd.m).padStart(2, '0')}</b>m <b>{String(cd.s).padStart(2, '0')}</b>s
-                  </span>
-                </div>
-              )}
-              {/* Superadmin : couleur normale + mention d'aperçu */}
-              {flavaPreview && (
-                <span className="tile__preview-note">🔧 Aperçu superadmin — grisé pour les autres</span>
-              )}
-              {flavaReady && <span className="tile__ready-badge">Disponible ! 🎉</span>}
             </button>
           )
         })}
