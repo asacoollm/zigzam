@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useCall } from '../context/CallContext'
 import {
   getDiscussions,
   getPublicDiscussions,
@@ -287,6 +288,11 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
 
   const peutAjouter = disc.est_createur && (disc.type === 'prive' || disc.type === 'public')
 
+  // Appels : audio possible en tête-à-tête uniquement ; en groupe (3+) → vidéo seule.
+  const { startCall } = useCall()
+  const nbParticipants = disc.nb_participants ?? disc.pseudos?.length ?? 2
+  const isGroup = disc.type === 'public' || nbParticipants > 2
+
   return (
     <div className="disc__conv">
       {/* En-tête conversation */}
@@ -296,6 +302,24 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
         </button>
         <span className="disc__conv-titre">{titreDiscussion(disc)}</span>
         <div className="disc__conv-actions">
+          {!isGroup && (
+            <button
+              className="disc__btn disc__btn--sm disc__btn--call"
+              onClick={() => startCall(disc, 'audio')}
+              type="button"
+              title="Appel audio"
+            >
+              📞 Audio
+            </button>
+          )}
+          <button
+            className="disc__btn disc__btn--sm disc__btn--call"
+            onClick={() => startCall(disc, 'video')}
+            type="button"
+            title="Appel vidéo"
+          >
+            📹 Vidéo
+          </button>
           {peutAjouter && (
             <button
               className="disc__btn disc__btn--sm"

@@ -698,3 +698,11 @@
 .disc__bubble--mine .disc__vocal-bar--on { background: #fff; }
 .disc__vocal-dur { font-size: 12px; font-weight: 700; opacity: 0.85; font-variant-numeric: tabular-nums; }
 .disc__vocal-expired { font-size: 13px; font-style: italic; opacity: 0.7; }
+
+/* ── Boutons d'appel audio/vidéo ── */
+.disc__btn--call {
+  background: rgba(61, 214, 140, 0.16);
+  color: #1e9d68;
+  font-weight: 700;
+}
+.disc__btn--call:hover:not(:disabled) { background: rgba(61, 214, 140, 0.28); }
