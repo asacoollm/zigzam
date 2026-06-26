@@ -169,7 +169,7 @@ function bars(id) {
 export function VocalBubble({ msg, isMine, onPlay }) {
   const [playing, setPlaying] = useState(false)
   const [duration, setDuration] = useState(0)
-  const [progress, setProgress] = useState(0) // 0..1
+  const [current, setCurrent] = useState(0) // position de lecture (s)
   const audioRef = useRef(null)
   const markedRef = useRef(false)
 
@@ -177,34 +177,60 @@ export function VocalBubble({ msg, isMine, onPlay }) {
   const waveform = bars(msg.id)
 
   useEffect(() => {
-    if (!url) return
-    const a = new Audio(url)
+    if (!url) return undefined
+
+    // Élément de LECTURE : on ne le manipule jamais pour mesurer la durée,
+    // sinon la lecture casse (les blobs MediaRecorder réagissent mal au seek).
+    const a = new Audio()
+    a.preload = 'metadata'
+    a.src = url
     audioRef.current = a
 
-    const onMeta = () => {
-      if (a.duration === Infinity || Number.isNaN(a.duration)) {
-        // Contournement du bug « durée Infinity » des blobs MediaRecorder.
-        a.currentTime = 1e101
-        a.ontimeupdate = () => {
-          a.ontimeupdate = null
-          a.currentTime = 0
-          setDuration(a.duration)
-        }
-      } else {
-        setDuration(a.duration)
-      }
-    }
-    const onTime = () => { if (a.duration > 0 && a.duration !== Infinity) setProgress(a.currentTime / a.duration) }
-    const onEnd = () => { setPlaying(false); setProgress(0) }
-
+    const onMeta = () => { if (Number.isFinite(a.duration)) setDuration(a.duration) }
+    const onTime = () => setCurrent(a.currentTime || 0)
+    const onEnd = () => { setPlaying(false); setCurrent(0); a.currentTime = 0 }
+    const onPlayEvt = () => setPlaying(true)
+    const onPauseEvt = () => setPlaying(false)
     a.addEventListener('loadedmetadata', onMeta)
+    a.addEventListener('durationchange', onMeta)
     a.addEventListener('timeupdate', onTime)
     a.addEventListener('ended', onEnd)
+    a.addEventListener('play', onPlayEvt)
+    a.addEventListener('pause', onPauseEvt)
+
+    // Mesure de la durée sur un élément SÉPARÉ (les blobs MediaRecorder webm
+    // rapportent souvent une durée « Infinity »). Le seek destructif reste donc
+    // confiné à cet élément jetable → la lecture n'est jamais perturbée.
+    const probe = new Audio()
+    probe.preload = 'metadata'
+    probe.src = url
+    const cleanProbe = () => {
+      probe.ontimeupdate = null
+      probe.removeEventListener('loadedmetadata', onProbe)
+      probe.removeAttribute('src')
+    }
+    function onProbe() {
+      if (Number.isFinite(probe.duration)) { setDuration((d) => d || probe.duration); cleanProbe() }
+      else {
+        probe.currentTime = 1e101
+        probe.ontimeupdate = () => {
+          if (Number.isFinite(probe.duration)) { setDuration((d) => d || probe.duration); cleanProbe() }
+        }
+      }
+    }
+    probe.addEventListener('loadedmetadata', onProbe)
+
     return () => {
       a.pause()
       a.removeEventListener('loadedmetadata', onMeta)
+      a.removeEventListener('durationchange', onMeta)
       a.removeEventListener('timeupdate', onTime)
       a.removeEventListener('ended', onEnd)
+      a.removeEventListener('play', onPlayEvt)
+      a.removeEventListener('pause', onPauseEvt)
+      a.removeAttribute('src')
+      audioRef.current = null
+      cleanProbe()
     }
   }, [url])
 
@@ -212,21 +238,25 @@ export function VocalBubble({ msg, isMine, onPlay }) {
     return <span className="disc__vocal-expired">🎤 Vocal expiré</span>
   }
 
+  // On se base sur l'état réel de l'élément (a.paused) plutôt que sur le state
+  // React, et on capture le rejet éventuel de play().
   const toggle = () => {
     const a = audioRef.current
     if (!a) return
-    if (playing) {
-      a.pause()
-      setPlaying(false)
-    } else {
+    if (a.paused) {
       if (!markedRef.current) {
         markedRef.current = true
         onPlay?.()
       }
-      a.play()
-      setPlaying(true)
+      const p = a.play()
+      if (p && p.catch) p.catch(() => {})
+    } else {
+      a.pause()
     }
   }
+
+  const progress = duration > 0 ? Math.min(1, current / duration) : 0
+  const display = duration > 0 ? duration : current
 
   return (
     <div className={`disc__vocal ${isMine ? 'disc__vocal--mine' : ''}`}>
@@ -242,7 +272,7 @@ export function VocalBubble({ msg, isMine, onPlay }) {
           />
         ))}
       </div>
-      <span className="disc__vocal-dur">{fmt(duration)}</span>
+      <span className="disc__vocal-dur">{fmt(display)}</span>
     </div>
   )
 }
