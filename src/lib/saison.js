@@ -26,7 +26,11 @@ export const SAISONS = {
     nom: 'Jurassic Web 🦕',
     titre: 'Jurassic Web',
     numero: 1, // Saison 1
-    actif: true,
+    // Inactive par défaut côté code : la saison est pilotée UNIQUEMENT depuis
+    // le panel admin (/admin → Saisons). La ligne base surcharge cette valeur
+    // (mergeSaison) et le canal temps réel « zigzam:saison » propage la
+    // bascule à tous les clients connectés, sans rechargement.
+    actif: false,
     debut: null,
     fin: null,
     theme: {
