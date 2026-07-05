@@ -121,7 +121,11 @@ export default function OnlineWidget() {
     )
   }
 
-  // --- Desktop (et mobile hors dashboard) : widget inchangé ---
+  // --- Mobile hors dashboard : masqué. Le widget ne vit que sur l'accueil ;
+  // dès que l'utilisateur navigue ailleurs (useLocation), il disparaît. ---
+  if (isMobile) return null
+
+  // --- Desktop : widget inchangé, visible partout ---
   return (
     <div className={`online ${open ? 'online--open' : 'online--closed'}`} data-tut="online">
       <button
