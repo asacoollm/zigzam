@@ -1,0 +1,11 @@
+-- ============================================================
+--  Saison Jurassic : désactivée par défaut en base.
+--  ----------------------------------------------------------
+--  La saison est désormais pilotée UNIQUEMENT depuis le panel admin
+--  (/admin → Saisons). Le seed initial (20260624120000_saisons.sql) avait
+--  inséré la ligne avec actif=true ; on force actif=false au démarrage.
+--  Le superadmin l'activera quand il voudra lancer la saison, et le canal
+--  temps réel « zigzam:saison » propagera alors la bascule (activation ou
+--  désactivation) à tous les clients connectés, sans rechargement.
+-- ============================================================
+update public.saisons set actif = false where slug = 'jurassic';
