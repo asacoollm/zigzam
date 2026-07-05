@@ -3,7 +3,7 @@ import {
   SAISON_ACTIVE, SAISON_ACTIVE_ID, isSaisonActive, isSaisonTerminee,
   joursRestants, mergeSaison,
 } from '../lib/saison'
-import { getSaisonActive } from '../lib/modules'
+import { getSaisonActive, subscribeToSaison } from '../lib/modules'
 
 // ============================================================
 //  SaisonContext — sait, partout dans l'appli, si une saison est active.
@@ -35,6 +35,17 @@ export function SaisonProvider({ children }) {
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 3600000)
     return () => clearInterval(id)
+  }, [])
+
+  // Temps réel : écoute le canal broadcast « zigzam:saison ». Quand le
+  // superadmin active/désactive la saison, tous les clients connectés
+  // basculent leur thème immédiatement, sans recharger la page.
+  useEffect(() => {
+    if (!SAISON_ACTIVE) return
+    const unsub = subscribeToSaison((ligne) => {
+      setSaison(ligne ? mergeSaison(SAISON_ACTIVE, ligne) : SAISON_ACTIVE)
+    })
+    return unsub
   }, [])
 
   const value = useMemo(() => {

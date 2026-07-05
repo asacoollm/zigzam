@@ -70,6 +70,43 @@ export function broadcastMessage(channel, message) {
   channel.send({ type: 'broadcast', event: 'message', payload: message })
 }
 
+// ---------------- Realtime SAISON 🦕 ----------------
+// Canal broadcast partagé « zigzam:saison » : un seul par client, réutilisé à
+// la fois pour l'écoute (SaisonContext) et l'émission (panel admin superadmin).
+// Quand une saison est activée/désactivée/reprogrammée, on diffuse la nouvelle
+// ligne base ; tous les clients connectés basculent leur thème en direct, sans
+// rechargement. `self: false` → l'émetteur ne se ré-notifie pas lui-même
+// (le panel admin met déjà son propre contexte à jour via refresh()).
+let saisonChannel = null
+let onSaisonChange = null
+function getSaisonChannel() {
+  if (!saisonChannel) {
+    saisonChannel = supabase.channel('zigzam:saison', {
+      config: { broadcast: { self: false } },
+    })
+    // Handler unique enregistré AVANT subscribe (ordre requis) ; il relaie
+    // vers le callback courant de SaisonContext (broadcast = filtrage client).
+    saisonChannel.on('broadcast', { event: 'saison' }, (payload) => {
+      if (onSaisonChange) onSaisonChange(payload.payload)
+    })
+    saisonChannel.subscribe()
+  }
+  return saisonChannel
+}
+// SaisonContext : écoute les bascules de saison diffusées en direct.
+//  onChange reçoit la ligne base { slug, nom, actif, date_debut, date_fin, theme }.
+//  Renvoie une fonction de désabonnement.
+export function subscribeToSaison(onChange) {
+  getSaisonChannel()
+  onSaisonChange = onChange
+  return () => { onSaisonChange = null }
+}
+// Panel admin : diffuse la nouvelle ligne de saison à tous les clients connectés.
+export function broadcastSaison(saison) {
+  if (!saison) return
+  getSaisonChannel().send({ type: 'broadcast', event: 'saison', payload: saison })
+}
+
 // ---- Messages vocaux 🎤 ----
 // Upload d'un fichier audio vers le bucket Storage "vocaux". Renvoie { url } public.
 export async function uploadVocal(userId, blob, ext = 'webm') {
@@ -527,7 +564,10 @@ export async function adminUpdateSaison(adminId, slug, { actif, debut, fin } = {
     p_fin: fin === undefined ? null : fin,
   })
   if (r.error || r.data?.error) return { error: ERR }
-  return { ok: true, saison: r.data?.saison ?? null }
+  const saison = r.data?.saison ?? null
+  // Diffuse la bascule à tous les clients connectés (thème en temps réel).
+  if (saison) broadcastSaison(saison)
+  return { ok: true, saison }
 }
 // Superadmin : statistiques des skins de saison achetés (par item + total).
 export async function adminSaisonStats(adminId, slug) {
