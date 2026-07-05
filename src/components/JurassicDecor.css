@@ -1,0 +1,166 @@
+/* ============================================================
+   Décor saison « Jurassic Web 🦕 » — animations du fond.
+   Rendu dans .backdrop (fixed, z-index -1, overflow hidden).
+   ============================================================ */
+.jdecor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* ---- Ciel sombre et mystérieux ---- */
+.jdecor__sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(80% 60% at 50% -10%, rgba(10, 40, 14, 0.7), transparent 70%),
+    radial-gradient(50% 40% at 80% 10%, rgba(61, 214, 140, 0.12), transparent 70%);
+}
+
+/* ---- Éclair : flash plein écran toutes les ~30s ---- */
+.jdecor__lightning {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 50% at 60% 0%, rgba(180, 255, 180, 0.9), transparent 60%);
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: j-flash 30s ease-out infinite;
+}
+.jdecor__bolt {
+  position: absolute;
+  top: -2%;
+  left: 58%;
+  width: 46px;
+  height: auto;
+  opacity: 0;
+  filter: drop-shadow(0 0 10px #8ff196);
+  animation: j-bolt 30s ease-out infinite;
+}
+@keyframes j-flash {
+  0%, 6%, 100% { opacity: 0; }
+  1% { opacity: 0.9; }
+  2% { opacity: 0.1; }
+  3% { opacity: 0.8; }
+  5% { opacity: 0; }
+}
+@keyframes j-bolt {
+  0%, 6%, 100% { opacity: 0; }
+  1.2% { opacity: 1; }
+  4% { opacity: 0.5; }
+  5% { opacity: 0; }
+}
+
+/* ---- Volcans fumants ---- */
+.jvolcano {
+  position: absolute;
+  bottom: 0;
+  width: 240px;
+  opacity: 0.55;
+}
+.jvolcano__svg { width: 100%; height: auto; display: block; }
+.jvolcano--1 { left: -3%; width: 280px; opacity: 0.5; }
+.jvolcano--2 { right: -2%; width: 210px; opacity: 0.42; transform: scaleX(-1); }
+
+/* Bouffées de fumée qui montent du cratère */
+.jsmoke {
+  position: absolute;
+  bottom: 62%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180, 180, 180, 0.55), rgba(120, 120, 120, 0));
+  opacity: 0;
+  animation: j-smoke 6s ease-in infinite;
+}
+.jsmoke--b { animation-delay: 2s; left: 46%; }
+.jsmoke--c { animation-delay: 4s; left: 54%; }
+@keyframes j-smoke {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  25% { opacity: 0.7; }
+  100% { transform: translateY(-130px) scale(2.4); opacity: 0; }
+}
+
+/* ---- Œufs de dino flottants ---- */
+.jegg { position: absolute; display: block; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3)); }
+.jegg__svg { width: 100%; height: auto; display: block; }
+.jegg--1 { width: 46px; top: 18%; left: 9%; animation: j-float 9s ease-in-out infinite; }
+.jegg--2 { width: 38px; top: 30%; right: 12%; animation: j-float 10s ease-in-out infinite 1.4s; }
+.jegg--3 { width: 32px; bottom: 26%; left: 16%; animation: j-float 8s ease-in-out infinite 0.8s; }
+@keyframes j-float {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-22px) rotate(6deg); }
+}
+
+/* ---- Os flottants ---- */
+.jbone { position: absolute; display: block; opacity: 0.8; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.25)); }
+.jbone__svg { width: 100%; height: auto; display: block; }
+.jbone--1 { width: 58px; top: 12%; right: 22%; animation: j-bone-float 12s ease-in-out infinite; }
+.jbone--2 { width: 42px; bottom: 30%; right: 8%; animation: j-bone-float 11s ease-in-out infinite 2s; }
+@keyframes j-bone-float {
+  0%, 100% { transform: translateY(0) rotate(18deg); }
+  50% { transform: translateY(-18px) rotate(-12deg); }
+}
+
+/* ---- Empreintes qui apparaissent / disparaissent ---- */
+.jtracks { position: absolute; bottom: 14%; left: 6%; width: 60%; height: 60px; }
+.jtrack { position: absolute; width: 26px; height: auto; opacity: 0; }
+.jtrack--0 { left: 0%;  bottom: 0;   transform: rotate(-12deg); animation: j-track 10s linear infinite 0s; }
+.jtrack--1 { left: 14%; bottom: 18px; transform: rotate(8deg);  animation: j-track 10s linear infinite 1s; }
+.jtrack--2 { left: 28%; bottom: 0;   transform: rotate(-10deg); animation: j-track 10s linear infinite 2s; }
+.jtrack--3 { left: 42%; bottom: 18px; transform: rotate(10deg); animation: j-track 10s linear infinite 3s; }
+.jtrack--4 { left: 56%; bottom: 0;   transform: rotate(-8deg);  animation: j-track 10s linear infinite 4s; }
+@keyframes j-track {
+  0% { opacity: 0; }
+  6% { opacity: 0.45; }
+  40% { opacity: 0.45; }
+  55% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* ---- Dino qui traverse l'écran en courant (toutes les ~20s) ---- */
+.jrunner {
+  position: absolute;
+  bottom: 8%;
+  left: 0;
+  width: 110px;
+  animation: j-run-across 20s linear infinite;
+}
+.jrunner__svg { width: 100%; height: auto; display: block; animation: j-run-bob 0.4s ease-in-out infinite; }
+@keyframes j-run-across {
+  0% { transform: translateX(-160px); }
+  18% { transform: translateX(110vw); }
+  100% { transform: translateX(110vw); }
+}
+@keyframes j-run-bob {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-7px) rotate(1deg); }
+}
+
+/* ---- Fougères qui se balancent en bas ---- */
+.jferns { position: absolute; bottom: -8px; left: 0; right: 0; height: 160px; }
+.jfern { position: absolute; bottom: 0; display: block; transform-origin: bottom center; }
+.jfern__svg { width: 100%; height: auto; display: block; }
+.jfern--1 { left: 2%;  width: 110px; animation: j-sway 5s ease-in-out infinite; }
+.jfern--2 { left: 24%; width: 90px;  animation: j-sway 6s ease-in-out infinite 0.6s; }
+.jfern--3 { left: 48%; width: 130px; animation: j-sway 5.5s ease-in-out infinite 1.2s; }
+.jfern--4 { right: 22%; width: 96px; animation: j-sway 6.5s ease-in-out infinite 0.3s; }
+.jfern--5 { right: 1%;  width: 120px; animation: j-sway 5s ease-in-out infinite 0.9s; }
+@keyframes j-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+/* Allègement mobile : on garde l'essentiel, on retire les éléments secondaires. */
+@media (max-width: 640px) {
+  .jegg--3, .jbone--2, .jvolcano--2, .jfern--3, .jtracks { display: none; }
+  .jrunner { width: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jdecor__lightning, .jdecor__bolt, .jsmoke, .jegg, .jbone,
+  .jtrack, .jrunner, .jrunner__svg, .jfern { animation: none; }
+  .jtrack { opacity: 0.3; }
+  .jrunner { display: none; }
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useSaison } from '../context/SaisonContext'
 import {
   adminListUsers,
   adminCreateUser,
@@ -26,6 +27,9 @@ import {
   resetUserPassword,
   resetUserNumero,
   adminBirthdaysToday,
+  adminListSaisons,
+  adminUpdateSaison,
+  adminSaisonStats,
 } from '../lib/modules'
 import { EPISODES, isPublished } from '../data/episodes'
 import { CATEGORIES, getItem } from '../lib/avatar'
@@ -1274,6 +1278,183 @@ function SectionAnniversaires({ adminId }) {
   )
 }
 
+// --------------- Saisons 🦕 ---------------
+// ISO -> valeur d'<input type="datetime-local"> (heure locale).
+function toLocalInput(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+function fmtDate(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('fr-FR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  })
+}
+
+// Une saison : statut, dates, et statistiques d'achat des skins.
+function SaisonAdminRow({ adminId, saison, onChanged }) {
+  const [debut, setDebut] = useState(toLocalInput(saison.date_debut))
+  const [fin, setFin] = useState(toLocalInput(saison.date_fin))
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState(null)
+  const [stats, setStats] = useState(null)
+  const [statsOpen, setStatsOpen] = useState(false)
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [now] = useState(() => Date.now()) // instant figé (évite un appel impur au render)
+
+  const active = saison.actif &&
+    (!saison.date_debut || now >= Date.parse(saison.date_debut)) &&
+    (!saison.date_fin || now <= Date.parse(saison.date_fin))
+
+  const apply = async (patch) => {
+    setBusy(true); setMsg(null)
+    const res = await adminUpdateSaison(adminId, saison.slug, patch)
+    setBusy(false)
+    if (res.error) { setMsg({ type: 'err', text: 'Échec de la mise à jour.' }); return }
+    setMsg({ type: 'ok', text: 'Saison mise à jour ✅' })
+    onChanged?.(res.saison)
+  }
+
+  const saveDates = () => apply({
+    debut: debut ? new Date(debut).toISOString() : '',
+    fin: fin ? new Date(fin).toISOString() : '',
+  })
+
+  const loadStats = async () => {
+    setStatsOpen((v) => !v)
+    if (stats || statsLoading) return
+    setStatsLoading(true)
+    const s = await adminSaisonStats(adminId, saison.slug)
+    setStatsLoading(false)
+    setStats(s)
+  }
+
+  return (
+    <div className="saison-row">
+      <div className="saison-row__head">
+        <span className="saison-row__name">{saison.nom}</span>
+        <span className={`saison-badge ${active ? 'saison-badge--on' : 'saison-badge--off'}`}>
+          {active ? '🟢 Active' : saison.actif ? '🟡 Programmée / terminée' : '⚪ Inactive'}
+        </span>
+      </div>
+
+      <div className="saison-row__dates">
+        <span>Début : <b>{fmtDate(saison.date_debut)}</b></span>
+        <span>Fin : <b>{fmtDate(saison.date_fin)}</b></span>
+      </div>
+
+      <div className="saison-row__controls">
+        <button
+          className={`admin-btn ${saison.actif ? 'admin-btn--ghost' : 'admin-btn--primary'}`}
+          onClick={() => apply({ actif: !saison.actif })}
+          disabled={busy}
+        >
+          {saison.actif ? '⏸️ Désactiver la saison' : '▶️ Activer la saison'}
+        </button>
+        <button className="admin-btn admin-btn--ghost" onClick={loadStats} disabled={busy}>
+          📊 {statsOpen ? 'Masquer' : 'Voir'} les stats skins
+        </button>
+      </div>
+
+      <div className="saison-row__form">
+        <label className="admin-label">
+          📅 Date de début
+          <input className="admin-input" type="datetime-local" value={debut}
+            onChange={(e) => setDebut(e.target.value)} />
+        </label>
+        <label className="admin-label">
+          🏁 Date de fin
+          <input className="admin-input" type="datetime-local" value={fin}
+            onChange={(e) => setFin(e.target.value)} />
+        </label>
+      </div>
+      <div className="saison-row__form-actions">
+        <button className="admin-btn admin-btn--ghost" onClick={() => { setDebut(''); setFin('') }} disabled={busy}>
+          Effacer les dates
+        </button>
+        <button className="admin-btn admin-btn--primary" onClick={saveDates} disabled={busy}>
+          {busy ? 'Enregistrement…' : '💾 Enregistrer les dates'}
+        </button>
+      </div>
+      <p className="saison-row__hint">
+        Sans date de fin, la saison reste active tant qu'elle est activée. Les skins
+        achetés restent acquis à vie, même après la fin de la saison.
+      </p>
+
+      {msg && <p className={`admin-msg admin-msg--${msg.type === 'ok' ? 'ok' : 'err'}`}>{msg.text}</p>}
+
+      {statsOpen && (
+        <div className="saison-stats">
+          {statsLoading && <p className="admin-loading">Chargement des stats…</p>}
+          {!statsLoading && stats && (
+            <>
+              <div className="saison-stats__totals">
+                <span>🛒 <b>{stats.total}</b> skin{stats.total > 1 ? 's' : ''} acqui{stats.total > 1 ? 's' : 's'} au total</span>
+                <span>👥 <b>{stats.joueurs}</b> joueur{stats.joueurs > 1 ? 's' : ''} avec ≥ 1 skin</span>
+              </div>
+              <div className="saison-stats__list">
+                {(stats.skins ?? []).map((s) => (
+                  <div key={`${s.category}:${s.item_id}`} className="saison-stats__item">
+                    <span className="saison-stats__label">{s.label}</span>
+                    <span className="saison-stats__cat">{s.category} • 💎 {s.prix}</span>
+                    <span className="saison-stats__count">{s.achats}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {!statsLoading && !stats && <p className="admin-empty">Stats indisponibles.</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SectionSaisons({ adminId }) {
+  const { refresh } = useSaison()
+  const [saisons, setSaisons] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // Le setState ne se fait que dans le callback async (jamais en synchrone
+  // dans le corps de l'effet) → conforme à react-hooks/set-state-in-effect.
+  const reload = () => {
+    adminListSaisons(adminId).then((list) => {
+      setSaisons(Array.isArray(list) ? list : [])
+      setLoading(false)
+    })
+  }
+  useEffect(() => {
+    reload()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminId])
+
+  // Quand une saison change, on rafraîchit la liste + le contexte de saison
+  // (pour que l'aperçu côté admin se mette à jour immédiatement).
+  const handleChanged = (updated) => {
+    if (updated) {
+      setSaisons((prev) => prev.map((s) => (s.slug === updated.slug ? updated : s)))
+      refresh(updated)
+    } else {
+      reload()
+    }
+  }
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">🦕 Saisons</h2>
+      {loading && <p className="admin-loading">Chargement…</p>}
+      {!loading && saisons.length === 0 && <p className="admin-empty">Aucune saison configurée.</p>}
+      {!loading && saisons.map((s) => (
+        <SaisonAdminRow key={s.slug} adminId={adminId} saison={s} onChanged={handleChanged} />
+      ))}
+    </section>
+  )
+}
+
 // --------------- Page principale ---------------
 export default function Admin() {
   const { user } = useAuth()
@@ -1315,6 +1496,7 @@ export default function Admin() {
           <SectionSerie adminId={user.id} />
           <SectionPropositions adminId={user.id} />
           <SectionBoites adminId={user.id} />
+          <SectionSaisons adminId={user.id} />
         </>
       )}
     </div>

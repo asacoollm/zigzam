@@ -20,6 +20,7 @@ import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
 import ReportButton from './components/ReportButton'
 import BirthdayModal from './components/BirthdayModal'
+import SaisonAnnounce from './components/SaisonAnnounce'
 
 export default function App() {
   const { user } = useAuth()
@@ -163,6 +164,7 @@ export default function App() {
     </Routes>
     <OnlineWidget />
     <ReportButton />
+    <SaisonAnnounce />
     </>
   )
 }

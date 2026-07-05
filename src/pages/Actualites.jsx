@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useSaison } from '../context/SaisonContext'
 import {
   getActus, getMyActus, createActu, viewActu,
   getComments, addComment, deleteComment, uploadActuImage,
@@ -147,6 +148,7 @@ function CarteActu({ actu, user }) {
 // ── Page ────────────────────────────────────────────────────
 export default function Actualites() {
   const { user, updateUser } = useAuth()
+  const { active: saisonActive } = useSaison()
   const navigate = useNavigate()
 
   const [actus, setActus] = useState(null)
@@ -248,7 +250,7 @@ export default function Actualites() {
 
       {!showForm && (
         <button className="news__write" onClick={() => setShowForm(true)}>
-          ✏️ Écrire une actu
+          {saisonActive ? '🪨 Graver une actu sur la roche' : '✏️ Écrire une actu'}
         </button>
       )}
 

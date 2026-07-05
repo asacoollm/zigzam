@@ -15,6 +15,8 @@ export const SPECIAL_COLORS = [
   'rainbow', 'sunset', 'galaxy', 'ocean',
   'stars', 'dots', 'stripes', 'camo', 'flames',
   'gold', 'silver', 'holo',
+  // 🦕 Jurassic Web (exclusifs de saison)
+  'jcamo', 'jtrexskin', 'jdinogold', 'jraptorblue',
 ]
 
 // Résout une couleur (id ou hex legacy) en remplissage SVG.
@@ -51,6 +53,10 @@ export const CATEGORIES = [
       { id: 'silver', label: 'Argenté', price: 4 },
       { id: 'gold', label: 'Doré brillant', price: 5 },
       { id: 'holo', label: 'Holographique', price: 5 },
+      { id: 'jcamo', label: 'Camouflage Jungle', price: 10, saison: 'jurassic' },
+      { id: 'jtrexskin', label: 'Écailles T-Rex', price: 12, saison: 'jurassic' },
+      { id: 'jdinogold', label: 'Dino Doré', price: 12, saison: 'jurassic' },
+      { id: 'jraptorblue', label: 'Raptor Bleu', price: 13, saison: 'jurassic' },
     ],
   },
   {
@@ -79,6 +85,10 @@ export const CATEGORIES = [
       { id: 'astronaut', label: 'Astronaute', price: 5 },
       { id: 'crown', label: 'Couronne royale', price: 5 },
       { id: 'halo', label: 'Auréole', price: 5 },
+      { id: 'jtrex', label: 'Capuche T-Rex', price: 10, saison: 'jurassic' },
+      { id: 'jtrike', label: 'Casque Tricératops', price: 9, saison: 'jurassic' },
+      { id: 'jstego', label: 'Couronne Stégosaure', price: 10, saison: 'jurassic' },
+      { id: 'jptero', label: 'Chapeau Ptérosaure', price: 11, saison: 'jurassic' },
     ],
   },
   {
@@ -132,6 +142,9 @@ export const CATEGORIES = [
       { id: 'afro', label: 'Afro géant', price: 4 },
       { id: 'long', label: 'Longs', price: 4 },
       { id: 'rainbow', label: 'Arc-en-ciel', price: 5 },
+      { id: 'jtail', label: 'Queue de Dino', price: 9, saison: 'jurassic' },
+      { id: 'jdilo', label: 'Crête de Dilophosaure', price: 8, saison: 'jurassic' },
+      { id: 'jdreads', label: 'Dreadlocks Dino', price: 10, saison: 'jurassic' },
     ],
   },
   {
@@ -188,6 +201,10 @@ export const CATEGORIES = [
       { id: 'alien', label: 'Alien', price: 4 },
       { id: 'dragon', label: 'Dragon', price: 5 },
       { id: 'unicorn', label: 'Licorne', price: 5 },
+      { id: 'jraptors', label: 'Meute de Raptors', price: 14, saison: 'jurassic' },
+      { id: 'jbrachio', label: 'Bébé Brachiosaure', price: 15, saison: 'jurassic' },
+      { id: 'jtrexbuddy', label: 'T-Rex Compagnon', price: 15, saison: 'jurassic' },
+      { id: 'jpterofly', label: 'Ptérosaure Volant', price: 12, saison: 'jurassic' },
     ],
   },
   {
@@ -207,6 +224,9 @@ export const CATEGORIES = [
       { id: 'vampire', label: 'Dents de vampire', price: 4 },
       { id: 'beard', label: 'Barbe de pirate', price: 4 },
       { id: 'goldteeth', label: 'Dents en or', price: 5 },
+      { id: 'jraptoreyes', label: 'Yeux de Raptor', price: 8, saison: 'jurassic' },
+      { id: 'jtrexjaw', label: 'Sourire de T-Rex', price: 10, saison: 'jurassic' },
+      { id: 'jscalesface', label: 'Écailles', price: 9, saison: 'jurassic' },
     ],
   },
   {
@@ -249,3 +269,32 @@ export function getItem(categoryId, itemId) {
 export function isUnlocked(avatar, categoryId, item) {
   return item.price === 0 || (avatar.owned ?? []).includes(accKey(categoryId, item.id))
 }
+
+// ============================================================
+//  Skins exclusifs de saison (ex. « Jurassic Web 🦕 »).
+//  Ils vivent dans leurs catégories natives (pour un rendu SVG correct dans
+//  la bonne couche), mais portent un drapeau `saison`. On les agrège dans
+//  un onglet virtuel dédié et on les masque des onglets normaux.
+// ============================================================
+
+export const SAISON_LABELS = {
+  jurassic: '🦕 Jurassic Web — Exclusif',
+}
+
+// True si l'item appartient à une (la) saison donnée.
+export function isSaisonItem(item, saisonId) {
+  return saisonId ? item?.saison === saisonId : !!item?.saison
+}
+
+// Tous les items d'une saison, à plat, enrichis de `_cat` (leur catégorie
+// native) pour que l'achat / l'équipement sachent à quelle catégorie écrire.
+export function getSaisonItems(saisonId = 'jurassic') {
+  const out = []
+  for (const cat of CATEGORIES) {
+    for (const item of cat.items) {
+      if (item.saison === saisonId) out.push({ ...item, _cat: cat.id })
+    }
+  }
+  return out
+}
+
