@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/check-rls.mjs",
     "build": "vite build",
+    "check:rls": "node scripts/check-rls.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "db:new": "supabase migration new",
