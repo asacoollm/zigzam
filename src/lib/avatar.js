@@ -17,6 +17,9 @@ export const SPECIAL_COLORS = [
   'gold', 'silver', 'holo',
   // 🦕 Jurassic Web (exclusifs de saison)
   'jcamo', 'jtrexskin', 'jdinogold', 'jraptorblue',
+  // 🏰 Zigzamland Paris (exclusifs de saison)
+  'dbleugenie', 'dorpicsou', 'drougedonald', 'dmauveursula', 'droseaurore',
+  'dvertpeter', 'dfantasia', 'darcenciel', 'ddalmatiencolor', 'drouxariel',
 ]
 
 // Résout une couleur (id ou hex legacy) en remplissage SVG.
@@ -57,6 +60,16 @@ export const CATEGORIES = [
       { id: 'jtrexskin', label: 'Écailles T-Rex', price: 12, saison: 'jurassic' },
       { id: 'jdinogold', label: 'Dino Doré', price: 12, saison: 'jurassic' },
       { id: 'jraptorblue', label: 'Raptor Bleu', price: 13, saison: 'jurassic' },
+      { id: 'drougedonald', label: 'Rouge Donald', price: 10, saison: 'disney' },
+      { id: 'droseaurore', label: 'Rose Aurore', price: 10, saison: 'disney' },
+      { id: 'dvertpeter', label: 'Vert Peter Pan', price: 10, saison: 'disney' },
+      { id: 'drouxariel', label: 'Roux Ariel', price: 11, saison: 'disney' },
+      { id: 'dbleugenie', label: 'Bleu Génie', price: 12, saison: 'disney' },
+      { id: 'dmauveursula', label: 'Mauve Ursula', price: 12, saison: 'disney' },
+      { id: 'ddalmatiencolor', label: 'Noir & Blanc Dalmatien', price: 13, saison: 'disney' },
+      { id: 'dorpicsou', label: 'Or Picsou', price: 14, saison: 'disney' },
+      { id: 'dfantasia', label: 'Bleu Nuit Fantasia', price: 14, saison: 'disney' },
+      { id: 'darcenciel', label: 'Arc-en-ciel Magique', price: 15, saison: 'disney' },
     ],
   },
   {
@@ -89,6 +102,19 @@ export const CATEGORIES = [
       { id: 'jtrike', label: 'Casque Tricératops', price: 9, saison: 'jurassic' },
       { id: 'jstego', label: 'Couronne Stégosaure', price: 10, saison: 'jurassic' },
       { id: 'jptero', label: 'Chapeau Ptérosaure', price: 11, saison: 'jurassic' },
+      { id: 'dnoeud', label: 'Nœud Papillon Picsou', price: 8, saison: 'disney' },
+      { id: 'driri', label: 'Casquette Riri', price: 9, saison: 'disney' },
+      { id: 'dminnie', label: 'Bandana Minnie', price: 10, saison: 'disney' },
+      { id: 'ddonald', label: 'Casque de Donald', price: 10, saison: 'disney' },
+      { id: 'dpicsou', label: 'Chapeau Picsou', price: 11, saison: 'disney' },
+      { id: 'dtigrou', label: 'Bonnet Tigrou', price: 11, saison: 'disney' },
+      { id: 'dclochette', label: 'Chignon Clochette', price: 11, saison: 'disney' },
+      { id: 'dears', label: 'Oreilles Mickey', price: 12, saison: 'disney' },
+      { id: 'dcendrillon', label: 'Couronne Cendrillon', price: 12, saison: 'disney' },
+      { id: 'dgenie', label: 'Turban Génie', price: 12, saison: 'disney' },
+      { id: 'dsorcier', label: 'Chapeau Sorcier', price: 13, saison: 'disney' },
+      { id: 'dstitch', label: 'Bob Stitch', price: 13, saison: 'disney' },
+      { id: 'dlionking', label: 'Couronne Roi Lion', price: 14, saison: 'disney' },
     ],
   },
   {
@@ -145,6 +171,15 @@ export const CATEGORIES = [
       { id: 'jtail', label: 'Queue de Dino', price: 9, saison: 'jurassic' },
       { id: 'jdilo', label: 'Crête de Dilophosaure', price: 8, saison: 'jurassic' },
       { id: 'jdreads', label: 'Dreadlocks Dino', price: 10, saison: 'jurassic' },
+      { id: 'dmulan', label: 'Coupe Mulan', price: 9, saison: 'disney' },
+      { id: 'dbelle', label: 'Frange Belle', price: 9, saison: 'disney' },
+      { id: 'dvaiana', label: 'Cheveux Vaiana', price: 10, saison: 'disney' },
+      { id: 'dtiana', label: 'Chignon Tiana', price: 10, saison: 'disney' },
+      { id: 'delsa', label: 'Tresse Elsa', price: 11, saison: 'disney' },
+      { id: 'dariel', label: 'Cheveux Ariel', price: 11, saison: 'disney' },
+      { id: 'dmirabel', label: 'Afro Encanto', price: 11, saison: 'disney' },
+      { id: 'draiponce', label: 'Tresses Raiponce', price: 12, saison: 'disney' },
+      { id: 'dcruella', label: 'Perruque Cruella', price: 12, saison: 'disney' },
     ],
   },
   {
@@ -172,6 +207,9 @@ export const CATEGORIES = [
       { id: 'guitar', label: 'Guitare', price: 5 },
       { id: 'lightsaber', label: 'Épée laser', price: 5 },
       { id: 'trophy', label: 'Trophée', price: 5 },
+      { id: 'dbalai', label: 'Balai Sorcier', price: 12, saison: 'disney' },
+      { id: 'dtrident', label: 'Trident Ariel', price: 14, saison: 'disney' },
+      { id: 'dexcalibur', label: 'Épée Excalibur', price: 15, saison: 'disney' },
     ],
   },
   {
@@ -205,6 +243,26 @@ export const CATEGORIES = [
       { id: 'jbrachio', label: 'Bébé Brachiosaure', price: 15, saison: 'jurassic' },
       { id: 'jtrexbuddy', label: 'T-Rex Compagnon', price: 15, saison: 'jurassic' },
       { id: 'jpterofly', label: 'Ptérosaure Volant', price: 12, saison: 'jurassic' },
+      { id: 'dheimlich', label: 'Heimlich', price: 12, saison: 'disney' },
+      { id: 'dpascal', label: 'Pascal', price: 12, saison: 'disney' },
+      { id: 'dflounder', label: 'Flounder', price: 12, saison: 'disney' },
+      { id: 'dflik', label: 'Flik', price: 12, saison: 'disney' },
+      { id: 'dcochon', label: 'Petit Cochon', price: 12, saison: 'disney' },
+      { id: 'dbambipet', label: 'Bambi', price: 13, saison: 'disney' },
+      { id: 'dmeeko', label: 'Meeko', price: 13, saison: 'disney' },
+      { id: 'driripet', label: 'Riri', price: 13, saison: 'disney' },
+      { id: 'dkakamora', label: 'Kakamora', price: 13, saison: 'disney' },
+      { id: 'djiminy', label: 'Jiminy Cricket', price: 13, saison: 'disney' },
+      { id: 'dpluto', label: 'Pluto', price: 14, saison: 'disney' },
+      { id: 'dsimba', label: 'Simba Bébé', price: 14, saison: 'disney' },
+      { id: 'dtristesse', label: 'Tristesse', price: 14, saison: 'disney' },
+      { id: 'dstitchpet', label: 'Stitch', price: 15, saison: 'disney' },
+      { id: 'ddumbo', label: 'Dumbo', price: 15, saison: 'disney' },
+      { id: 'dtigroupet', label: 'Tigrou', price: 15, saison: 'disney' },
+      { id: 'dbaloo', label: 'Baloo', price: 15, saison: 'disney' },
+      { id: 'ddalmatiens', label: 'Trois Dalmatiens', price: 15, saison: 'disney' },
+      { id: 'dgeniemini', label: 'Génie Miniature', price: 15, saison: 'disney' },
+      { id: 'dclochettepet', label: 'Fée Clochette', price: 15, saison: 'disney' },
     ],
   },
   {
@@ -227,6 +285,24 @@ export const CATEGORIES = [
       { id: 'jraptoreyes', label: 'Yeux de Raptor', price: 8, saison: 'jurassic' },
       { id: 'jtrexjaw', label: 'Sourire de T-Rex', price: 10, saison: 'jurassic' },
       { id: 'jscalesface', label: 'Écailles', price: 9, saison: 'jurassic' },
+      { id: 'ddalmatien', label: 'Taches Dalmatien', price: 8, saison: 'disney' },
+      { id: 'dgepetto', label: 'Moustache Gepetto', price: 8, saison: 'disney' },
+      { id: 'dblushminnie', label: 'Blush Minnie', price: 8, saison: 'disney' },
+      { id: 'dbambi', label: 'Yeux Bambi', price: 9, saison: 'disney' },
+      { id: 'dcruellamaq', label: 'Maquillage Cruella', price: 9, saison: 'disney' },
+      { id: 'dcheshire', label: 'Sourire Cheshire', price: 10, saison: 'disney' },
+    ],
+  },
+  {
+    // Skins « complets » : remplacent TOUT le bonhomme (corps, tête, membres)
+    // au lieu de se poser dessus. Rendus par renderFull() dans avatarParts.
+    id: 'full', label: 'Skins complets', emoji: '✨',
+    items: [
+      { id: 'fclochette', label: 'Clochette Complète', price: 23, saison: 'disney' },
+      { id: 'fdonald', label: 'Donald Complet', price: 23, saison: 'disney' },
+      { id: 'fstitch', label: 'Stitch Complet', price: 24, saison: 'disney' },
+      { id: 'fmickey', label: 'Mickey Complet', price: 25, saison: 'disney' },
+      { id: 'fgenie', label: 'Génie Complet', price: 25, saison: 'disney' },
     ],
   },
   {
@@ -247,6 +323,7 @@ export const DEFAULT_AVATAR = {
   color: 'violet',
   hat: null, glasses: null, hair: null,
   sport: null, animal: null, face: null,
+  full: null, // skin complet (remplace tout le bonhomme) — null = bonhomme normal
   owned: [],
 }
 
@@ -279,6 +356,13 @@ export function isUnlocked(avatar, categoryId, item) {
 
 export const SAISON_LABELS = {
   jurassic: '🦕 Jurassic Web — Exclusif',
+  disney: '🏰 Zigzamland — Exclusif',
+}
+
+// Emoji de l'onglet virtuel par saison.
+export const SAISON_EMOJIS = {
+  jurassic: '🦕',
+  disney: '🏰',
 }
 
 // True si l'item appartient à une (la) saison donnée.
@@ -288,7 +372,8 @@ export function isSaisonItem(item, saisonId) {
 
 // Tous les items d'une saison, à plat, enrichis de `_cat` (leur catégorie
 // native) pour que l'achat / l'équipement sachent à quelle catégorie écrire.
-export function getSaisonItems(saisonId = 'jurassic') {
+export function getSaisonItems(saisonId) {
+  if (!saisonId) return []
   const out = []
   for (const cat of CATEGORIES) {
     for (const item of cat.items) {
@@ -296,5 +381,18 @@ export function getSaisonItems(saisonId = 'jurassic') {
     }
   }
   return out
+}
+
+// Slugs des saisons dont l'élève possède au moins un skin — sert à garder
+// leur onglet visible à vie, même une fois la saison terminée.
+export function getSaisonsPossedees(avatar) {
+  const owned = new Set(avatar?.owned ?? [])
+  const slugs = new Set()
+  for (const cat of CATEGORIES) {
+    for (const item of cat.items) {
+      if (item.saison && owned.has(accKey(cat.id, item.id))) slugs.add(item.saison)
+    }
+  }
+  return [...slugs]
 }
 

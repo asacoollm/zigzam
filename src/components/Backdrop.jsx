@@ -1,22 +1,32 @@
 import FallGuy from './FallGuy'
 import JurassicDecor from './JurassicDecor'
+import DisneyDecor from './DisneyDecor'
 import { useSaison } from '../context/SaisonContext'
 import './Backdrop.css'
 
+// Décor immersif + teintes des bonhommes, par saison.
+//  Une saison sans entrée ici retombe sur le décor normal (garde-fou).
+const DECORS = {
+  jurassic: { Decor: JurassicDecor, guys: ['#3dd68c', '#8ff196'] },
+  disney: { Decor: DisneyDecor, guys: ['#ffd76a', '#ff8fc7'] },
+}
+
 // Décor de fond partagé par toutes les pages.
 //  - Hors saison : anneaux colorés 3D, boules radiales lumineuses et bonhommes.
-//  - Pendant une saison : décor immersif dédié (ex. Jurassic Web) + bonhommes
-//    qui prennent l'attitude de la saison (idle « apeuré ») via le thème CSS.
+//  - Pendant une saison : décor immersif dédié (Jurassic Web, Zigzamland…) +
+//    bonhommes qui prennent l'attitude de la saison via le thème CSS.
 export default function Backdrop() {
-  const { active } = useSaison()
+  const { active, slug } = useSaison()
 
-  if (active) {
+  const theme = active ? DECORS[slug] : null
+  if (theme) {
+    const { Decor, guys } = theme
     return (
       <div className="backdrop backdrop--saison" aria-hidden="true">
-        <JurassicDecor />
-        {/* Bonhommes : conservés mais discrets, ils tremblent face aux dinos. */}
-        <FallGuy className="guy guy--1" color="#3dd68c" />
-        <FallGuy className="guy guy--2" color="#8ff196" />
+        <Decor />
+        {/* Bonhommes : conservés mais discrets, ils prennent la teinte de la saison. */}
+        <FallGuy className="guy guy--1" color={guys[0]} />
+        <FallGuy className="guy guy--2" color={guys[1]} />
       </div>
     )
   }

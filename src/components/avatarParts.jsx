@@ -7,6 +7,11 @@
 //  Les cheveux sont rendus DERRIÈRE le visage et SOUS les chapeaux.
 // ============================================================
 
+import { DISNEY_HATS, DISNEY_HAIR, DISNEY_HAIR_BACK } from './disneyHats'
+import { DISNEY_FACE, DISNEY_SPORT } from './disneyFaces'
+import { DISNEY_ANIMAL, DISNEY_ANIMAL_PLACEMENT } from './disneyAnimals'
+import { DISNEY_FULL } from './disneyFull'
+
 const C = {
   rose: '#ff4d8d', orange: '#ff8c42', jaune: '#fbbf24', vert: '#3dd68c',
   bleu: '#00bfff', violet: '#7c3aff', rouge: '#ef4444', blanc: '#f5f5fb',
@@ -1221,17 +1226,24 @@ const ANIMAL_PLACEMENT = {
 export function animalWide() { return true }
 
 // ---- Sélecteurs exportés ----
-export function renderHat(id) { return HATS[id]?.() ?? null }
+//  Les skins exclusifs de la saison « Zigzamland Paris » vivent dans leurs
+//  propres fichiers (disneyHats / disneyFaces / disneyAnimals / disneyFull)
+//  pour ne pas doubler la taille de celui-ci : chaque sélecteur consulte
+//  d'abord le catalogue de base, puis celui de la saison.
+export function renderHat(id) { return HATS[id]?.() ?? DISNEY_HATS[id]?.() ?? null }
 export function renderGlasses(id) { return GLASSES[id]?.() ?? null }
-export function renderHair(id) { return HAIR[id]?.() ?? null }
-export function renderHairBack(id) { return HAIR_BACK[id]?.() ?? null }
-export function renderSport(id) { return SPORT[id]?.() ?? null }
-export function renderFace(id) { return FACE[id]?.() ?? null }
+export function renderHair(id) { return HAIR[id]?.() ?? DISNEY_HAIR[id]?.() ?? null }
+export function renderHairBack(id) { return HAIR_BACK[id]?.() ?? DISNEY_HAIR_BACK[id]?.() ?? null }
+export function renderSport(id) { return SPORT[id]?.() ?? DISNEY_SPORT[id]?.() ?? null }
+export function renderFace(id) { return FACE[id]?.() ?? DISNEY_FACE[id]?.() ?? null }
 export function renderAnimal(id) {
-  const draw = ANIMAL[id]?.()
+  const draw = ANIMAL[id]?.() ?? DISNEY_ANIMAL[id]?.()
   if (!draw) return null
-  return <g transform={ANIMAL_PLACEMENT[id] ?? ANIMAL_MED}>{draw}</g>
+  const placement = ANIMAL_PLACEMENT[id] ?? DISNEY_ANIMAL_PLACEMENT[id] ?? ANIMAL_MED
+  return <g transform={placement}>{draw}</g>
 }
+// Skin « complet » : remplace tout le bonhomme (cf. FallGuy).
+export function renderFull(id) { return DISNEY_FULL[id]?.() ?? null }
 
 // ----------------------------------------------------------------
 //  CHAPEAUX  (posés sur le crâne, centrés x=60 ; couvrent le haut des cheveux)

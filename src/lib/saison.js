@@ -4,7 +4,12 @@
 //  Une « saison » transforme toute l'interface pendant une période donnée
 //  (fond, décor, logo, skins exclusifs, modale d'annonce…).
 //  Le système est GÉNÉRIQUE : pour lancer une future saison, il suffit
-//  d'ajouter son objet dans SAISONS et de pointer SAISON_ACTIVE_ID dessus.
+//  d'ajouter son objet dans SAISONS (et de créer son décor + ses skins).
+//
+//  TOUTES les saisons enregistrées ici sont activables depuis /admin →
+//  Saisons : SaisonContext interroge la base et retient celle qui est
+//  réellement activée. Il n'y a donc plus de saison « branchée » en dur
+//  dans le code — le superadmin bascule de l'une à l'autre à volonté.
 //
 //  Les valeurs `actif` / `debut` / `fin` définies ici sont les valeurs par
 //  défaut côté code. La table `saisons` en base peut les surcharger en
@@ -46,14 +51,58 @@ export const SAISONS = {
       assets: { decor: 'jurassic' },
     },
   },
+
+  disney: {
+    id: 'disney',
+    slug: 'disney',
+    nom: 'Zigzamland Paris ✨',
+    titre: 'Zigzamland Paris',
+    numero: 2, // Saison 2
+    // Inactive par défaut : la saison se déclenche depuis /admin → Saisons.
+    actif: false,
+    debut: null,
+    fin: null,
+    theme: {
+      couleurs: {
+        fondSombre: '#0A0A2E',
+        fondNuit: '#1A1A4E',
+        fondProfond: '#0D0D3B',
+        accent: '#ffd76a',      // doré des illuminations
+        accentClair: '#fff3c4',
+        nuage: '#ffc2e2',       // nuages roses pastel
+        etoile: '#ffe9a8',
+      },
+      emoji: '🏰',
+      assets: { decor: 'disney' },
+    },
+  },
 }
 
-// Saison actuellement branchée. Pour passer à une autre saison plus tard,
-// il suffit de changer cet identifiant (ou de mettre la saison à actif=false).
-export const SAISON_ACTIVE_ID = 'jurassic'
+// Saison « courante » : celle mise en avant quand AUCUNE saison n'est active
+// en base (onglet de skins « Saison terminée », modale, etc.). C'est la
+// dernière saison sortie — à mettre à jour à chaque nouvelle saison.
+export const SAISON_COURANTE_ID = 'disney'
 
-// La saison active « statique » (config code, avant surcharge base).
-export const SAISON_ACTIVE = SAISONS[SAISON_ACTIVE_ID] ?? null
+// Liste ordonnée (par numéro) de toutes les saisons connues.
+export const TOUTES_SAISONS = Object.values(SAISONS)
+  .slice()
+  .sort((a, b) => (a.numero ?? 0) - (b.numero ?? 0))
+
+// Config code de la saison courante (avant surcharge base).
+export const SAISON_COURANTE = SAISONS[SAISON_COURANTE_ID] ?? null
+
+// Rétro-compat : certains modules importent encore ces noms.
+export const SAISON_ACTIVE_ID = SAISON_COURANTE_ID
+export const SAISON_ACTIVE = SAISON_COURANTE
+
+// Parmi une liste de saisons (déjà fusionnées avec la base), retourne celle
+// qui est réellement en cours. Si plusieurs le sont (ne devrait pas arriver),
+// la plus récente gagne. Retourne null si aucune n'est active.
+export function trouverSaisonActive(saisons) {
+  const actives = (saisons ?? []).filter((s) => isSaisonActive(s))
+  if (!actives.length) return null
+  return actives.sort((a, b) => (b.numero ?? 0) - (a.numero ?? 0))[0]
+}
 
 // Retourne true si la saison passée (ou la saison active par défaut) est
 // en cours : commutateur activé ET (si bornes définies) date courante dans

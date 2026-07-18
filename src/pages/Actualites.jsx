@@ -11,6 +11,13 @@ import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
 import './Actualites.css'
 
+// Libellé du bouton d'écriture, thématisé par saison active.
+// Slug absent de la table → on retombe sur le libellé normal.
+const LIBELLE_ECRIRE = {
+  jurassic: '🪨 Graver une actu sur la roche',
+  disney: '📖 Écrire dans le livre magique',
+}
+
 function formatDate(iso) {
   const d = new Date(iso)
   const now = new Date()
@@ -148,7 +155,7 @@ function CarteActu({ actu, user }) {
 // ── Page ────────────────────────────────────────────────────
 export default function Actualites() {
   const { user, updateUser } = useAuth()
-  const { active: saisonActive } = useSaison()
+  const { active: saisonActive, slug: saisonSlug } = useSaison()
   const navigate = useNavigate()
 
   const [actus, setActus] = useState(null)
@@ -250,7 +257,7 @@ export default function Actualites() {
 
       {!showForm && (
         <button className="news__write" onClick={() => setShowForm(true)}>
-          {saisonActive ? '🪨 Graver une actu sur la roche' : '✏️ Écrire une actu'}
+          {(saisonActive && LIBELLE_ECRIRE[saisonSlug]) || '✏️ Écrire une actu'}
         </button>
       )}
 

@@ -5,7 +5,8 @@ import { useSaison } from '../context/SaisonContext'
 import { saveAvatar, buyAccessory } from '../lib/auth'
 import { buyCustomSkin } from '../lib/modules'
 import {
-  CATEGORIES, normalizeAvatar, isUnlocked, accKey, getSaisonItems, SAISON_LABELS,
+  CATEGORIES, normalizeAvatar, isUnlocked, accKey, getSaisonItems,
+  getSaisonsPossedees, SAISON_LABELS, SAISON_EMOJIS,
 } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
@@ -19,24 +20,35 @@ export default function Avatar() {
 
   const [avatar, setAvatar] = useState(() => normalizeAvatar(user.avatar))
 
-  // Items exclusifs de la saison courante (ex. Jurassic Web), agrégés dans un
-  // onglet virtuel. Onglet visible pendant la saison OU si l'élève en possède
-  // déjà (skins gardés à vie, ré-équipables après la fin).
-  const saisonItems = useMemo(() => getSaisonItems(saisonSlug || 'jurassic'), [saisonSlug])
-  const ownsAnySaison = saisonItems.some((it) =>
-    (avatar.owned ?? []).includes(accKey(it._cat, it.id)))
-  const showSaisonTab = !!saisonSlug && (saisonActive || ownsAnySaison)
+  // Un onglet virtuel par saison : celle en cours, plus toutes celles dont
+  // l'élève possède déjà au moins un skin (gardés à vie, ré-équipables même
+  // une fois la saison terminée).
+  const saisonSlugs = useMemo(() => {
+    const slugs = getSaisonsPossedees(avatar)
+    if (saisonSlug && saisonActive && !slugs.includes(saisonSlug)) slugs.unshift(saisonSlug)
+    // La saison en cours passe toujours en tête.
+    return slugs.sort((a, b) => (a === saisonSlug ? -1 : b === saisonSlug ? 1 : 0))
+  }, [avatar, saisonSlug, saisonActive])
 
-  // Liste des onglets : l'onglet saison (virtuel) en tête s'il est visible.
+  // Onglets de saison (id = `__saison:<slug>`), suivis des catégories normales.
+  // Une catégorie dont TOUS les items sont exclusifs de saison (ex. « Skins
+  // complets ») n'apparaît pas dans les onglets normaux : elle serait vide.
   const TABS = useMemo(() => {
-    if (!showSaisonTab) return CATEGORIES
+    const catsNormales = CATEGORIES.filter((c) => c.items.some((it) => !it.saison))
     return [
-      { id: '__saison', label: SAISON_LABELS[saisonSlug] || 'Exclusif', emoji: '🦕', virtual: true },
-      ...CATEGORIES,
+      ...saisonSlugs.map((slug) => ({
+        id: `__saison:${slug}`,
+        label: SAISON_LABELS[slug] || 'Exclusif',
+        emoji: SAISON_EMOJIS[slug] || '⭐',
+        virtual: true,
+      })),
+      ...catsNormales,
     ]
-  }, [showSaisonTab, saisonSlug])
+  }, [saisonSlugs])
 
-  const [tab, setTab] = useState(showSaisonTab ? '__saison' : CATEGORIES[0].id)
+  const [tab, setTab] = useState(
+    saisonSlugs.length ? `__saison:${saisonSlugs[0]}` : CATEGORIES[0].id,
+  )
   const [pending, setPending] = useState(null) // accessoire payant en attente de confirmation
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
@@ -45,7 +57,18 @@ export default function Avatar() {
   const [skinRef, setSkinRef] = useState('')
   const [celebrate, setCelebrate] = useState(null) // avatar fêté après un achat (animation)
 
-  const isSaisonTab = tab === '__saison'
+  // Onglet de saison : `__saison:<slug>` → on en extrait le slug.
+  const tabSaisonSlug = tab.startsWith('__saison:') ? tab.slice('__saison:'.length) : null
+  const isSaisonTab = !!tabSaisonSlug
+  const saisonItems = useMemo(() => getSaisonItems(tabSaisonSlug), [tabSaisonSlug])
+  // La saison de l'onglet courant tourne-t-elle vraiment en ce moment ?
+  const tabSaisonEnCours = !!tabSaisonSlug
+    && saisonActive && tabSaisonSlug === saisonSlug && !saisonTerminee
+  const tabEmoji = SAISON_EMOJIS[tabSaisonSlug] || '⭐'
+
+  // Un skin de saison non possédé n'est achetable que pendant sa saison.
+  const estFerme = (item, owned) => !!item.saison && !owned
+    && !(saisonActive && item.saison === saisonSlug && !saisonTerminee)
   const activeCategory = useMemo(
     () => CATEGORIES.find((c) => c.id === tab),
     [tab],
@@ -78,9 +101,10 @@ export default function Avatar() {
   const pickItem = (item) => {
     const cat = catOf(item)
     const owned = (avatar.owned ?? []).includes(accKey(cat, item.id))
-    // Skin de saison terminée non possédé : plus achetable (mais conservé si acquis).
-    if (item.saison && saisonTerminee && !owned) {
-      flash('🦕 Saison terminée — ce skin n’est plus disponible à l’achat.')
+    // Un skin de saison ne s'achète que pendant SA saison. Une fois acquis il
+    // reste équipable à vie, y compris après la fin.
+    if (estFerme(item, owned)) {
+      flash(`${SAISON_EMOJIS[item.saison] || '⭐'} Saison terminée — ce skin n’est plus disponible à l’achat.`)
       return
     }
     // Retirer l'accessoire déjà équipé (sauf la couleur, toujours présente).
@@ -186,10 +210,11 @@ export default function Avatar() {
 
           {/* Bandeau de l'onglet exclusif de saison */}
           {isSaisonTab && (
-            <p className={`av__saison-note ${saisonTerminee ? 'av__saison-note--over' : ''}`}>
-              {saisonTerminee
-                ? '🦕 Saison terminée — tu gardes à vie les skins déjà acquis, mais les autres ne sont plus achetables.'
-                : '🦕 Skins exclusifs de la saison ! Achète-les pendant la saison : ils restent à vie sur ton compte.'}
+            <p className={`av__saison-note ${tabSaisonEnCours ? '' : 'av__saison-note--over'}`}>
+              {tabEmoji}{' '}
+              {tabSaisonEnCours
+                ? 'Skins exclusifs de la saison ! Achète-les pendant la saison : ils restent à vie sur ton compte.'
+                : 'Saison terminée — tu gardes à vie les skins déjà acquis, mais les autres ne sont plus achetables.'}
             </p>
           )}
 
@@ -201,7 +226,7 @@ export default function Avatar() {
               const unlocked = isUnlocked(avatar, cat, item)
               const owned = (avatar.owned ?? []).includes(accKey(cat, item.id))
               const affordable = user.gemmes >= item.price
-              const closed = item.saison && saisonTerminee && !owned
+              const closed = estFerme(item, owned)
               const locked = closed || (!unlocked && !affordable)
 
               return (

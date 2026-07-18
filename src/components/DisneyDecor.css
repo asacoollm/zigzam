@@ -1,0 +1,328 @@
+/* ============================================================
+   Décor saison « Zigzamland Paris ✨ » — animations du fond.
+   Rendu dans .backdrop (fixed, z-index -1, overflow hidden).
+   Préfixe des keyframes : `d-`.
+   ============================================================ */
+.ddecor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* ---- Ciel bleu nuit profond ---- */
+.ddecor__sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgba(60, 60, 160, 0.45), transparent 70%),
+    radial-gradient(45% 35% at 82% 12%, rgba(255, 215, 106, 0.1), transparent 70%),
+    radial-gradient(60% 45% at 50% 100%, rgba(110, 90, 200, 0.28), transparent 70%);
+}
+
+/* ============================================================
+   ÉTOILES SCINTILLANTES
+   ============================================================ */
+.ddecor__stars {
+  position: absolute;
+  inset: 0;
+}
+.dstar {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff6d8;
+  box-shadow: 0 0 6px 1px rgba(255, 233, 168, 0.9);
+  opacity: 0.2;
+  animation-name: d-twinkle;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+@keyframes d-twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+
+/* ============================================================
+   NUAGES ROSES PASTEL
+   ============================================================ */
+.dclouds {
+  position: absolute;
+  inset: 0;
+}
+.dcloud {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 194, 226, 0.32), rgba(255, 194, 226, 0) 72%);
+  filter: blur(2px);
+}
+.dcloud--1 {
+  top: 12%; width: 340px; height: 130px;
+  animation: d-drift 78s linear infinite;
+}
+.dcloud--2 {
+  top: 30%; width: 260px; height: 100px;
+  background: radial-gradient(closest-side, rgba(199, 178, 255, 0.28), rgba(199, 178, 255, 0) 72%);
+  animation: d-drift 104s linear infinite;
+  animation-delay: -30s;
+}
+.dcloud--3 {
+  top: 48%; width: 400px; height: 150px;
+  animation: d-drift 130s linear infinite;
+  animation-delay: -70s;
+}
+@keyframes d-drift {
+  0% { transform: translateX(-45vw); }
+  100% { transform: translateX(115vw); }
+}
+
+/* ============================================================
+   FEUX D'ARTIFICE — cycle de 30 s, les trois salves se relaient
+   ============================================================ */
+.dfw {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+}
+.dfw--1 { top: 12%; left: 16%; }
+.dfw--2 { top: 6%;  left: 62%; }
+.dfw--3 { top: 24%; left: 40%; }
+
+.dfw__svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 106, 0.6));
+}
+/* Chaque salve joue sur le même cycle de 30 s, décalée dans le temps. */
+.dfw__svg--1 { animation: d-fw 30s ease-out infinite; }
+.dfw__svg--2 { animation: d-fw 30s ease-out infinite; animation-delay: 9s; }
+.dfw__svg--3 { animation: d-fw 30s ease-out infinite; animation-delay: 18s; }
+
+@keyframes d-fw {
+  0%      { opacity: 0; }
+  2%      { opacity: 1; }
+  14%     { opacity: 1; }
+  22%     { opacity: 0; }
+  100%    { opacity: 0; }
+}
+/* la traînée monte, puis disparaît quand la couronne éclate */
+.dfw__trail {
+  opacity: 0;
+  animation: d-fw-trail 30s ease-out infinite;
+}
+.dfw__svg--2 .dfw__trail { animation-delay: 9s; }
+.dfw__svg--3 .dfw__trail { animation-delay: 18s; }
+@keyframes d-fw-trail {
+  0%   { opacity: 0; transform: translateY(40px) scaleY(0.2); }
+  1.5% { opacity: 1; transform: translateY(0) scaleY(1); }
+  3%   { opacity: 0; }
+  100% { opacity: 0; }
+}
+/* la couronne s'ouvre puis retombe */
+.dfw__burst {
+  transform-origin: center;
+  animation: d-fw-burst 30s ease-out infinite;
+}
+.dfw__svg--2 .dfw__burst { animation-delay: 9s; }
+.dfw__svg--3 .dfw__burst { animation-delay: 18s; }
+@keyframes d-fw-burst {
+  0%, 2%  { transform: scale(0.05); opacity: 1; }
+  9%      { transform: scale(1); opacity: 1; }
+  16%     { transform: scale(1.25) translateY(8px); opacity: 0.5; }
+  22%     { transform: scale(1.35) translateY(20px); opacity: 0; }
+  100%    { transform: scale(0.05); opacity: 0; }
+}
+
+/* ============================================================
+   ÉLÉMENTS DÉCORATIFS FLOTTANTS
+   ============================================================ */
+.dfloat {
+  position: absolute;
+  display: block;
+  opacity: 0.85;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+}
+.dfloat svg { width: 100%; height: 100%; display: block; }
+
+.dfloat--star1 { top: 18%; left: 7%;  width: 46px; height: 46px; animation: d-float 12s ease-in-out infinite; }
+.dfloat--star2 { top: 58%; left: 88%; width: 34px; height: 34px; animation: d-float 15s ease-in-out infinite reverse; }
+.dfloat--star3 { top: 72%; left: 12%; width: 28px; height: 28px; animation: d-float 18s ease-in-out infinite; animation-delay: -6s; }
+.dfloat--wand1 { top: 34%; left: 80%; width: 54px; height: 54px; animation: d-float-spin 16s ease-in-out infinite; }
+.dfloat--wand2 { top: 66%; left: 26%; width: 42px; height: 42px; animation: d-float-spin 21s ease-in-out infinite reverse; }
+.dfloat--hat1  { top: 44%; left: 4%;  width: 48px; height: 48px; animation: d-float 14s ease-in-out infinite; animation-delay: -4s; }
+.dfloat--hat2  { top: 14%; left: 90%; width: 38px; height: 38px; animation: d-float 19s ease-in-out infinite; animation-delay: -9s; }
+
+@keyframes d-float {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50%      { transform: translateY(-26px) rotate(6deg); }
+}
+@keyframes d-float-spin {
+  0%, 100% { transform: translateY(0) rotate(-14deg); }
+  50%      { transform: translateY(-20px) rotate(14deg); }
+}
+/* la traînée d'étoiles de la baguette pulse */
+.dwand__trail { animation: d-trail 2.4s ease-in-out infinite; }
+@keyframes d-trail {
+  0%, 100% { opacity: 0.35; transform: translate(0, 0); }
+  50%      { opacity: 1; transform: translate(-3px, 4px); }
+}
+
+/* ============================================================
+   BALLONS QUI MONTENT
+   ============================================================ */
+.dballoon {
+  position: absolute;
+  bottom: -90px;
+  display: block;
+  width: 34px;
+  height: 54px;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.28));
+}
+.dballoon svg { width: 100%; height: 100%; display: block; }
+.dballoon--1 { left: 14%; animation: d-rise 34s linear infinite; }
+.dballoon--2 { left: 38%; width: 28px; height: 44px; animation: d-rise 44s linear infinite; animation-delay: -12s; }
+.dballoon--3 { left: 68%; animation: d-rise 39s linear infinite; animation-delay: -25s; }
+.dballoon--4 { left: 86%; width: 24px; height: 38px; animation: d-rise 50s linear infinite; animation-delay: -7s; }
+
+@keyframes d-rise {
+  0%   { transform: translateY(0) translateX(0) rotate(-4deg); opacity: 0; }
+  8%   { opacity: 0.9; }
+  50%  { transform: translateY(-55vh) translateX(24px) rotate(5deg); }
+  92%  { opacity: 0.9; }
+  100% { transform: translateY(-118vh) translateX(-16px) rotate(-3deg); opacity: 0; }
+}
+
+/* ============================================================
+   PARTICULES MAGIQUES DORÉES
+   ============================================================ */
+.dparts { position: absolute; inset: 0; }
+.dpart {
+  position: absolute;
+  bottom: -14px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffe9a8;
+  box-shadow: 0 0 8px 2px rgba(255, 215, 106, 0.75);
+  opacity: 0;
+  animation-name: d-particle;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+@keyframes d-particle {
+  0%   { transform: translateY(0) scale(0.5); opacity: 0; }
+  12%  { opacity: 1; }
+  50%  { transform: translateY(-48vh) translateX(22px) scale(1); }
+  88%  { opacity: 0.8; }
+  100% { transform: translateY(-102vh) translateX(-18px) scale(0.4); opacity: 0; }
+}
+
+/* ============================================================
+   CONFETTIS DORÉS QUI TOMBENT
+   ============================================================ */
+.dconf { position: absolute; inset: 0; }
+.dconf__p {
+  position: absolute;
+  top: -20px;
+  width: 7px;
+  height: 11px;
+  border-radius: 2px;
+  background: linear-gradient(150deg, #fff3c4, #ffd76a 55%, #e0a92a);
+  opacity: 0;
+  animation-name: d-confetti;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+@keyframes d-confetti {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.95; }
+  100% { transform: translateY(105vh) rotate(calc(var(--dconf-rot) * 14)); opacity: 0; }
+}
+
+/* ============================================================
+   LE CHÂTEAU ILLUMINÉ (ancré en bas de page)
+   ============================================================ */
+.dcastle {
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  width: min(720px, 96vw);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.dcastle__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 0 26px rgba(120, 130, 255, 0.4));
+}
+
+/* Fenêtres : allumage décalé, comme des lumières de château. */
+.dcastle__win {
+  opacity: 0.25;
+  animation: d-window 6s ease-in-out infinite;
+}
+.dcastle__win--0 { animation-delay: 0s; }
+.dcastle__win--1 { animation-delay: 0.8s; }
+.dcastle__win--2 { animation-delay: 1.7s; }
+.dcastle__win--3 { animation-delay: 2.5s; }
+.dcastle__win--4 { animation-delay: 3.4s; }
+.dcastle__win--5 { animation-delay: 4.2s; }
+@keyframes d-window {
+  0%, 100% { opacity: 0.22; filter: none; }
+  45%      { opacity: 1; filter: drop-shadow(0 0 6px #ffd76a); }
+}
+
+/* La grande porte respire doucement. */
+.dcastle__gate { animation: d-gate 8s ease-in-out infinite; }
+@keyframes d-gate {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.7; }
+}
+
+/* L'étoile au sommet scintille et tourne très lentement. */
+.dcastle__topstar {
+  transform-origin: 260px 14px;
+  animation: d-topstar 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px #ffd76a);
+}
+@keyframes d-topstar {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+  50%      { transform: scale(1.18) rotate(8deg); opacity: 1; }
+}
+
+/* Oriflammes qui flottent au vent. */
+.dcastle__flag {
+  transform-origin: 152px 54px;
+  animation: d-flag 3.2s ease-in-out infinite;
+}
+.dcastle__flag--b {
+  transform-origin: 368px 54px;
+  animation-delay: -1.4s;
+}
+@keyframes d-flag {
+  0%, 100% { transform: skewY(0deg) scaleX(1); }
+  50%      { transform: skewY(-7deg) scaleX(0.88); }
+}
+
+/* ============================================================
+   Version allégée sur petits écrans + respect de prefers-reduced-motion
+   ============================================================ */
+@media (max-width: 640px) {
+  .dfloat--star3, .dfloat--hat2, .dfloat--wand2,
+  .dballoon--2, .dballoon--4,
+  .dcloud--3, .dfw--3 { display: none; }
+  .dcastle { bottom: -6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dstar, .dcloud, .dfw__svg, .dfw__trail, .dfw__burst,
+  .dfloat, .dwand__trail, .dballoon, .dpart, .dconf__p,
+  .dcastle__win, .dcastle__gate, .dcastle__topstar, .dcastle__flag {
+    animation: none;
+  }
+  /* sans animation, on garde les étoiles et les fenêtres visibles */
+  .dstar { opacity: 0.85; }
+  .dcastle__win { opacity: 1; }
+  .dfw__svg { opacity: 0.9; }
+  .dconf__p, .dpart, .dballoon { opacity: 0.7; }
+}

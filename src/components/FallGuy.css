@@ -169,3 +169,213 @@
   .dino-tail, .dino-roar-jaw, .dino-raptor, .dino-brachio,
   .dino-ptero-orbit, .dino-ptero-wingL, .dino-ptero-wingR { animation: none; }
 }
+
+/* ============================================================
+   🏰 ZIGZAMLAND PARIS — animations des skins de saison (dans le SVG).
+   Les skins sont gardés à vie : ces animations tournent en continu.
+   `transform-box: fill-box` partout, pour que transform-origin soit
+   relatif à la forme et non au viewBox du SVG.
+   ============================================================ */
+
+/* ---- Chapeaux & coiffures ---- */
+.d-ears-wiggle, .d-mickey-ears {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: d-ears 3.6s ease-in-out infinite;
+}
+@keyframes d-ears {
+  0%, 100% { transform: rotate(-2.5deg) scale(1); }
+  50% { transform: rotate(2.5deg) scale(1.04); }
+}
+
+.d-bow-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: d-bow 2.8s ease-in-out infinite;
+}
+@keyframes d-bow {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  45% { transform: scale(1.1) rotate(-4deg); }
+  70% { transform: scale(0.97) rotate(3deg); }
+}
+
+.d-braid-sway, .d-hair-flow {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: d-sway 4.2s ease-in-out infinite;
+}
+@keyframes d-sway {
+  0%, 100% { transform: rotate(-2.4deg); }
+  50% { transform: rotate(2.4deg); }
+}
+
+.d-mane-breathe {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: d-breathe 5s ease-in-out infinite;
+}
+@keyframes d-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.d-feather-wave {
+  transform-box: fill-box;
+  transform-origin: 20% 100%;
+  animation: d-feather 3.2s ease-in-out infinite;
+}
+@keyframes d-feather {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(6deg); }
+}
+
+.d-stitch-ears {
+  transform-box: fill-box;
+  transform-origin: center top;
+  animation: d-stitch-ear 4s ease-in-out infinite;
+}
+@keyframes d-stitch-ear {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(-4deg); }
+  60% { transform: rotate(3deg); }
+}
+
+/* ---- Scintillements dorés (étoiles, éclats, poussière magique) ---- */
+.d-sparkle, .d-stars-twinkle, .disney-scintille {
+  animation: d-sparkle 2.6s ease-in-out infinite;
+}
+@keyframes d-sparkle {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+.disney-eclat {
+  animation: d-eclat 3s ease-in-out infinite;
+}
+@keyframes d-eclat {
+  0%, 100% { opacity: 0.5; }
+  40% { opacity: 1; }
+}
+
+.d-tink-dust {
+  animation: d-dust 3.4s ease-in-out infinite;
+}
+@keyframes d-dust {
+  0%, 100% { opacity: 0.35; transform: translate(0, 0); }
+  50% { opacity: 1; transform: translate(-2px, 3px); }
+}
+
+/* ---- Compagnons ---- */
+.d-pluto-tail {
+  transform-box: fill-box;
+  animation: d-tail-wag 0.7s ease-in-out infinite;
+}
+@keyframes d-tail-wag {
+  0%, 100% { transform: rotate(-14deg); }
+  50% { transform: rotate(14deg); }
+}
+
+.d-tigrou-bounce {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: d-bounce 1s cubic-bezier(0.3, 0.7, 0.4, 1) infinite;
+}
+@keyframes d-bounce {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  25% { transform: translateY(-5px) scaleY(1.06); }
+  55% { transform: translateY(0) scaleY(0.94); }
+  70% { transform: translateY(0) scaleY(1.02); }
+}
+
+.d-dalmatien-run {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: d-run 0.5s ease-in-out infinite;
+}
+@keyframes d-run {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-2px) rotate(2deg); }
+}
+
+.d-genie-float, .d-clochette-fly {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: d-hover 3.2s ease-in-out infinite;
+}
+@keyframes d-hover {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-4px) rotate(2deg); }
+}
+
+.d-genie-smoke {
+  transform-box: fill-box;
+  transform-origin: center top;
+  animation: d-smoke 4.5s ease-in-out infinite;
+}
+@keyframes d-smoke {
+  0%, 100% { transform: skewX(0deg) scaleY(1); }
+  50% { transform: skewX(4deg) scaleY(1.04); }
+}
+
+.d-dumbo-ear-l, .d-dumbo-ear-r { transform-box: fill-box; }
+.d-dumbo-ear-l { animation: d-flap-l 0.9s ease-in-out infinite; }
+.d-dumbo-ear-r { animation: d-flap-r 0.9s ease-in-out infinite; }
+@keyframes d-flap-l {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-13deg); }
+}
+@keyframes d-flap-r {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(13deg); }
+}
+
+.d-clochette-wings, .d-tink-wings {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: d-wings 0.22s ease-in-out infinite;
+}
+@keyframes d-wings {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.72); }
+}
+
+/* ---- Skins complets ---- */
+.d-mickey-gloves {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: d-hover 4s ease-in-out infinite;
+}
+
+.d-donald-cap {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: d-sway 4.6s ease-in-out infinite;
+}
+
+.d-donald-tail {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  animation: d-tail-wag 1.6s ease-in-out infinite;
+}
+
+.d-stitch-spikes {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: d-breathe 3.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .d-ears-wiggle, .d-mickey-ears, .d-bow-pop, .d-braid-sway, .d-hair-flow,
+  .d-mane-breathe, .d-feather-wave, .d-stitch-ears, .d-sparkle,
+  .d-stars-twinkle, .disney-scintille, .disney-eclat, .d-tink-dust,
+  .d-pluto-tail, .d-tigrou-bounce, .d-dalmatien-run, .d-genie-float,
+  .d-clochette-fly, .d-genie-smoke, .d-dumbo-ear-l, .d-dumbo-ear-r,
+  .d-clochette-wings, .d-tink-wings, .d-mickey-gloves, .d-donald-cap,
+  .d-donald-tail, .d-stitch-spikes {
+    animation: none;
+  }
+  /* sans animation, les éléments scintillants doivent rester visibles */
+  .d-sparkle, .d-stars-twinkle, .disney-scintille, .disney-eclat, .d-tink-dust {
+    opacity: 1;
+  }
+}

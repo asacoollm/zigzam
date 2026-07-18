@@ -1,32 +1,46 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import {
-  SAISON_ACTIVE, SAISON_ACTIVE_ID, isSaisonActive, isSaisonTerminee,
-  joursRestants, mergeSaison,
+  SAISONS, TOUTES_SAISONS, SAISON_COURANTE, isSaisonActive, isSaisonTerminee,
+  joursRestants, mergeSaison, trouverSaisonActive,
 } from '../lib/saison'
 import { getSaisonActive, subscribeToSaison } from '../lib/modules'
 
 // ============================================================
-//  SaisonContext — sait, partout dans l'appli, si une saison est active.
-//  - Part de la config statique (src/lib/saison.js).
-//  - Surcharge avec la ligne base (toggle + dates du superadmin) si présente.
+//  SaisonContext — sait, partout dans l'appli, quelle saison est en cours.
+//  - Part de la config statique (src/lib/saison.js), pour un rendu immédiat.
+//  - Interroge la base pour CHAQUE saison enregistrée (toggle + dates du
+//    superadmin) et retient celle qui est réellement activée.
+//  - Si aucune n'est active, on retombe sur la saison « courante » (la
+//    dernière sortie) : l'appli reste dans son thème normal, mais l'onglet
+//    de skins sait encore de quelle saison il parle (« Saison terminée »).
 //  - Applique/retire la classe body `saison-<slug>` qui pilote tout le thème
 //    CSS. Quand la classe est absente, l'appli revient à son état normal.
 // ============================================================
 
 const SaisonContext = createContext(null)
 
+// Fusionne le catalogue code avec les lignes base reçues (indexées par slug).
+function fusionner(lignes) {
+  return TOUTES_SAISONS.map((s) => mergeSaison(s, lignes[s.slug] ?? null))
+}
+
 export function SaisonProvider({ children }) {
-  // On démarre sur la config code (rendu immédiat sans attendre le réseau),
-  // puis on fusionne la ligne base dès qu'elle arrive.
-  const [saison, setSaison] = useState(SAISON_ACTIVE)
-  // Re-tic quotidien léger pour réévaluer le décompte / la fin de saison.
+  // Toutes les saisons connues, fusionnées avec la base au fur et à mesure.
+  const [saisons, setSaisons] = useState(() => fusionner({}))
+  // Re-tic horaire léger pour réévaluer le décompte / la fin de saison.
   const [, setTick] = useState(0)
 
+  // Chargement initial : une lecture par saison enregistrée (elles sont peu
+  // nombreuses, et le RPC public `get_saison_active` prend un slug).
   useEffect(() => {
     let on = true
-    if (!SAISON_ACTIVE) return
-    getSaisonActive(SAISON_ACTIVE_ID).then((ligne) => {
-      if (on && ligne) setSaison(mergeSaison(SAISON_ACTIVE, ligne))
+    Promise.all(
+      TOUTES_SAISONS.map((s) => getSaisonActive(s.slug).then((l) => [s.slug, l])),
+    ).then((paires) => {
+      if (!on) return
+      const lignes = {}
+      for (const [slug, ligne] of paires) if (ligne) lignes[slug] = ligne
+      setSaisons(fusionner(lignes))
     })
     return () => { on = false }
   }, [])
@@ -38,27 +52,41 @@ export function SaisonProvider({ children }) {
   }, [])
 
   // Temps réel : écoute le canal broadcast « zigzam:saison ». Quand le
-  // superadmin active/désactive la saison, tous les clients connectés
+  // superadmin active/désactive une saison, tous les clients connectés
   // basculent leur thème immédiatement, sans recharger la page.
   useEffect(() => {
-    if (!SAISON_ACTIVE) return
     const unsub = subscribeToSaison((ligne) => {
-      setSaison(ligne ? mergeSaison(SAISON_ACTIVE, ligne) : SAISON_ACTIVE)
+      if (!ligne?.slug || !SAISONS[ligne.slug]) return
+      setSaisons((prev) => prev.map((s) => (
+        s.slug === ligne.slug ? mergeSaison(SAISONS[s.slug], ligne) : s
+      )))
     })
     return unsub
   }, [])
 
   const value = useMemo(() => {
-    const active = isSaisonActive(saison)
+    const enCours = trouverSaisonActive(saisons)
+    // Aucune saison active → on expose quand même la saison courante (pour
+    // l'onglet de skins « Saison terminée »), mais `active` reste false.
+    const saison = enCours
+      ?? saisons.find((s) => s.slug === SAISON_COURANTE?.slug)
+      ?? SAISON_COURANTE
     return {
       saison,
-      active,
+      saisons,
+      active: !!enCours,
       terminee: isSaisonTerminee(saison),
       joursRestants: joursRestants(saison),
       slug: saison?.slug ?? null,
-      refresh: (ligne) => setSaison(ligne ? mergeSaison(SAISON_ACTIVE, ligne) : SAISON_ACTIVE),
+      // Le panel admin pousse la ligne mise à jour pour un basculement instantané.
+      refresh: (ligne) => {
+        if (!ligne?.slug || !SAISONS[ligne.slug]) return
+        setSaisons((prev) => prev.map((s) => (
+          s.slug === ligne.slug ? mergeSaison(SAISONS[s.slug], ligne) : s
+        )))
+      },
     }
-  }, [saison])
+  }, [saisons])
 
   // Pilote le thème global : classe body `saison-<slug>` (+ `saison-active`).
   useEffect(() => {
@@ -81,11 +109,12 @@ export function useSaison() {
   // Tolérant : hors provider (tests, rendus isolés), on retombe sur la config code.
   if (!ctx) {
     return {
-      saison: SAISON_ACTIVE,
-      active: isSaisonActive(SAISON_ACTIVE),
-      terminee: isSaisonTerminee(SAISON_ACTIVE),
-      joursRestants: joursRestants(SAISON_ACTIVE),
-      slug: SAISON_ACTIVE?.slug ?? null,
+      saison: SAISON_COURANTE,
+      saisons: TOUTES_SAISONS,
+      active: isSaisonActive(SAISON_COURANTE),
+      terminee: isSaisonTerminee(SAISON_COURANTE),
+      joursRestants: joursRestants(SAISON_COURANTE),
+      slug: SAISON_COURANTE?.slug ?? null,
       refresh: () => {},
     }
   }

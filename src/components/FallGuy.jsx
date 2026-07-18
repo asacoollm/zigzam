@@ -1,7 +1,9 @@
 import { normalizeAvatar, resolveColor } from '../lib/avatar'
 import {
-  renderHat, renderGlasses, renderHair, renderHairBack, renderSport, renderAnimal, renderFace, animalWide,
+  renderHat, renderGlasses, renderHair, renderHairBack, renderSport, renderAnimal, renderFace,
+  renderFull, animalWide,
 } from './avatarParts'
+import { DisneyColorDefs } from './disneyFaces'
 import './FallGuy.css'
 
 // Défs de couleurs spéciales (dégradés / motifs / effets) — rendues une fois par SVG.
@@ -91,6 +93,9 @@ function ColorDefs() {
         <stop offset="0" stopColor="#7fd4ff" /><stop offset="0.5" stopColor="#1f6fd6" />
         <stop offset="1" stopColor="#123a8a" />
       </linearGradient>
+
+      {/* ====== 🏰 ZIGZAMLAND PARIS — couleurs exclusives de saison ====== */}
+      <DisneyColorDefs />
     </>
   )
 }
@@ -235,6 +240,8 @@ export default function FallGuy({
   const colorId = a?.color || color
   const { fill: bodyFill } = resolveColor(colorId)
   const cls = `fg ${anim ? 'fg--' + anim : ''} ${className}`.trim()
+  // Skin complet (saison Zigzamland) : remplace tout le bonhomme s'il existe.
+  const fullSkin = a?.full ? renderFull(a.full) : null
   // Tout animal de compagnie prend place À DROITE du bonhomme → on élargit le viewBox.
   const wide = a?.animal && animalWide(a.animal)
   const viewBox = wide ? '0 -24 214 192' : '0 -24 120 192'
@@ -249,6 +256,18 @@ export default function FallGuy({
     >
       <defs><ColorDefs /></defs>
 
+      {/* Skin « complet » : remplace intégralement le bonhomme (corps, tête,
+          membres, visage). Les accessoires posés dessus n'ont plus de sens,
+          on rend donc UNIQUEMENT le skin — sauf l'animal de compagnie et le
+          badge de rôle, qui vivent à côté du personnage. */}
+      {fullSkin ? (
+        <>
+          {fullSkin}
+          {a?.animal && renderAnimal(a.animal)}
+          <RoleBadge role={role} />
+        </>
+      ) : (
+      <>
       {/* Jambes */}
       <rect x="39" y="118" width="14" height="34" rx="7" fill={bodyFill} />
       <rect x="67" y="118" width="14" height="34" rx="7" fill={bodyFill} />
@@ -310,6 +329,8 @@ export default function FallGuy({
 
       {/* Badge de rôle (admin / superadmin), par-dessus tout, sur le ventre */}
       <RoleBadge role={role} />
+      </>
+      )}
     </svg>
   )
 }

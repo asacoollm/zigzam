@@ -165,3 +165,185 @@
   .sann__card, .sann__trex, .sann__head, .sann__ch, .sann__title-emoji,
   .sann__bolt, .sann__backdrop, .dino-roar-jaw { animation: none; }
 }
+
+/* ============================================================
+   VARIANTE « ZIGZAMLAND PARIS ✨ » 🏰
+   ------------------------------------------------------------
+   Scopée sous `.sann--disney` : surcharge la peau verte Jurassic
+   par un ciel bleu nuit doré. La structure reste identique.
+   ============================================================ */
+
+/* Ciel bleu nuit derrière la modale (au lieu du voile vert). */
+.sann--disney .sann__backdrop {
+  background:
+    radial-gradient(70% 55% at 50% 0%, rgba(70, 70, 180, 0.55), transparent 70%),
+    linear-gradient(168deg, rgba(10, 10, 46, 0.94), rgba(13, 13, 59, 0.97));
+}
+
+/* Les « éclairs » Jurassic deviennent des étoiles filantes dorées. */
+.sann--disney .sann__bolt {
+  background: linear-gradient(180deg, rgba(255, 233, 168, 0.9), transparent 70%);
+}
+
+/* Carte : parchemin de nuit à bordure dorée. */
+.sann--disney .sann__card {
+  background: linear-gradient(165deg, #14144a, #1d1d5e 58%, #0a0a2e);
+  border: 2px solid rgba(255, 215, 106, 0.55);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.65),
+    0 0 50px rgba(255, 215, 106, 0.18),
+    inset 0 0 60px rgba(40, 30, 90, 0.5);
+  /* Entrée en douceur : la magie s'installe, elle ne tremble pas. */
+  animation: sann-enter 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+/* La scène : château + bonhomme danseur côte à côte. */
+.sann--disney .sann__scene {
+  position: relative;
+  align-items: flex-end;
+  gap: 4px;
+}
+.sann__chateau {
+  width: min(260px, 62vw);
+  height: auto;
+  filter: drop-shadow(0 0 22px rgba(120, 130, 255, 0.45));
+}
+/* Le bonhomme aux oreilles Mickey, qui danse devant le château. */
+.sann__danseur {
+  width: 82px;
+  height: auto;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5));
+}
+
+/* Fenêtres du château qui s'allument une à une. */
+.sann__win { opacity: 0.25; animation: sann-win 5s ease-in-out infinite; }
+.sann__win--0 { animation-delay: 0s; }
+.sann__win--1 { animation-delay: 0.7s; }
+.sann__win--2 { animation-delay: 1.4s; }
+.sann__win--3 { animation-delay: 2.1s; }
+.sann__win--4 { animation-delay: 2.8s; }
+.sann__win--5 { animation-delay: 3.5s; }
+@keyframes sann-win {
+  0%, 100% { opacity: 0.22; }
+  45% { opacity: 1; filter: drop-shadow(0 0 5px #ffd76a); }
+}
+
+/* Étoile au sommet de la tour centrale. */
+.sann__topstar {
+  transform-origin: 130px 6px;
+  animation: sann-topstar 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #ffd76a);
+}
+@keyframes sann-topstar {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(10deg); }
+}
+
+/* ---- Titre doré scintillant, lettres qui apparaissent une par une ---- */
+.sann--disney .sann__ch {
+  background: linear-gradient(96deg, #e0a92a, #fff3c4 45%, #ffd76a 60%, #e0a92a);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sann-ch-magie 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.4) both,
+             sann-dore 4.5s linear infinite;
+  text-shadow: none;
+}
+@keyframes sann-ch-magie {
+  0% { opacity: 0; transform: translateY(-16px) scale(0.4) rotate(-14deg); filter: brightness(3); }
+  60% { opacity: 1; transform: translateY(0) scale(1.18) rotate(4deg); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes sann-dore {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 220% 50%; }
+}
+.sann--disney .sann__title-emoji {
+  animation: sann-topstar 2.4s ease-in-out infinite;
+}
+
+.sann--disney .sann__subtitle { color: #ffe9a8; }
+.sann--disney .sann__desc { color: #d9d6ff; }
+.sann--disney .sann__desc strong { color: #ffd76a; }
+
+/* ---- Décompte ---- */
+.sann--disney .sann__countdown {
+  background: rgba(255, 215, 106, 0.1);
+  border-color: rgba(255, 215, 106, 0.45);
+}
+.sann--disney .sann__countdown-num { color: #ffe07a; }
+.sann--disney .sann__countdown-label { color: #c7c2ff; }
+
+/* ---- Bouton doré ---- */
+.sann--disney .sann__btn {
+  background: linear-gradient(120deg, #e0a92a, #ffd76a 45%, #fff3c4 58%, #e0a92a);
+  background-size: 200% 100%;
+  color: #2a2266;
+  border: 1.5px solid rgba(255, 243, 196, 0.8);
+  box-shadow: 0 10px 26px rgba(224, 169, 42, 0.45);
+  animation: sann-dore 5s linear infinite;
+}
+.sann--disney .sann__btn:hover {
+  box-shadow: 0 14px 34px rgba(255, 215, 106, 0.6);
+}
+
+/* ============================================================
+   FEUX D'ARTIFICE de la modale (ouverture + clic du bouton)
+   ============================================================ */
+.sann__fw {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.sann__fw-svg {
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  opacity: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 106, 0.65));
+  animation: sann-fw 2.6s ease-out both;
+}
+.sann__fw-svg--0 { top: 6%;  left: 8%;  animation-delay: 0.15s; }
+.sann__fw-svg--1 { top: 3%;  left: 64%; animation-delay: 0.5s; }
+.sann__fw-svg--2 { top: 42%; left: 74%; animation-delay: 0.85s; }
+.sann__fw-svg--3 { top: 48%; left: 4%;  animation-delay: 1.2s; }
+
+@keyframes sann-fw {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.sann__fw-burst {
+  transform-origin: center;
+  animation: sann-fw-burst 2.6s ease-out both;
+}
+.sann__fw-svg--0 .sann__fw-burst { animation-delay: 0.15s; }
+.sann__fw-svg--1 .sann__fw-burst { animation-delay: 0.5s; }
+.sann__fw-svg--2 .sann__fw-burst { animation-delay: 0.85s; }
+.sann__fw-svg--3 .sann__fw-burst { animation-delay: 1.2s; }
+@keyframes sann-fw-burst {
+  0% { transform: scale(0.05); opacity: 1; }
+  45% { transform: scale(1); opacity: 1; }
+  75% { transform: scale(1.2) translateY(10px); opacity: 0.5; }
+  100% { transform: scale(1.3) translateY(26px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sann__win, .sann__topstar, .sann__fw-svg, .sann__fw-burst,
+  .sann--disney .sann__ch, .sann--disney .sann__btn,
+  .sann--disney .sann__title-emoji {
+    animation: none;
+  }
+  .sann__win { opacity: 1; }
+  /* sans animation, le titre doit rester lisible (le gradient-clip
+     dépend de l'animation pour son rendu final) */
+  .sann--disney .sann__ch {
+    background: none;
+    color: #ffd76a;
+    -webkit-text-fill-color: #ffd76a;
+  }
+}
