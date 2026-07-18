@@ -6,6 +6,26 @@
    absente, l'application retrouve EXACTEMENT son apparence normale.
    ============================================================ */
 
+/* ============================================================
+   LISIBILITÉ EN THÈME SOMBRE
+   ------------------------------------------------------------
+   Le fond passe en bleu nuit : les textes de l'appli, écrits en
+   `--texte` (#2b2350, presque noir), deviennent illisibles dessus.
+
+   STRATÉGIE — on ne bascule PAS `--texte` au niveau de <body>.
+   L'appli compte une trentaine de surfaces réellement claires
+   (champs de saisie, modales blanches, bulles de chat « parchemin »…) :
+   un basculement global y écrirait du blanc sur blanc, soit un défaut
+   pire que celui qu'on corrige.
+   À la place, `--texte` / `--texte-doux` sont redéfinis UNIQUEMENT à
+   l'intérieur des conteneurs que cette feuille assombrit elle-même
+   (voir « SURFACES SOMBRES »). Les variables étant héritées, tous les
+   descendants suivent, et les surfaces claires restent intactes.
+
+   ⇒ En assombrissant une nouvelle surface, ajoute-la à cette liste :
+     fond sombre et palette de texte claire vont toujours ensemble.
+   ============================================================ */
+
 /* ---- Ciel bleu nuit étoilé (remplace le dégradé pastel) ---- */
 body.saison-disney {
   background:
@@ -114,6 +134,52 @@ body.saison-disney .zlogo__sub {
   --etoile-magique: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 3 l6 13.6 14.8 1.3 -11.2 9.8 3.4 14.5 -13 -7.8 -13 7.8 3.4 -14.5 -11.2 -9.8 14.8 -1.3 Z' fill='%23ffd76a'/%3E%3C/svg%3E");
 }
 
+/* ============================================================
+   SURFACES SOMBRES — cartes « glassmorphism »
+   ------------------------------------------------------------
+   Partout dans l'appli les cartes sont en rgba(255,255,255,.45–.55).
+   Composées sur le bleu nuit elles virent au lavande pâle, ce qui
+   jure avec le texte clair : on les repasse en bleu nuit translucide.
+   ============================================================ */
+body.saison-disney .dash__top,
+body.saison-disney .rules,
+body.saison-disney .dash__pause-bonus,
+body.saison-disney .tile {
+  /* Palette de texte claire, limitée à ce sous-arbre (les variables
+     sont héritées : tous les descendants en profitent). */
+  --texte: #f2f0ff;
+  --texte-doux: #b9b2e8;
+  color: #f2f0ff;
+}
+body.saison-disney .dash__top,
+body.saison-disney .rules {
+  background: rgba(26, 26, 78, 0.62);
+  border-color: rgba(255, 215, 106, 0.28);
+  box-shadow:
+    0 16px 36px rgba(6, 6, 34, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+body.saison-disney .rules__head:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+/* Chevron des « Règles » : violet sur fond sombre → doré */
+body.saison-disney .rules__chevron { color: #ffd76a; opacity: 0.9; }
+
+/* Bouton de déconnexion : violet foncé illisible sur bleu nuit */
+body.saison-disney .dash__logout {
+  background: rgba(255, 215, 106, 0.14);
+  color: #ffe9a8;
+}
+body.saison-disney .dash__logout:hover {
+  background: rgba(255, 215, 106, 0.24);
+}
+
+/* Encadré « bonus de pause » : fond translucide + texte sombre d'origine */
+body.saison-disney .dash__pause-bonus {
+  background: linear-gradient(100deg, rgba(124, 110, 255, 0.22), rgba(255, 215, 106, 0.12));
+  border-color: rgba(255, 215, 106, 0.3);
+}
+
 /* ---- Dashboard : tuiles au contour doré scintillant + étoile au coin ---- */
 body.saison-disney .tile {
   background: rgba(30, 30, 76, 0.55);
@@ -122,6 +188,15 @@ body.saison-disney .tile {
     0 12px 30px rgba(6, 6, 34, 0.5),
     inset 0 0 20px rgba(124, 110, 255, 0.12);
   color: #f2f0ff;
+}
+/* Le nom du module force `color: var(--texte)` : sans cette règle il
+   resterait bleu nuit sur bleu nuit — c'est LE texte illisible signalé. */
+body.saison-disney .tile__label {
+  color: #fff6e2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+body.saison-disney .tile__emoji {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
 }
 /* le liseré du haut devient un ruban doré animé */
 body.saison-disney .tile::before {
@@ -208,3 +283,49 @@ body.saison-disney .news__write {
   color: #ffe9a8;
   box-shadow: 0 0 18px rgba(255, 215, 106, 0.25);
 }
+
+/* La carte d'actu est assombrie ci-dessus : ses enfants (pseudo, date,
+   titre, texte, compteur, commentaires) redéclarent tous `var(--texte)`.
+   Redéfinir la variable SUR la carte les corrige tous d'un coup, par
+   héritage — y compris `.news__comment-body`, qui est transparent. */
+body.saison-disney .news__card {
+  --texte: #eeecff;
+  --texte-doux: #b9b2e8;
+}
+/* Le pseudo d'un commentaire est en violet foncé : illisible sur bleu nuit. */
+body.saison-disney .news__comment-pseudo { color: #c3b3ff; }
+
+/* ============================================================
+   TEXTES POSÉS DIRECTEMENT SUR LE FOND DE PAGE
+   ------------------------------------------------------------
+   Ces éléments n'ont aucune carte pour les porter : ils reposent sur
+   le ciel bleu nuit, où leur `var(--texte)` d'origine est illisible.
+   (Les textes DANS une carte claire ne sont pas touchés : ils doivent
+   rester sombres.)
+   ============================================================ */
+body.saison-disney .news__muted,          /* fil d'actus vide */
+body.saison-disney .boitep__loading,      /* boîtes mystères */
+body.saison-disney .boitep__hint,
+body.saison-disney .boitep__opening-text,
+body.saison-disney .serie__intro,         /* série */
+body.saison-disney .serie__empty,
+body.saison-disney .flava__hint {         /* floor is lava */
+  color: #d9d6ff;
+}
+
+/* Encart du skin révélé : fond quasi transparent (blanc 14 %) qui laisse
+   passer le bleu nuit → son libellé doit passer en clair. */
+body.saison-disney .reveal__skin {
+  --texte: #f2f0ff;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 215, 106, 0.35);
+}
+body.saison-disney .reveal__skin-tag { color: #ffd76a; }
+
+/* Pastilles et messages flash : fonds translucides (12–18 %) qui laissent
+   passer le bleu nuit, avec un texte de couleur SOMBRE. On éclaircit le
+   texte sans toucher aux fonds, qui restent des repères de couleur utiles.
+   (`.news__pill--refuse` a un fond rouge pâle OPAQUE : on n'y touche pas.) */
+body.saison-disney .news__pill--wait { color: #ffc48a; }
+body.saison-disney .contacts__flash--ok { color: #7ff0b6; }
+body.saison-disney .contacts__flash--err { color: #ff9d9d; }
