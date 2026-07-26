@@ -20,6 +20,8 @@ export const SPECIAL_COLORS = [
   // 🏰 Zigzamland Paris (exclusifs de saison)
   'dbleugenie', 'dorpicsou', 'drougedonald', 'dmauveursula', 'droseaurore',
   'dvertpeter', 'dfantasia', 'darcenciel', 'ddalmatiencolor', 'drouxariel',
+  // 👑 Pass VIP (exclusifs, achetables tant que le pass est actif)
+  'vipdiamond', 'vipemerald', 'vipruby', 'vipsapphire', 'viprosegold', 'vipobsidian',
 ]
 
 // Résout une couleur (id ou hex legacy) en remplissage SVG.
@@ -70,6 +72,12 @@ export const CATEGORIES = [
       { id: 'dorpicsou', label: 'Or Picsou', price: 14, saison: 'disney' },
       { id: 'dfantasia', label: 'Bleu Nuit Fantasia', price: 14, saison: 'disney' },
       { id: 'darcenciel', label: 'Arc-en-ciel Magique', price: 15, saison: 'disney' },
+      { id: 'vipdiamond', label: 'Diamant VIP', price: 8, vip: true },
+      { id: 'vipemerald', label: 'Émeraude VIP', price: 8, vip: true },
+      { id: 'vipruby', label: 'Rubis VIP', price: 8, vip: true },
+      { id: 'vipsapphire', label: 'Saphir VIP', price: 8, vip: true },
+      { id: 'viprosegold', label: 'Or Rose VIP', price: 9, vip: true },
+      { id: 'vipobsidian', label: 'Obsidienne Royale VIP', price: 10, vip: true },
     ],
   },
   {
@@ -394,5 +402,37 @@ export function getSaisonsPossedees(avatar) {
     }
   }
   return [...slugs]
+}
+
+// ============================================================
+//  Skins exclusifs du Pass VIP 👑 — même patron que les saisons : ils
+//  vivent dans leur catégorie native (color) et portent un drapeau `vip`.
+//  Achetables uniquement pendant que le pass est actif ; restent
+//  équipables à vie une fois acquis.
+// ============================================================
+export const VIP_LABEL = '👑 Pass VIP — Exclusif'
+export const VIP_EMOJI = '👑'
+
+// Tous les skins exclusifs VIP, à plat, enrichis de `_cat`.
+export function getVipItems() {
+  const out = []
+  for (const cat of CATEGORIES) {
+    for (const item of cat.items) {
+      if (item.vip) out.push({ ...item, _cat: cat.id })
+    }
+  }
+  return out
+}
+
+// True si l'élève possède déjà au moins un skin VIP (garde l'onglet visible
+// à vie même après expiration du pass).
+export function hasVipItemsPossedes(avatar) {
+  const owned = new Set(avatar?.owned ?? [])
+  for (const cat of CATEGORIES) {
+    for (const item of cat.items) {
+      if (item.vip && owned.has(accKey(cat.id, item.id))) return true
+    }
+  }
+  return false
 }
 

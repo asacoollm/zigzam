@@ -79,7 +79,7 @@ function Commentaires({ actuId, user }) {
       ) : (
         comments.map((c) => (
           <div key={c.id} className="news__comment">
-            <FallGuy className="news__comment-av" avatar={c.auteur.avatar} role={c.auteur.role} />
+            <FallGuy className="news__comment-av" avatar={c.auteur.avatar} role={c.auteur.role} vip={c.auteur.vip} />
             <div className="news__comment-body">
               <span className="news__comment-pseudo">{c.auteur.pseudo}</span>
               <span className="news__comment-text">{c.contenu}</span>
@@ -127,7 +127,7 @@ function CarteActu({ actu, user }) {
   return (
     <article className="news__card">
       <header className="news__head">
-        <FallGuy className="news__av" avatar={actu.auteur.avatar} anim="idle" role={actu.auteur.role} />
+        <FallGuy className="news__av" avatar={actu.auteur.avatar} anim="idle" role={actu.auteur.role} vip={actu.auteur.vip} />
         <div className="news__meta">
           <span className="news__pseudo">{actu.auteur.pseudo}</span>
           <span className="news__date">{formatDate(actu.date)}</span>

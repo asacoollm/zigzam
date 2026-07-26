@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
-import { exchange, sendValue, getTransactions } from '../lib/modules'
+import { exchange, sendValue, getTransactions, exchangeToBurgers } from '../lib/modules'
 import './Economie.css'
 
 export default function Economie() {
@@ -44,6 +44,20 @@ export default function Economie() {
     if (res.ok) {
       updateUser({ donuts: res.donuts, gemmes: res.gemmes })
       setExchangeMsg({ type: 'ok', text: 'Échange réussi ! ✨' })
+      chargerHistorique()
+    } else {
+      setExchangeMsg({ type: 'err', text: res.error })
+    }
+    setExchangeLoading(false)
+  }
+
+  const handleExchangeBurgers = async () => {
+    setExchangeLoading(true)
+    setExchangeMsg(null)
+    const res = await exchangeToBurgers(user.id, 1)
+    if (res.ok) {
+      updateUser({ gemmes: res.gemmes, burgers: res.burgers })
+      setExchangeMsg({ type: 'ok', text: 'Échange réussi ! 🍔' })
       chargerHistorique()
     } else {
       setExchangeMsg({ type: 'err', text: res.error })
@@ -111,6 +125,10 @@ export default function Economie() {
           💎 <span className="eco__pastille-valeur">{user.gemmes}</span>
           <span className="eco__pastille-label">gemmes</span>
         </div>
+        <div className="eco__pastille eco__pastille--burger">
+          🍔 <span className="eco__pastille-valeur">{user.burgers ?? 0}</span>
+          <span className="eco__pastille-label">burgers</span>
+        </div>
       </div>
 
       {/* Échanger */}
@@ -134,6 +152,19 @@ export default function Economie() {
             disabled={exchangeLoading}
           >
             1 💎 → 5 🍩
+          </button>
+        </div>
+
+        <p className="eco__taux">
+          Taux Burgers 🍔&nbsp;: <strong>1 💎 = 10 🍔</strong>
+        </p>
+        <div className="eco__exchange-btns">
+          <button
+            className="eco__btn"
+            onClick={handleExchangeBurgers}
+            disabled={exchangeLoading || user.gemmes < 1}
+          >
+            1 💎 → 10 🍔
           </button>
         </div>
 

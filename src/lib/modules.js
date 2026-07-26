@@ -279,6 +279,15 @@ export async function getTransactions(userId) {
   return r.error ? [] : r.data
 }
 
+// Échange 1 💎 = 10 🍔 (sens unique, gemmes -> burgers).
+export async function exchangeToBurgers(userId, gemmesAmount) {
+  const r = await rpc('exchange_to_burgers', { p_user: userId, p_gemmes: gemmesAmount })
+  if (r.error) return r
+  if (r.data?.error === 'not_enough') return { error: 'Solde insuffisant.' }
+  if (r.data?.error) return { error: ERR }
+  return { ok: true, gemmes: r.data.gemmes, burgers: r.data.burgers }
+}
+
 // ---------------- PARAMÈTRES ----------------
 export async function changePassword(userId, oldPwd, newPwd) {
   const r = await rpc('change_password', { p_user: userId, p_old: oldPwd, p_new: newPwd })
@@ -573,4 +582,66 @@ export async function adminUpdateSaison(adminId, slug, { actif, debut, fin } = {
 export async function adminSaisonStats(adminId, slug) {
   const r = await rpc('admin_saison_stats', { p_admin: adminId, p_slug: slug })
   return r.error ? null : r.data
+}
+
+// ---------------- SHOP 🛍️ ----------------
+
+// Achat de burgers contre des gemmes (offres fixes validées côté serveur).
+export async function buyBurgers(userId, amount, costGemmes) {
+  const r = await rpc('buy_burgers', { p_user: userId, p_amount: amount, p_cost_gemmes: costGemmes })
+  if (r.error) return r
+  if (r.data?.error === 'not_enough') return { error: 'Pas assez de gemmes 💎' }
+  if (r.data?.error) return { error: ERR }
+  return { ok: true, gemmes: r.data.gemmes, burgers: r.data.burgers }
+}
+
+// Statut du cadeau du jour (sans le réclamer).
+export async function getDailyGiftStatus(userId) {
+  const r = await rpc('get_daily_gift_status', { p_user: userId })
+  return r.error ? { claimed: false, next_reset: null } : r.data
+}
+
+// Réclame le cadeau du jour (tirage aléatoire, doublé si VIP).
+export async function claimDailyGift(userId) {
+  const r = await rpc('claim_daily_gift', { p_user: userId })
+  if (r.error) return r
+  if (r.data?.error === 'deja_recupere') return { error: 'déjà récupéré', next_reset: r.data.next_reset }
+  if (r.data?.error) return { error: ERR }
+  return r.data
+}
+
+// ---------------- MÉGA BOÎTES 📦 ----------------
+export async function getMyMegaBoites(userId) {
+  const r = await rpc('get_my_mega_boites', { p_user: userId })
+  return r.error ? [] : r.data
+}
+export async function buyMegaBoite(userId, niveau) {
+  const r = await rpc('buy_mega_boite', { p_user: userId, p_niveau: niveau })
+  if (r.error) return r
+  if (r.data?.error === 'not_enough') return { error: 'Pas assez de burgers 🍔' }
+  if (r.data?.error) return { error: ERR }
+  return { ok: true, id: r.data.id, burgers: r.data.burgers }
+}
+export async function openMegaBoite(userId, boiteId) {
+  const r = await rpc('open_mega_boite', { p_user: userId, p_boite: boiteId })
+  if (r.error) return r
+  if (r.data?.error) return { error: ERR }
+  return r.data
+}
+
+// ---------------- PASS VIP 👑 ----------------
+export async function buyVipPass(userId) {
+  const r = await rpc('buy_vip_pass', { p_user: userId })
+  if (r.error) return r
+  if (r.data?.error === 'not_enough') return { error: 'Il te faut 40 🍩 + 5 💎 + 30 🍔.' }
+  if (r.data?.error) return { error: ERR }
+  return r.data
+}
+
+// ---------------- IMPÔTS 💸 ----------------
+// Appelée à l'ouverture du dashboard : no-op côté serveur si < 14 jours.
+export async function checkAndApplyTaxes(userId) {
+  const r = await rpc('apply_taxes', { p_user: userId })
+  if (r.error || r.data?.error) return { applied: false }
+  return r.data
 }

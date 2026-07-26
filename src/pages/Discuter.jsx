@@ -399,6 +399,7 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
                       className="disc__bubble-av"
                       anim="idle"
                       role={msg.auteur?.role}
+                      vip={msg.auteur?.vip}
                     />
                     <span className="disc__bubble-pseudo">{msg.auteur?.pseudo || '?'}</span>
                   </div>
