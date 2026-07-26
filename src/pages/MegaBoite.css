@@ -89,12 +89,11 @@
   0%, 100% { opacity: 0.35; transform: scale(0.9); }
   50% { opacity: 0.7; transform: scale(1.1); }
 }
-.mgbox__body { font-size: 138px; line-height: 1; position: relative; z-index: 2; }
-.mgbox__lid {
-  position: absolute;
-  top: 4px;
-  z-index: 3;
-  font-size: 42px;
+.mgbox__art {
+  width: 188px;
+  height: 188px;
+  position: relative;
+  z-index: 2;
 }
 .mgbox--idle { animation: mgbox-tremble 2.2s ease-in-out infinite; }
 @keyframes mgbox-tremble {
@@ -272,9 +271,60 @@
   100% { top: 110%; opacity: 0.9; }
 }
 
+/* ---------------- Évolution de boîte (avant ouverture) ---------------- */
+.megab__evo-banner {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #7c3aff, #ff4d8d);
+  border-radius: 999px;
+  padding: 10px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 26px rgba(124, 58, 255, 0.4);
+  text-align: center;
+  animation: mgevo-banner-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes mgevo-banner-in {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.mgbox--evo-shake { animation: mgevo-shake 0.14s linear infinite; }
+@keyframes mgevo-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0) scale(1.05); }
+  25% { transform: translate(-6px, 3px) rotate(-6deg) scale(1.1); }
+  50% { transform: translate(6px, -3px) rotate(6deg) scale(1.14); }
+  75% { transform: translate(-5px, -3px) rotate(-4deg) scale(1.1); }
+}
+.mgbox--evo-shake .mgbox__glow {
+  animation: mgbox-glow 0.5s ease-in-out infinite;
+  opacity: 0.85;
+}
+.mgbox--evo-flash { animation: mgevo-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes mgevo-pop {
+  0% { transform: scale(1.1); }
+  40% { transform: scale(0.7); }
+  100% { transform: scale(1); }
+}
+.mgbox__flash {
+  position: absolute;
+  inset: -30%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0.6) 40%, transparent 70%);
+  z-index: 5;
+  animation: mgevo-flash 0.5s ease-out;
+}
+@keyframes mgevo-flash {
+  0% { opacity: 0; transform: scale(0.3); }
+  30% { opacity: 1; transform: scale(1.3); }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mgbox--idle, .mgbox--opening, .mgbox__glow, .mgbox__burst span, .megab__open,
-  .mrev__rarity, .mrev__item--pop, .mrev__bit, .megab__reveal--epic::before {
+  .mrev__rarity, .mrev__item--pop, .mrev__bit, .megab__reveal--epic::before,
+  .mgbox--evo-shake, .mgbox--evo-shake .mgbox__glow, .mgbox--evo-flash, .mgbox__flash,
+  .megab__evo-banner {
     animation: none;
   }
 }

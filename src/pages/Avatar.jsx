@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSaison } from '../context/SaisonContext'
+import { isSaisonTerminee } from '../lib/saison'
 import { saveAvatar, buyAccessory } from '../lib/auth'
 import { buyCustomSkin } from '../lib/modules'
 import { isVipActive } from '../lib/vip'
@@ -19,7 +20,7 @@ const VIP_TAB_ID = '__vip'
 
 export default function Avatar() {
   const { user, updateUser } = useAuth()
-  const { active: saisonActive, terminee: saisonTerminee, slug: saisonSlug } = useSaison()
+  const { active: saisonActive, slug: saisonSlug, saisons } = useSaison()
   const navigate = useNavigate()
   const location = useLocation()
   const vipActive = isVipActive(user.vip_expire_at)
@@ -80,16 +81,22 @@ export default function Avatar() {
   const isVipTab = tab === VIP_TAB_ID
   const saisonItems = useMemo(() => getSaisonItems(tabSaisonSlug), [tabSaisonSlug])
   const vipItems = useMemo(() => (isVipTab ? getVipItems() : []), [isVipTab])
-  // La saison de l'onglet courant tourne-t-elle vraiment en ce moment ?
-  const tabSaisonEnCours = !!tabSaisonSlug
-    && saisonActive && tabSaisonSlug === saisonSlug && !saisonTerminee
+
+  // Config base (actif/dates) d'une saison donnée, par slug.
+  const saisonConfigOf = (slug) => saisons?.find((s) => s.slug === slug) ?? null
+
+  // Une saison n'est « terminée » (skins verrouillés) QUE si sa date de fin
+  // est définie ET déjà passée. Un commutateur `actif` à false (ex. saison pas
+  // encore lancée, ou tests superadmin) ne doit PAS afficher « terminée » :
+  // tant qu'aucune date de fin n'est dépassée, les skins restent achetables.
+  const tabSaisonEnCours = !!tabSaisonSlug && !isSaisonTerminee(saisonConfigOf(tabSaisonSlug))
   const tabEmoji = isVipTab ? VIP_EMOJI : (SAISON_EMOJIS[tabSaisonSlug] || '⭐')
 
-  // Un skin de saison non possédé n'est achetable que pendant sa saison.
+  // Un skin de saison n'est verrouillé que si sa saison est réellement terminée.
   // Un skin VIP non possédé n'est achetable que pendant que le pass est actif.
   const estFerme = (item, owned) => {
     if (owned) return false
-    if (item.saison) return !(saisonActive && item.saison === saisonSlug && !saisonTerminee)
+    if (item.saison) return isSaisonTerminee(saisonConfigOf(item.saison))
     if (item.vip) return !vipActive
     return false
   }

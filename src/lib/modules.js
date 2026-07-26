@@ -620,7 +620,10 @@ export async function buyMegaBoite(userId, niveau) {
   if (r.error) return r
   if (r.data?.error === 'not_enough') return { error: 'Pas assez de burgers 🍔' }
   if (r.data?.error) return { error: ERR }
-  return { ok: true, id: r.data.id, burgers: r.data.burgers }
+  return {
+    ok: true, id: r.data.id, burgers: r.data.burgers,
+    evolved: r.data.evolved, niveauAchete: r.data.niveau_achete, niveauFinal: r.data.niveau_final,
+  }
 }
 export async function openMegaBoite(userId, boiteId) {
   const r = await rpc('open_mega_boite', { p_user: userId, p_boite: boiteId })

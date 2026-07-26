@@ -131,7 +131,12 @@ export default function Shop() {
     }
     updateUser({ burgers: res.burgers })
     loadMega()
-    flash(`Méga boîte ${niveau.label} achetée ! Direction /mega-boites pour l'ouvrir 📦`)
+    if (res.evolved) {
+      const finalLabel = MEGA_NIVEAUX.find((n) => n.id === res.niveauFinal)?.label ?? res.niveauFinal
+      flash(`✨ Coup de chance ! Ta boîte a évolué : ${niveau.label} → ${finalLabel} ! Direction /mega-boites 📦`)
+    } else {
+      flash(`Méga boîte ${niveau.label} achetée ! Direction /mega-boites pour l'ouvrir 📦`)
+    }
   }
 
   const handleBuyVip = async () => {
