@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import {
-  SAISONS, TOUTES_SAISONS, SAISON_COURANTE, isSaisonActive, isSaisonTerminee,
+  SAISONS, TOUTES_SAISONS, SAISON_COURANTE, isSaisonTerminee,
   joursRestants, mergeSaison, trouverSaisonActive,
 } from '../lib/saison'
 import { getSaisonActive, subscribeToSaison } from '../lib/modules'
@@ -74,7 +74,11 @@ export function SaisonProvider({ children }) {
     return {
       saison,
       saisons,
-      active: !!enCours,
+      // 🎨 Refonte « Gaming Pop » (maj-monumentale) : les thèmes de saison sont
+      // temporairement désactivés pour voir le nouveau design de base sans
+      // habillage de saison par-dessus. Remettre `!!enCours` pour réactiver
+      // le système normal (piloté par la base / le panel admin).
+      active: false,
       terminee: isSaisonTerminee(saison),
       joursRestants: joursRestants(saison),
       slug: saison?.slug ?? null,
@@ -111,7 +115,8 @@ export function useSaison() {
     return {
       saison: SAISON_COURANTE,
       saisons: TOUTES_SAISONS,
-      active: isSaisonActive(SAISON_COURANTE),
+      // 🎨 Refonte « Gaming Pop » (maj-monumentale) : saisons désactivées, cf. provider ci-dessus.
+      active: false,
       terminee: isSaisonTerminee(SAISON_COURANTE),
       joursRestants: joursRestants(SAISON_COURANTE),
       slug: SAISON_COURANTE?.slug ?? null,

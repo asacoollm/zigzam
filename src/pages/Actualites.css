@@ -57,21 +57,28 @@
   line-height: 1.5;
 }
 
-/* Bouton « Écrire une actu » */
+/* Bouton « Écrire une actu » — gaming pop, ombre 3D */
 .news__write {
   width: 100%;
   margin: 16px 0;
-  background: var(--degrade-zigzam);
-  background-size: 160% 100%;
+  background: var(--rose);
   color: #fff;
   font-size: 19px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 16px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(124, 58, 255, 0.4);
-  transition: transform 0.1s, background-position 0.4s;
+  box-shadow: 0 5px 0 var(--rose-fonce), 0 10px 24px rgba(43, 35, 80, 0.25);
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
 }
-.news__write:hover { transform: translateY(-2px); background-position: 100% 0; }
+.news__write:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.06);
+  box-shadow: 0 8px 0 var(--rose-fonce), 0 14px 28px rgba(43, 35, 80, 0.3);
+}
+.news__write:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--rose-fonce);
+}
 
 /* Formulaire d'écriture */
 .news__form {
@@ -163,20 +170,20 @@
 .news__form-actions { display: flex; gap: 10px; }
 .news__form-actions .news__btn { flex: 1; }
 
-/* Boutons génériques */
+/* Boutons génériques — gaming pop, ombre 3D */
 .news__btn {
-  background: var(--degrade-zigzam);
-  background-size: 160% 100%;
+  background: var(--violet);
   color: #fff;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 13px;
   border-radius: 14px;
-  box-shadow: 0 8px 18px rgba(124, 58, 255, 0.35);
-  transition: transform 0.1s, background-position 0.4s;
+  box-shadow: 0 4px 0 var(--violet-fonce);
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
 }
-.news__btn:hover:not(:disabled) { transform: translateY(-2px); background-position: 100% 0; }
-.news__btn:disabled { opacity: 0.65; cursor: wait; }
+.news__btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 6px 0 var(--violet-fonce); }
+.news__btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--violet-fonce); }
+.news__btn:disabled { opacity: 0.65; cursor: wait; box-shadow: none; }
 .news__btn--ghost {
   background: rgba(124, 58, 255, 0.1);
   color: var(--violet-fonce);
@@ -197,15 +204,14 @@
 .news__muted { color: var(--texte-doux); font-size: 15px; }
 .news__muted--center { text-align: center; padding: 30px 0; }
 
-/* Carte d'actu */
+/* Carte d'actu — plus grande, ombre prononcée */
 .news__card {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  border-radius: 22px;
-  padding: 18px;
-  box-shadow: 0 14px 32px rgba(124, 58, 255, 0.18);
+  background: #fff;
+  border: 2.5px solid rgba(124, 58, 255, 0.16);
+  border-radius: 26px;
+  padding: 20px;
+  box-shadow: 0 18px 40px rgba(43, 35, 80, 0.2);
+  margin: 0 -2px;
 }
 .news__head {
   display: flex;
@@ -218,8 +224,19 @@
   height: 64px;
   flex-shrink: 0;
 }
-.news__meta { display: flex; flex-direction: column; line-height: 1.2; }
-.news__pseudo { font-weight: 700; font-size: 16px; color: var(--texte); }
+.news__meta { display: flex; flex-direction: column; gap: 3px; line-height: 1.2; }
+/* Badge coloré par auteur (couleur stable dérivée du pseudo) */
+.news__pseudo {
+  display: inline-flex;
+  align-self: flex-start;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--texte);
+  background: color-mix(in srgb, var(--author-color, var(--violet)) 16%, #fff);
+  border: 2px solid var(--author-color, var(--violet));
+  border-radius: 10px;
+  padding: 2px 10px;
+}
 .news__date { font-size: 13px; color: var(--texte-doux); }
 
 .news__pill {
@@ -246,12 +263,13 @@
   word-break: break-word;
 }
 .news__img {
-  width: 100%;
-  max-height: 360px;
+  width: calc(100% + 40px);
+  max-width: none;
+  max-height: 380px;
   object-fit: cover;
-  border-radius: 16px;
+  border-radius: 0;
   display: block;
-  margin-bottom: 12px;
+  margin: 0 -20px 12px;
 }
 
 .news__foot {

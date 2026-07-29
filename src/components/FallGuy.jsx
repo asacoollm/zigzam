@@ -122,8 +122,62 @@ function ColorDefs() {
         <stop offset="0" stopColor="#c9a6ff" /><stop offset="0.45" stopColor="#2b1a4a" />
         <stop offset="1" stopColor="#0a0614" />
       </linearGradient>
+
+      {/* ====== 🎮 GAMING POP — relief 3D du corps (calqué par-dessus la couleur, quel qu'elle soit) ====== */}
+      <radialGradient id="fg-shade" cx="34%" cy="24%" r="80%">
+        <stop offset="0" stopColor="#fff" stopOpacity="0.6" />
+        <stop offset="42%" stopColor="#fff" stopOpacity="0" />
+        <stop offset="100%" stopColor="#150a30" stopOpacity="0.32" />
+      </radialGradient>
     </>
   )
+}
+
+// Silhouette « haricot » 3D (tête ronde + corps), réutilisée pour le fill couleur,
+// l'overlay de relief et l'ombre portée. Repère inchangé : centre x=60, tête ~y10-70.
+const BODY_PATH = 'M60 10 C 94 10 107 36 105 66 C 103 98 92 128 60 130 C 28 128 17 98 15 66 C 13 36 26 10 60 10 Z'
+
+// Costumes décoratifs (bonhommes flottants du décor uniquement) : cape, chapeau
+// de cowboy, lunettes de soleil, couronne. Purement additifs, ne touchent pas
+// au système d'accessoires (avatarParts.jsx).
+function Costume({ type }) {
+  switch (type) {
+    case 'cape':
+      return (
+        <g className="fg__cape">
+          <path d="M24 38 Q6 76 14 132 Q16 140 24 140 Q34 140 32 130 Q22 92 30 60 Q34 46 42 40 Z" fill="#ef4444" stroke="#a01d1d" strokeWidth="2" />
+          <path d="M96 38 Q114 76 106 132 Q104 140 96 140 Q86 140 88 130 Q98 92 90 60 Q86 46 78 40 Z" fill="#ef4444" stroke="#a01d1d" strokeWidth="2" />
+          <path d="M30 40 Q60 48 90 40 L90 46 Q60 54 30 46 Z" fill="#c81e1e" />
+        </g>
+      )
+    case 'cowboy':
+      return (
+        <g className="fg__cowboy">
+          <path d="M36 10 Q60 -20 84 10 Q62 -2 60 -2 Q58 -2 36 10 Z" fill="#dba75a" stroke="#8a5a22" strokeWidth="2.5" strokeLinejoin="round" />
+          <ellipse cx="60" cy="10" rx="42" ry="9" fill="#c98a3f" stroke="#8a5a22" strokeWidth="2.5" />
+          <ellipse cx="60" cy="8" rx="16" ry="3" fill="#8a5a22" opacity="0.55" />
+        </g>
+      )
+    case 'shades':
+      return (
+        <g className="fg__shades">
+          <rect x="38" y="52" width="21" height="16" rx="7" fill="#1a1530" />
+          <rect x="61" y="52" width="21" height="16" rx="7" fill="#1a1530" />
+          <line x1="58" y1="58" x2="62" y2="58" stroke="#1a1530" strokeWidth="3.5" />
+          <path d="M41 56 q4 -3.5 8 -1" stroke="#fff" strokeWidth="1.8" fill="none" opacity="0.55" strokeLinecap="round" />
+        </g>
+      )
+    case 'crown':
+      return (
+        <g className="fg__crown-svg">
+          <path d="M37 8 L44 -10 L55 3 L60 -14 L65 3 L76 -10 L83 8 Z" fill="#ffd23f" stroke="#c98a17" strokeWidth="2.5" strokeLinejoin="round" />
+          <rect x="36" y="7" width="48" height="8" rx="2" fill="#ffd23f" stroke="#c98a17" strokeWidth="2" />
+          <circle cx="44" cy="-7" r="2.6" fill="#ff4d8d" /><circle cx="60" cy="-11" r="2.8" fill="#00bfff" /><circle cx="76" cy="-7" r="2.6" fill="#3dd68c" />
+        </g>
+      )
+    default:
+      return null
+  }
 }
 
 // Badge de rôle affiché sur le ventre du bonhomme (admin / superadmin).
@@ -265,9 +319,10 @@ function expressionMouth(expr) {
 // - `expression` : 'fier'|'gene'|'blase'|'moque'|'choque'|'vexe'|'triste'|'neutre' (Série Zigzam)
 // - `role`       : 'admin' | 'superadmin' → affiche un badge sur le ventre
 // - `vip`        : true → affiche une couronne dorée au-dessus de la tête
+// - `costume`    : 'cape'|'cowboy'|'shades'|'crown' → tenue décorative (bonhommes du décor)
 export default function FallGuy({
   color = 'violet', avatar = null, anim = null, className = '', role = null,
-  eyesClosed = false, expression = null, vip = false,
+  eyesClosed = false, expression = null, vip = false, costume = null,
 }) {
   // Une expression (≠ neutre) prend la main sur les yeux et la bouche.
   const expr = expression && expression !== 'neutre' ? expression : null
@@ -291,6 +346,9 @@ export default function FallGuy({
     >
       <defs><ColorDefs /></defs>
 
+      {/* Ombre portée « gaming pop » au sol, sous les pieds */}
+      <ellipse cx="60" cy="167" rx="32" ry="8" fill="rgba(43,35,80,0.28)" />
+
       {/* Skin « complet » : remplace intégralement le bonhomme (corps, tête,
           membres, visage). Les accessoires posés dessus n'ont plus de sens,
           on rend donc UNIQUEMENT le skin — sauf l'animal de compagnie et le
@@ -307,26 +365,40 @@ export default function FallGuy({
       {/* Jambes */}
       <rect x="39" y="118" width="14" height="34" rx="7" fill={bodyFill} />
       <rect x="67" y="118" width="14" height="34" rx="7" fill={bodyFill} />
-      {/* Pieds */}
-      <ellipse cx="43" cy="152" rx="13" ry="8" fill="#fff" />
-      <ellipse cx="77" cy="152" rx="13" ry="8" fill="#fff" />
+      {/* Pieds : semelle foncée + dessus ovale clair */}
+      <ellipse cx="43" cy="155" rx="13.5" ry="6.5" fill="#c9cad6" />
+      <ellipse cx="77" cy="155" rx="13.5" ry="6.5" fill="#c9cad6" />
+      <ellipse cx="43" cy="151" rx="13" ry="8" fill="#fff" />
+      <ellipse cx="77" cy="151" rx="13" ry="8" fill="#fff" />
 
-      {/* Bras */}
+      {/* Bras courts et ronds */}
       <rect x="4" y="58" width="15" height="46" rx="7.5" fill={bodyFill} />
       <rect x="101" y="58" width="15" height="46" rx="7.5" fill={bodyFill} />
 
       {/* Cheveux — couche ARRIÈRE : longueurs qui tombent dans le dos (derrière le corps) */}
       {a?.hair && renderHairBack(a.hair)}
 
-      {/* Corps en haricot + reflet */}
-      <rect x="18" y="16" width="84" height="116" rx="42" fill={bodyFill} />
-      <ellipse cx="48" cy="44" rx="26" ry="22" fill="#fff" opacity="0.18" />
+      {/* Cape (costume décoratif), derrière le corps */}
+      {costume === 'cape' && <Costume type="cape" />}
+
+      {/* Corps en haricot/œuf bien rond + relief 3D (dégradé clair→foncé) + reflet lumineux */}
+      <path d={BODY_PATH} fill={bodyFill} />
+      <path d={BODY_PATH} fill="url(#fg-shade)" />
+      <ellipse cx="46" cy="38" rx="24" ry="18" fill="#fff" opacity="0.32" />
 
       {/* Panneau visage */}
       <rect x="33" y="42" width="54" height="36" rx="18" fill="#fff" opacity="0.96" />
 
       {/* Cheveux — couche AVANT : épouse le crâne + frange sur le front (par-dessus le visage, sous les yeux) */}
       {a?.hair && renderHair(a.hair)}
+
+      {/* Sourcils épais et expressifs (regard par défaut uniquement) */}
+      {!eyesClosed && !expr && (
+        <>
+          <path d="M41 51 q8 -5.5 16 -1" stroke="#2b2350" strokeWidth="3.6" strokeLinecap="round" fill="none" />
+          <path d="M63 50 q8 -4.5 16 1" stroke="#2b2350" strokeWidth="3.6" strokeLinecap="round" fill="none" />
+        </>
+      )}
 
       {/* Yeux — fermés > expression > défaut (Série Zigzam) */}
       {eyesClosed ? (
@@ -338,15 +410,18 @@ export default function FallGuy({
         expressionEyes(expr)
       ) : (
         <>
-          <circle cx="49" cy="60" r="6.5" fill="#2b2350" />
-          <circle cx="71" cy="60" r="6.5" fill="#2b2350" />
-          <circle cx="51.5" cy="57.5" r="2.2" fill="#fff" />
-          <circle cx="73.5" cy="57.5" r="2.2" fill="#fff" />
+          <circle cx="49" cy="60" r="7" fill="#2b2350" />
+          <circle cx="71" cy="60" r="7" fill="#2b2350" />
+          <circle cx="51.8" cy="57.2" r="2.6" fill="#fff" />
+          <circle cx="73.8" cy="57.2" r="2.6" fill="#fff" />
         </>
       )}
-      {/* Joues */}
-      <circle cx="38" cy="70" r="4.5" fill="#ff8fb0" opacity="0.75" />
-      <circle cx="82" cy="70" r="4.5" fill="#ff8fb0" opacity="0.75" />
+      {/* Joues gonflées, bien visibles */}
+      <circle cx="36" cy="71" r="7.5" fill="#ff6f9e" opacity="0.8" />
+      <circle cx="84" cy="71" r="7.5" fill="#ff6f9e" opacity="0.8" />
+
+      {/* Lunettes de soleil (costume décoratif), par-dessus les yeux */}
+      {costume === 'shades' && <Costume type="shades" />}
 
       {/* Bouche — expression (Série Zigzam) sinon accessoire visage */}
       {expr ? expressionMouth(expr) : a?.face && renderFace(a.face)}
@@ -362,6 +437,9 @@ export default function FallGuy({
 
       {/* Animal de compagnie */}
       {a?.animal && renderAnimal(a.animal)}
+
+      {/* Chapeau de cowboy / couronne (costumes décoratifs) */}
+      {(costume === 'cowboy' || costume === 'crown') && <Costume type={costume} />}
 
       {/* Badge de rôle (admin / superadmin), par-dessus tout, sur le ventre */}
       <RoleBadge role={role} />

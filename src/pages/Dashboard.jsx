@@ -117,7 +117,9 @@ export default function Dashboard() {
 
       <header className="dash__top">
         <div className="dash__hello" data-tut="avatar">
-          <Buddy className="dash__avatar" />
+          <span className="dash__avatar-ring">
+            <Buddy className="dash__avatar" />
+          </span>
           <div>
             <p className="dash__name">
               {user.pseudo}
@@ -193,7 +195,7 @@ export default function Dashboard() {
           onClick={() => setRulesOpen((v) => !v)}
           aria-expanded={rulesOpen}
         >
-          <span className="rules__title">Règles de bonne conduite 🤝</span>
+          <span className="rules__title stroke-title">Règles de bonne conduite 🤝</span>
           <span className="rules__chevron">{rulesOpen ? '▾' : '▸'}</span>
         </button>
 

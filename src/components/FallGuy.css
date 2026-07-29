@@ -96,6 +96,23 @@
 }
 
 /* ============================================================
+   🎮 GAMING POP — costumes décoratifs (bonhommes flottants du décor).
+   ============================================================ */
+.fg__cape {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: fg-cape-sway 3.2s ease-in-out infinite;
+}
+@keyframes fg-cape-sway {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg__cape { animation: none; }
+}
+
+/* ============================================================
    🦕 JURASSIC WEB — animations des skins de saison (dans le SVG).
    Les skins sont gardés à vie : ces animations tournent en continu.
    ============================================================ */

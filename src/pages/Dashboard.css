@@ -13,20 +13,24 @@
   margin: 4px 0 14px;
 }
 
-/* Barre du haut — glassmorphism */
+/* Barre du haut — glassmorphism coloré rose/violet */
 .dash__top {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  background:
+    linear-gradient(120deg, rgba(255, 77, 141, 0.16), rgba(124, 58, 255, 0.14) 55%, rgba(0, 191, 255, 0.12)),
+    rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-bottom: 4px solid var(--violet);
   border-radius: 24px;
   padding: 14px 18px;
   box-shadow:
-    0 16px 36px rgba(124, 58, 255, 0.22),
+    0 16px 36px rgba(124, 58, 255, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
   flex-wrap: wrap;
 }
@@ -36,7 +40,27 @@
   align-items: center;
   gap: 12px;
 }
+.dash__avatar-ring {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.dash__avatar-ring::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--rose), var(--orange), var(--vert), var(--bleu), var(--violet), var(--rose));
+  -webkit-mask: radial-gradient(circle, transparent 66%, #000 68%);
+  mask: radial-gradient(circle, transparent 66%, #000 68%);
+  animation: avatar-ring-spin 6s linear infinite;
+}
+@keyframes avatar-ring-spin {
+  to { transform: rotate(360deg); }
+}
 .dash__avatar {
+  position: relative;
   width: 88px;
   flex-shrink: 0;
   filter: drop-shadow(0 8px 10px rgba(124, 58, 255, 0.32));
@@ -59,24 +83,28 @@
   gap: 10px;
 }
 .counter {
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 8px 14px;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--texte);
-  border: 2px solid transparent;
+  border: 2.5px solid transparent;
+  box-shadow: 0 3px 0 rgba(43, 35, 80, 0.12);
 }
 .counter--donut {
-  background: rgba(255, 140, 66, 0.16);
-  border-color: rgba(255, 140, 66, 0.4);
+  background: rgba(255, 140, 66, 0.2);
+  border-color: var(--orange);
+  box-shadow: 0 3px 0 var(--orange-fonce);
 }
 .counter--gem {
-  background: rgba(0, 191, 255, 0.16);
-  border-color: rgba(0, 191, 255, 0.4);
+  background: rgba(0, 191, 255, 0.2);
+  border-color: var(--bleu);
+  box-shadow: 0 3px 0 var(--bleu-fonce);
 }
 .counter--burger {
-  background: rgba(245, 184, 0, 0.18);
-  border-color: rgba(245, 184, 0, 0.45);
+  background: rgba(245, 184, 0, 0.22);
+  border-color: #f5b800;
+  box-shadow: 0 3px 0 #b8860b;
 }
 
 .dash__vip-crown {
@@ -91,16 +119,23 @@
 }
 
 .dash__logout {
-  background: rgba(124, 58, 255, 0.12);
-  color: var(--violet-fonce);
+  background: var(--violet);
+  color: #fff;
   border-radius: 14px;
   padding: 9px 14px;
   font-size: 15px;
-  font-weight: 600;
-  transition: background 0.15s;
+  font-weight: 700;
+  box-shadow: 0 4px 0 var(--violet-fonce);
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
 }
 .dash__logout:hover {
-  background: rgba(124, 58, 255, 0.2);
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--violet-fonce);
+}
+.dash__logout:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--violet-fonce);
 }
 
 .dash__grid {
@@ -150,34 +185,43 @@
   .tile__emoji { font-size: 40px; }
 }
 
-/* Tuiles — glassmorphism avec accent coloré par module */
+/* Tuiles « gaming pop » — bouton enfonçable, bordure lumineuse par module */
 .tile {
+  --tile-shadow: color-mix(in srgb, var(--tile-color, var(--violet)) 65%, #000);
   position: relative;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  border-radius: 24px;
+  background: color-mix(in srgb, var(--tile-color, var(--violet)) 8%, #fff);
+  border: 4px solid var(--tile-color, var(--violet));
+  border-radius: 20px;
   padding: 26px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 12px 28px rgba(124, 58, 255, 0.18);
-  transition: transform 0.14s, box-shadow 0.14s;
+  box-shadow: 0 6px 0 var(--tile-shadow), 0 10px 20px rgba(43, 35, 80, 0.16);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-/* Liseré coloré en haut de chaque tuile */
-.tile::before {
-  content: '';
+/* Petite décoration dans le coin (étoile / éclair, en alternance) */
+.tile::after {
+  content: '✦';
   position: absolute;
-  inset: 0 0 auto 0;
-  height: 6px;
-  background: var(--tile-color, var(--violet));
+  top: 6px;
+  left: 8px;
+  font-size: 15px;
+  color: var(--tile-color, var(--violet));
+  opacity: 0.55;
+  z-index: 1;
+}
+.tile:nth-child(even)::after {
+  content: '⚡';
 }
 .tile:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 36px rgba(124, 58, 255, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 9px 0 var(--tile-shadow), 0 16px 26px rgba(43, 35, 80, 0.22);
+}
+.tile:active {
+  transform: translateY(2px);
+  box-shadow: 0 3px 0 var(--tile-shadow), 0 6px 14px rgba(43, 35, 80, 0.16);
 }
 .tile__badge {
   position: absolute;
@@ -318,14 +362,28 @@
 }
 
 .tile__emoji {
-  font-size: 48px;
+  position: relative;
+  z-index: 1;
+  font-size: 40px;
   line-height: 1;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tile-color, var(--violet)) 20%, #fff);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--tile-color, var(--violet)) 35%, #fff);
   filter: drop-shadow(0 4px 6px rgba(43, 35, 80, 0.18));
 }
 .tile__label {
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--font-titre);
+  font-size: 15px;
+  font-weight: 900;
   color: var(--texte);
+  text-align: center;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.7);
+  paint-order: stroke fill;
+  text-shadow: 0 2px 0 color-mix(in srgb, var(--tile-color, var(--violet)) 45%, #fff);
 }
 
 /* Encadré « Règles de bonne conduite » — glassmorphism, rétractable */

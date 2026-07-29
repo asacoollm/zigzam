@@ -223,11 +223,18 @@
 }
 
 .disc__btn--main {
-  background: var(--degrade-zigzam);
+  background: var(--violet);
   color: #fff;
+  box-shadow: 0 4px 0 var(--violet-fonce);
 }
 .disc__btn--main:hover:not(:disabled) {
-  opacity: 0.88;
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--violet-fonce);
+}
+.disc__btn--main:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--violet-fonce);
 }
 
 .disc__btn--ghost {
@@ -253,7 +260,7 @@
 }
 
 .disc__btn--send {
-  background: var(--degrade-zigzam);
+  background: var(--rose);
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -264,11 +271,21 @@
   place-items: center;
   flex-shrink: 0;
   cursor: pointer;
-  transition: opacity 0.15s;
+  box-shadow: 0 4px 0 var(--rose-fonce);
+  transition: transform 0.1s, box-shadow 0.1s, opacity 0.15s;
+}
+.disc__btn--send:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--rose-fonce);
+}
+.disc__btn--send:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--rose-fonce);
 }
 .disc__btn--send:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* ── Inputs ── */
@@ -483,23 +500,25 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 10px 14px;
-  border-radius: 18px;
+  padding: 11px 16px;
+  border-radius: 22px;
   max-width: 100%;
   word-break: break-word;
+  box-shadow: 0 4px 10px rgba(43, 35, 80, 0.12);
 }
 
 .disc__bubble--mine {
-  background: linear-gradient(135deg, #7c3aff 0%, #00bfff 100%);
+  background: linear-gradient(135deg, #ff4d8d 0%, #7c3aff 100%);
   color: #fff;
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 4px 14px rgba(255, 77, 141, 0.35);
 }
 
 .disc__bubble--other {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1.5px solid rgba(124, 58, 255, 0.14);
+  background: #fff;
+  border: 2.5px solid var(--bleu);
   color: var(--texte);
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: 6px;
 }
 
 .disc__bubble-text {

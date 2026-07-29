@@ -1,15 +1,24 @@
 :root {
-  /* Signature visuelle Zigzam */
+  /* Signature visuelle Zigzam — Gaming Pop 🎮 */
   --rose: #ff4d8d;
   --orange: #ff8c42;
   --violet: #7c3aff;
   --bleu: #00bfff;
   --vert: #3dd68c;
 
-  /* Variantes foncées pour ombres/relief */
+  /* Variantes foncées pour ombres/relief "bouton enfonçable" */
   --rose-fonce: #d6276b;
+  --orange-fonce: #d9640f;
   --violet-fonce: #5a1fd4;
   --bleu-fonce: #009fe0;
+  --vert-fonce: #1f9d63;
+
+  /* Variantes claires pour halos/lumière */
+  --rose-clair: #ffb3d6;
+  --orange-clair: #ffcb9e;
+  --violet-clair: #d6c2ff;
+  --bleu-clair: #a8e8ff;
+  --vert-clair: #b0f5cf;
 
   /* Neutres */
   --blanc: #ffffff;
@@ -19,6 +28,10 @@
 
   /* Dégradé signature (boutons, accents) */
   --degrade-zigzam: linear-gradient(90deg, #ff4d8d 0%, #7c3aff 50%, #00bfff 100%);
+  /* Dégradé de fond "Gaming Pop" : rose chaud → orange → violet → bleu électrique */
+  --degrade-pop: linear-gradient(135deg, #ff4d8d 0%, #ff8c42 32%, #7c3aff 66%, #00bfff 100%);
+
+  --font-titre: 'Fredoka One', 'Fredoka', system-ui, sans-serif;
 
   font-family: 'Fredoka', system-ui, sans-serif;
   color: var(--texte);
@@ -39,12 +52,16 @@ body,
   width: 100%;
 }
 
-/* Fond dégradé pastel rose → violet → bleu */
+/* Fond « Gaming Pop » : dégradé pastel très saturé et vibrant + halftone discret */
 body {
   background:
-    radial-gradient(120% 90% at 15% 0%, rgba(255, 77, 141, 0.18), transparent 55%),
-    radial-gradient(120% 90% at 85% 100%, rgba(0, 191, 255, 0.2), transparent 55%),
-    linear-gradient(160deg, #ffe3ef 0%, #f1e2ff 48%, #e2f4ff 100%);
+    radial-gradient(circle, rgba(43, 35, 80, 0.06) 1.6px, transparent 1.7px),
+    radial-gradient(150% 110% at 12% -10%, rgba(255, 210, 63, 0.55), transparent 45%),
+    radial-gradient(140% 100% at 95% 0%, rgba(0, 191, 255, 0.5), transparent 50%),
+    radial-gradient(130% 100% at 0% 100%, rgba(255, 77, 141, 0.55), transparent 55%),
+    radial-gradient(140% 100% at 100% 100%, rgba(124, 58, 255, 0.5), transparent 55%),
+    linear-gradient(135deg, #ffd6e8 0%, #ffe0c2 28%, #e3d2ff 62%, #c9ecff 100%);
+  background-size: 14px 14px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
   background-attachment: fixed;
 }
 
@@ -52,6 +69,15 @@ button {
   font-family: inherit;
   cursor: pointer;
   border: none;
+}
+
+/* Contour + relief "gaming" pour les titres importants */
+.stroke-title {
+  font-family: var(--font-titre);
+  font-weight: 900;
+  -webkit-text-stroke: 2.5px #fff;
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 rgba(43, 35, 80, 0.22);
 }
 
 input {

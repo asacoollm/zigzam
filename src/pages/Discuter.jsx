@@ -579,7 +579,7 @@ export default function Discuter() {
         /* Vue liste */
         <div className="disc__liste">
           <div className="disc__liste-header">
-            <h2 className="disc__titre-page">💬 Discuter</h2>
+            <h2 className="disc__titre-page stroke-title">💬 Discuter</h2>
             <button
               className="disc__btn disc__btn--main"
               onClick={() => setShowForm(true)}

@@ -18,6 +18,14 @@ const LIBELLE_ECRIRE = {
   disney: '📖 Écrire dans le livre magique',
 }
 
+// Couleur d'accent stable par auteur (badge coloré des cartes d'actu).
+const AUTHOR_COLORS = ['var(--rose)', 'var(--orange)', 'var(--violet)', 'var(--bleu)', 'var(--vert)']
+function authorAccent(str = '') {
+  let h = 0
+  for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 997
+  return AUTHOR_COLORS[h % AUTHOR_COLORS.length]
+}
+
 function formatDate(iso) {
   const d = new Date(iso)
   const now = new Date()
@@ -129,7 +137,9 @@ function CarteActu({ actu, user }) {
       <header className="news__head">
         <FallGuy className="news__av" avatar={actu.auteur.avatar} anim="idle" role={actu.auteur.role} vip={actu.auteur.vip} />
         <div className="news__meta">
-          <span className="news__pseudo">{actu.auteur.pseudo}</span>
+          <span className="news__pseudo" style={{ '--author-color': authorAccent(actu.auteur.pseudo) }}>
+            {actu.auteur.pseudo}
+          </span>
           <span className="news__date">{formatDate(actu.date)}</span>
         </div>
         {enAttente && <span className="news__pill news__pill--wait">En attente de validation ⏳</span>}
@@ -263,7 +273,7 @@ export default function Actualites() {
 
       {showForm && (
         <form className="news__form" onSubmit={publier}>
-          <h2 className="news__form-title">Nouvelle actu ✨</h2>
+          <h2 className="news__form-title stroke-title">Nouvelle actu ✨</h2>
           <p className="news__hint">Les 2 premières sont gratuites, ensuite 10 🍩 par actu.</p>
           <input
             className="news__input"

@@ -1,15 +1,37 @@
 .zlogo {
   display: inline-flex;
-  font-weight: 700;
+  font-family: var(--font-titre, 'Fredoka One', sans-serif);
+  font-weight: 900;
   letter-spacing: 1px;
   line-height: 1;
   user-select: none;
 }
 
 .zlogo__letter {
+  position: relative;
   display: inline-block;
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  -webkit-text-stroke: 2.5px #fff;
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 rgba(43, 35, 80, 0.25), 0 0 16px rgba(255, 255, 255, 0.5);
   animation: zlogo-bounce 2.4s ease-in-out infinite;
+}
+/* Légère brillance qui balaie chaque lettre */
+.zlogo__letter::before {
+  content: attr(data-ch);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  -webkit-text-stroke: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.9) 48%, transparent 62%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: zlogo-shine 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes zlogo-shine {
+  0% { background-position: 220% 0; }
+  55%, 100% { background-position: -60% 0; }
 }
 
 @keyframes zlogo-bounce {
@@ -94,7 +116,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .zlogo__letter {
+  .zlogo__letter,
+  .zlogo__letter::before {
     animation: none;
   }
   .zlogo--saison,
