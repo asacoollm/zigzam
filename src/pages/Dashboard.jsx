@@ -8,18 +8,22 @@ import Backdrop from '../components/Backdrop'
 import Buddy from '../components/Buddy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import Tutorial from '../components/Tutorial'
+import {
+  IconDiscuter, IconActualites, IconContacts, IconAvatar, IconDonutsGemmes,
+  IconShop, IconParametres, IconFloorIsLava, IconSerie, IconAdmin,
+} from '../components/icons'
 import './Dashboard.css'
 
 const MODULES = [
-  { emoji: '💬', label: 'Discuter', color: 'var(--rose)', to: '/discuter', badge: 'discuter', key: 'discuter', tut: 'discuter' },
-  { emoji: '📰', label: 'Actualités', color: 'var(--orange)', to: '/actualites', badge: 'actus', key: 'actualites', tut: 'actualites' },
-  { emoji: '👥', label: 'Contacts', color: 'var(--violet)', to: '/contacts', key: 'contacts' },
-  { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar', tut: 'avatar' },
-  { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
-  { emoji: '🛍️', label: 'Shop', color: 'var(--orange)', to: '/shop', key: 'shop' },
-  { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
-  { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
-  { emoji: '🎬', label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
+  { Icon: IconDiscuter, label: 'Discuter', color: 'var(--rose)', to: '/discuter', badge: 'discuter', key: 'discuter', tut: 'discuter' },
+  { Icon: IconActualites, label: 'Actualités', color: 'var(--orange)', to: '/actualites', badge: 'actus', key: 'actualites', tut: 'actualites' },
+  { Icon: IconContacts, label: 'Contacts', color: 'var(--violet)', to: '/contacts', key: 'contacts' },
+  { Icon: IconAvatar, label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar', tut: 'avatar' },
+  { Icon: IconDonutsGemmes, label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
+  { Icon: IconShop, label: 'Shop', color: 'var(--orange)', to: '/shop', key: 'shop' },
+  { Icon: IconParametres, label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
+  { Icon: IconFloorIsLava, label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
+  { Icon: IconSerie, label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
 ]
 
 // Étapes du tutoriel de bienvenue (pointent vers les éléments via data-tut).
@@ -119,7 +123,7 @@ export default function Dashboard() {
 
   const modules = [...MODULES]
   if (isAdmin) {
-    modules.push({ emoji: '🛡️', label: 'Admin', color: 'var(--violet)', to: '/admin' })
+    modules.push({ Icon: IconAdmin, label: 'Admin', color: 'var(--violet)', to: '/admin' })
   }
 
   return (
@@ -201,7 +205,7 @@ export default function Dashboard() {
             >
               {blocked && <span className="tile__lock">🔒</span>}
               {!blocked && count > 0 && <span className="tile__badge">{count}</span>}
-              <span className="tile__emoji">{m.emoji}</span>
+              <span className="tile__emoji"><m.Icon /></span>
               <span className="tile__label">{m.label}</span>
             </button>
           )
