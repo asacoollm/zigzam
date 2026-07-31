@@ -47,8 +47,14 @@ export default function Dashboard() {
   const [rulesOpen, setRulesOpen] = useState(true)
   // Le tutoriel se lance auto à la 1re connexion (tutoriel_vu === false).
   const [showTut, setShowTut] = useState(() => user.tutoriel_vu === false)
+  // Animation « zoom in » au clic sur une tuile, avant la navigation.
+  const [clickedTile, setClickedTile] = useState(null)
+  const [zooming, setZooming] = useState(false)
+  const [zoomOrigin, setZoomOrigin] = useState({ x: '50%', y: '50%' })
 
   const toastTimer = useRef(null)
+  const zoomTimers = useRef([])
+  useEffect(() => () => zoomTimers.current.forEach(clearTimeout), [])
   const flash = useCallback((m) => {
     setToast(m)
     clearTimeout(toastTimer.current)
@@ -94,12 +100,21 @@ export default function Dashboard() {
 
   const isAdmin = user.role === 'admin' || user.role === 'superadmin'
 
-  const handleTile = (m, blocked) => {
+  const handleTile = (m, blocked, e) => {
     if (m.soon) {
       flash('🌋 Bientôt disponible ! Ce module est en cours de développement.')
       return
     }
-    if (!blocked && m.to) navigate(m.to)
+    if (blocked || !m.to || clickedTile) return
+
+    const rect = e.currentTarget.getBoundingClientRect()
+    setZoomOrigin({
+      x: `${((rect.left + rect.width / 2) / window.innerWidth) * 100}%`,
+      y: `${((rect.top + rect.height / 2) / window.innerHeight) * 100}%`,
+    })
+    setClickedTile(m.label)
+    zoomTimers.current.push(setTimeout(() => setZooming(true), 150))
+    zoomTimers.current.push(setTimeout(() => navigate(m.to), 400))
   }
 
   const modules = [...MODULES]
@@ -108,7 +123,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="dash">
+    <div
+      className={`dash ${zooming ? 'dash--zoom-in' : ''}`}
+      style={{ '--zoom-origin-x': zoomOrigin.x, '--zoom-origin-y': zoomOrigin.y }}
+    >
       <Backdrop />
 
       <div className="dash__brand">
@@ -175,9 +193,10 @@ export default function Dashboard() {
                 'tile',
                 blocked ? 'tile--locked' : '',
                 m.soon ? 'tile--soon' : '',
+                clickedTile === m.label ? 'tile--clicked' : '',
               ].filter(Boolean).join(' ')}
               style={{ '--tile-color': m.color }}
-              onClick={() => handleTile(m, blocked)}
+              onClick={(e) => handleTile(m, blocked, e)}
               disabled={blocked}
             >
               {blocked && <span className="tile__lock">🔒</span>}
@@ -222,6 +241,10 @@ export default function Dashboard() {
       {toast && <div className="dash__toast">{toast}</div>}
 
       {showTut && <Tutorial steps={TUTORIAL_STEPS} onFinish={finishTutorial} />}
+
+      {clickedTile && (
+        <div className={`dash__zoom-overlay ${zooming ? 'dash__zoom-overlay--active' : ''}`} />
+      )}
     </div>
   )
 }
