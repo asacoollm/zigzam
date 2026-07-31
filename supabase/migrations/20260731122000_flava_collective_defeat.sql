@@ -11,7 +11,11 @@
 --  Idempotent.
 -- ============================================================
 
-create or replace function public.flava_burn(p_session uuid, p_user uuid)
+-- Le retour passe de void à jsonb : CREATE OR REPLACE ne permet pas de
+-- changer le type de retour, il faut d'abord supprimer l'ancienne fonction.
+drop function if exists public.flava_burn(uuid, uuid);
+
+create function public.flava_burn(p_session uuid, p_user uuid)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare s public.flava_sessions; v_total int; v_burned int;
 begin
@@ -33,3 +37,6 @@ begin
 
   return public._flava_session_json(p_session);
 end; $$;
+
+-- Le DROP ci-dessus efface les grants existants → on les repose.
+grant execute on function public.flava_burn(uuid, uuid) to anon, authenticated;
