@@ -143,7 +143,11 @@ export default function MegaBoite() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.id])
 
-  const info = displayNiveau ? niveauInfo(displayNiveau) : null
+  // `displayNiveau` n'est posé qu'après le 1er effet (une fois `current`
+  // connu) : tant qu'il est encore null, on retombe sur le niveau réel de
+  // la boîte pour ne jamais rendre `info` null pendant que `current` existe
+  // (sinon crash de rendu → page blanche, `info.label` etc. sur null).
+  const info = niveauInfo(displayNiveau ?? current?.niveau)
 
   const handleOpen = async () => {
     if (!current || busy || evoPhase) return

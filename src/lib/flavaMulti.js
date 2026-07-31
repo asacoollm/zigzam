@@ -172,14 +172,22 @@ export async function flavaEliminate(sessionId, userId) {
   return r.error ? r : r.data
 }
 // Résurrection : marque le joueur « brûlé » 5 s (au lieu de l'éliminer).
+// Renvoie l'état de session (défaite collective si tout le monde brûle en
+// même temps → statut 'finished' / resultat 'lose').
 export async function flavaBurn(sessionId, userId) {
-  return rpc('flava_burn', { p_session: sessionId, p_user: userId })
+  const r = await rpc('flava_burn', { p_session: sessionId, p_user: userId })
+  return r.error ? r : r.data
 }
 export async function flavaLeave(sessionId, userId) {
   return rpc('flava_leave', { p_session: sessionId, p_user: userId })
 }
 export async function flavaStart(sessionId, userId) {
   const r = await rpc('flava_start', { p_session: sessionId, p_user: userId })
+  return r.error ? r : r.data
+}
+// Relance une nouvelle manche dans la même session (mêmes joueurs/bots).
+export async function flavaRestart(sessionId, userId) {
+  const r = await rpc('flava_restart', { p_session: sessionId, p_user: userId })
   return r.error ? r : r.data
 }
 export async function flavaAddBot(sessionId) {

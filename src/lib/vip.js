@@ -1,6 +1,7 @@
 // ============================================================
 //  ZIGZAM — Statut Pass VIP 👑
 // ============================================================
+import { useEffect, useState } from 'react'
 
 // True si vip_expire_at est dans le futur.
 export function isVipActive(vipExpireAt) {
@@ -24,4 +25,17 @@ export function formatVipTimeLeft(vipExpireAt) {
   if (days > 0) return `${days}j ${hours}h`
   if (hours > 0) return `${hours}h ${mins}min`
   return `${mins}min`
+}
+
+// formatVipTimeLeft() lit Date.now() à chaque appel, mais un composant ne se
+// re-rend que si son state/props changent : sans ce hook, le décompte reste
+// figé jusqu'au prochain rendu déclenché par autre chose. On force un
+// re-render chaque minute (tant que le VIP est actif) pour qu'il avance seul.
+export function useVipCountdown(active) {
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!active) return
+    const id = setInterval(() => setTick((t) => t + 1), 60000)
+    return () => clearInterval(id)
+  }, [active])
 }

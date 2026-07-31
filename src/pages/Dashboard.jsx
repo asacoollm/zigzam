@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getBadges, markTutorialDone, getMyBoites, checkAndApplyTaxes } from '../lib/modules'
 import { isModuleBlocked } from '../lib/parental'
-import { isVipActive, formatVipTimeLeft } from '../lib/vip'
+import { isVipActive, formatVipTimeLeft, useVipCountdown } from '../lib/vip'
 import Backdrop from '../components/Backdrop'
 import Buddy from '../components/Buddy'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -86,6 +86,7 @@ export default function Dashboard() {
   }, [user.id])
 
   const vipActif = isVipActive(user.vip_expire_at)
+  useVipCountdown(vipActif)
 
   // Relance manuelle depuis Paramètres ("Revoir le tutoriel").
   useEffect(() => {

@@ -392,6 +392,62 @@
 }
 .flava__panel-actions { display: flex; gap: 12px; }
 
+/* Écran de défaite collective 💀 — grille d'avatars brûlés */
+.flava__panel--defeat { max-width: 460px; }
+.flava__defeat-avatars {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin: 4px 0 22px;
+}
+.flava__defeat-av {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 76px;
+}
+.flava__defeat-guy-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+}
+.flava__defeat-guy {
+  width: 56px;
+  height: auto;
+  filter: brightness(0.85) sepia(1) saturate(5) hue-rotate(-20deg)
+    drop-shadow(0 0 6px #ff7a18) drop-shadow(0 0 10px rgba(239, 68, 68, 0.75));
+  animation: flava-defeat-wobble 0.5s ease-in-out infinite alternate;
+}
+.flava__defeat-flames {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 26px;
+  animation: flava-flames 0.35s ease-in-out infinite alternate;
+}
+.flava__defeat-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--texte-doux);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+@keyframes flava-defeat-wobble {
+  from { transform: rotate(-4deg) translateY(0); }
+  to { transform: rotate(4deg) translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flava__defeat-guy, .flava__defeat-flames { animation: none; }
+}
+
 /* Bonhomme qui saute de joie sur l'écran de victoire */
 .flava__win-buddy {
   width: 96px;

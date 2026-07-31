@@ -5,10 +5,11 @@ import {
   getDailyGiftStatus, claimDailyGift, buyBurgers,
   getMyMegaBoites, buyMegaBoite, buyVipPass,
 } from '../lib/modules'
-import { isVipActive, formatVipTimeLeft } from '../lib/vip'
+import { isVipActive, formatVipTimeLeft, useVipCountdown } from '../lib/vip'
 import { CATEGORIES } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
+import MegaBoxArt from '../components/MegaBoxArt'
 import ZigzamLogo from '../components/ZigzamLogo'
 import './Shop.css'
 
@@ -22,11 +23,11 @@ const BURGER_OFFERS = [
 ]
 
 const MEGA_NIVEAUX = [
-  { id: 'normal', label: 'Normal', emoji: '🟢', color: '#3dd68c', prix: 40 },
-  { id: 'rare', label: 'Rare', emoji: '🔵', color: '#00bfff', prix: 55 },
-  { id: 'super_rare', label: 'Super Rare', emoji: '🟣', color: '#a855f7', prix: 80 },
-  { id: 'incroyable', label: 'Incroyable', emoji: '🟠', color: '#ff8c42', prix: 120 },
-  { id: 'impossible', label: 'IMPOSSIBLE !!!', emoji: '🔴', color: '#ef4444', prix: 200 },
+  { id: 'normal', label: 'Normal', color: '#3dd68c', prix: 40 },
+  { id: 'rare', label: 'Rare', color: '#00bfff', prix: 55 },
+  { id: 'super_rare', label: 'Super Rare', color: '#a855f7', prix: 80 },
+  { id: 'incroyable', label: 'Incroyable', color: '#ff8c42', prix: 120 },
+  { id: 'impossible', label: 'IMPOSSIBLE !!!', color: '#ef4444', prix: 200 },
 ]
 
 // Catégories d'accessoires « évergreen » (ni saison, ni VIP) affichées dans le catalogue.
@@ -45,6 +46,7 @@ export default function Shop() {
   const { user, updateUser } = useAuth()
   const navigate = useNavigate()
   const vipActive = isVipActive(user.vip_expire_at)
+  useVipCountdown(vipActive)
 
   const [gift, setGift] = useState(null) // { claimed, next_reset }
   const [giftLoading, setGiftLoading] = useState(true)
@@ -241,7 +243,7 @@ export default function Shop() {
               onClick={() => handleBuyMega(n)}
               disabled={busyMega !== null || (user.burgers ?? 0) < n.prix}
             >
-              <span className="shop__mega-emoji">{n.emoji}</span>
+              <MegaBoxArt niveau={n.id} className="shop__mega-art" />
               <span className="shop__mega-label">{n.label}</span>
               <span className="shop__mega-prix">🍔 {n.prix}</span>
             </button>

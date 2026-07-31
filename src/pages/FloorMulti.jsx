@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import {
   ROCK, ZONE, TICK_MS, LAVA_DELAY_MS, buildBoard, lavaAtTick, isLavaCell, emptyLavaGrid, botStep,
   flavaJoin, flavaState, flavaMove, flavaActivate, flavaBurn, flavaLeave,
-  flavaStart, flavaAddBot, flavaRemoveBot, flavaSetBots,
+  flavaStart, flavaRestart, flavaAddBot, flavaRemoveBot, flavaSetBots,
   subscribeFlava, broadcastFlava,
 } from '../lib/flavaMulti'
 import { normalizeAvatar } from '../lib/avatar'
@@ -36,6 +36,7 @@ export default function FloorMulti({ onBack }) {
   const [burnedUntil, setBurnedUntil] = useState(0) // brûlé jusqu'à (ms) — résurrection
   const [jumpReadyAt, setJumpReadyAt] = useState(0) // saut prêt à (ms) — barre/recharge
   const [error, setError] = useState('')
+  const [restarting, setRestarting] = useState(false) // « Rejouer » après une défaite collective
 
   const channelRef = useRef(null)
   const airborneRef = useRef(false)
@@ -160,12 +161,15 @@ export default function FloorMulti({ onBack }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setBurnedUntil(until)
       const sid = sessionRef.current?.id
-      if (sid) flavaBurn(sid, user.id).then(() => {
+      if (sid) flavaBurn(sid, user.id).then((s) => {
+        // Défaite collective possible (tout le monde brûle en même temps) :
+        // on applique tout de suite l'état renvoyé sans attendre le heartbeat.
+        if (s?.session) applyState(s)
         if (channelRef.current) broadcastFlava(channelRef.current)
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lava, pos, finished, session?.statut])
+  }, [lava, pos, finished, session?.statut, applyState])
 
   // Résurrection : quand la brûlure se termine, on revit au centre (case de départ)
   // avec une courte immunité.
@@ -354,6 +358,34 @@ export default function FloorMulti({ onBack }) {
   const removeBot = () => {
     const sid = sessionRef.current?.id
     if (sid) flavaRemoveBot(sid).then(afterLobby)
+  }
+
+  // « Rejouer » depuis l'écran de défaite collective : nouvelle manche dans
+  // la même session (mêmes joueurs/bots). Le serveur recentre tout le monde
+  // mais, contrairement au passage waiting → active, `applyState` seul ne
+  // resynchronise pas la position locale (statut déjà 'active', ref déjà
+  // posée) → on la force ici à la main.
+  const handleRestart = async () => {
+    if (restarting) return
+    const sid = sessionRef.current?.id
+    if (!sid) return
+    setRestarting(true)
+    const s = await flavaRestart(sid, user.id)
+    setRestarting(false)
+    if (s?.session) {
+      const mine = s.players.find((p) => p.user_id === user.id)
+      if (mine) {
+        posRef.current = { r: mine.r, c: mine.c }
+        setPos({ r: mine.r, c: mine.c })
+      }
+      burnedUntilRef.current = 0
+      setBurnedUntil(0)
+      reviveImmuneRef.current = 0
+      airborneRef.current = false
+      setAirborne(false)
+      applyState(s)
+      if (channelRef.current) broadcastFlava(channelRef.current)
+    }
   }
 
   if (error) {
@@ -586,14 +618,34 @@ export default function FloorMulti({ onBack }) {
 
       {finished && session.resultat === 'lose' && (
         <div className="flava__overlay">
-          <div className="flava__panel">
-            <h2 className="flava__panel-title">🌋 Tous éliminés…</h2>
-            <p className="flava__panel-text">
-              Toute l'équipe est tombée dans la lave ! Réessayez ensemble, vous allez y arriver 💪
-            </p>
+          <div className="flava__panel flava__panel--defeat">
+            <h2 className="flava__panel-title">💀 Tout le monde est mort !</h2>
+            <p className="flava__panel-text">La lave a eu raison de vous... cette fois !</p>
+            <div className="flava__defeat-avatars">
+              {players.map((p) => (
+                <div key={p.user_id} className="flava__defeat-av">
+                  <div className="flava__defeat-guy-wrap">
+                    <FallGuy avatar={p.avatar} role={p.role} className="flava__defeat-guy" />
+                    <span className="flava__flames flava__defeat-flames">🔥</span>
+                  </div>
+                  <span className="flava__defeat-name">{p.pseudo}{p.user_id === user.id ? ' (toi)' : ''}</span>
+                </div>
+              ))}
+              {bots.map((b) => (
+                <div key={b.id} className="flava__defeat-av">
+                  <div className="flava__defeat-guy-wrap">
+                    <FallGuy avatar={b.avatar} className="flava__defeat-guy" />
+                    <span className="flava__flames flava__defeat-flames">🔥</span>
+                  </div>
+                  <span className="flava__defeat-name">{b.pseudo}</span>
+                </div>
+              ))}
+            </div>
             <div className="flava__panel-actions">
-              <button className="flava__btn" onClick={onBack}>Rejouer</button>
-              <button className="flava__btn flava__btn--ghost" onClick={() => navigate('/dashboard')}>Retour</button>
+              <button className="flava__btn" onClick={handleRestart} disabled={restarting}>
+                {restarting ? 'Relance…' : '🔄 Rejouer'}
+              </button>
+              <button className="flava__btn flava__btn--ghost" onClick={() => navigate('/dashboard')}>🏠 Retour</button>
             </div>
           </div>
         </div>

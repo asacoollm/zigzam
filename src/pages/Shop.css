@@ -177,7 +177,7 @@
 }
 .shop__mega:hover:not(:disabled) { transform: translateY(-3px); }
 .shop__mega:disabled { opacity: 0.45; cursor: not-allowed; }
-.shop__mega-emoji { font-size: 28px; }
+.shop__mega-art { width: 64px; height: 64px; }
 .shop__mega-label { font-size: 0.85rem; font-weight: 800; color: var(--texte); text-align: center; }
 .shop__mega-prix { font-size: 0.85rem; font-weight: 700; color: var(--texte-doux); }
 
