@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSaison } from '../context/SaisonContext'
-import { isVipActive } from '../lib/vip'
 import FallGuy from './FallGuy'
 
 // Le bonhomme de l'utilisateur, animé : oscille en continu (idle),
@@ -46,13 +45,5 @@ export default function Buddy({ className = '' }) {
 
   useEffect(() => () => clearTimeout(timer.current), [])
 
-  return (
-    <FallGuy
-      className={className}
-      avatar={user?.avatar}
-      anim={anim}
-      role={user?.role}
-      vip={isVipActive(user?.vip_expire_at)}
-    />
-  )
+  return <FallGuy className={className} avatar={user?.avatar} anim={anim} role={user?.role} />
 }

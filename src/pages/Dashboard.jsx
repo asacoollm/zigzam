@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getBadges, markTutorialDone, getMyBoites, checkAndApplyTaxes } from '../lib/modules'
+import { getBadges, markTutorialDone, getMyBoites } from '../lib/modules'
 import { isModuleBlocked } from '../lib/parental'
-import { isVipActive, formatVipTimeLeft } from '../lib/vip'
 import Backdrop from '../components/Backdrop'
 import Buddy from '../components/Buddy'
 import ZigzamLogo from '../components/ZigzamLogo'
@@ -16,7 +15,6 @@ const MODULES = [
   { emoji: '👥', label: 'Contacts', color: 'var(--violet)', to: '/contacts', key: 'contacts' },
   { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar', tut: 'avatar' },
   { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
-  { emoji: '🛍️', label: 'Shop', color: 'var(--orange)', to: '/shop', key: 'shop' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
   { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
   { emoji: '🎬', label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
@@ -62,21 +60,6 @@ export default function Dashboard() {
     return () => { on = false }
   }, [user.id])
 
-  // Impôts 💸 : vérifiés à chaque ouverture du dashboard, no-op côté serveur
-  // si moins de 14 jours se sont écoulés depuis le dernier prélèvement.
-  useEffect(() => {
-    let on = true
-    checkAndApplyTaxes(user.id).then((res) => {
-      if (!on || !res.applied) return
-      updateUser({ donuts: res.donuts, gemmes: res.gemmes })
-      flash(`💸 Les impôts sont passés ! Tu as perdu ${res.donuts_perdus} 🍩 et ${res.gemmes_perdus} 💎.`)
-    })
-    return () => { on = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.id])
-
-  const vipActif = isVipActive(user.vip_expire_at)
-
   // Relance manuelle depuis Paramètres ("Revoir le tutoriel").
   useEffect(() => {
     if (location.state?.revoirTuto) {
@@ -119,21 +102,14 @@ export default function Dashboard() {
         <div className="dash__hello" data-tut="avatar">
           <Buddy className="dash__avatar" />
           <div>
-            <p className="dash__name">
-              {user.pseudo}
-              {vipActif && <span className="dash__vip-crown" title="Pass VIP actif">👑</span>}
-            </p>
+            <p className="dash__name">{user.pseudo}</p>
             <p className="dash__num">📞 {user.numero}</p>
-            {vipActif && (
-              <p className="dash__vip-countdown">👑 VIP · {formatVipTimeLeft(user.vip_expire_at)}</p>
-            )}
           </div>
         </div>
 
         <div className="dash__counters" data-tut="counters">
           <span className="counter counter--donut">🍩 {user.donuts}</span>
           <span className="counter counter--gem">💎 {user.gemmes}</span>
-          <span className="counter counter--burger">🍔 {user.burgers ?? 0}</span>
           <button className="dash__logout" onClick={() => signOut()}>
             Déconnexion
           </button>

@@ -9,7 +9,6 @@ import {
   verifyParentalCode,
   updateParental,
 } from '../lib/modules'
-import { isVipActive } from '../lib/vip'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
@@ -408,44 +407,8 @@ export default function Parametres() {
 
       {/* En-tête avatar + pseudo */}
       <div className="settings__card settings__header">
-        <FallGuy
-          avatar={user.avatar}
-          className="settings__av"
-          anim="idle"
-          role={user.role}
-          vip={isVipActive(user.vip_expire_at)}
-        />
+        <FallGuy avatar={user.avatar} className="settings__av" anim="idle" role={user.role} />
         <p className="settings__pseudo">{user.pseudo}</p>
-      </div>
-
-      {/* Section : Pass VIP */}
-      <div className="settings__card">
-        <h2 className="settings__section-title">👑 Pass VIP</h2>
-        {isVipActive(user.vip_expire_at) ? (
-          <>
-            <p className="settings__note">
-              Ton Pass VIP est <strong>actif</strong> jusqu'au{' '}
-              <strong>
-                {new Date(user.vip_expire_at).toLocaleDateString('fr-FR', {
-                  day: 'numeric', month: 'long', year: 'numeric',
-                })}
-              </strong>{' '}
-              à {new Date(user.vip_expire_at).toLocaleTimeString('fr-FR', {
-                hour: '2-digit', minute: '2-digit',
-              })}.
-            </p>
-            <p className="settings__note">
-              +20% de donuts, cadeau du jour doublé, skins dorés exclusifs ✨
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="settings__note">Tu n'as pas de Pass VIP actif pour le moment.</p>
-            <button className="settings__btn" onClick={() => navigate('/shop')}>
-              Découvrir le Pass VIP 🛍️
-            </button>
-          </>
-        )}
       </div>
 
       {/* Section : Revoir le tutoriel */}

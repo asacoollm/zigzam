@@ -180,7 +180,7 @@ export default function Contacts() {
               const alreadyContact = contacts.some((c) => c.id === u.id)
               return (
                 <li key={u.id} className="contacts__search-item">
-                  <FallGuy avatar={u.avatar} className="contacts__av" anim="idle" role={u.role} vip={u.vip} />
+                  <FallGuy avatar={u.avatar} className="contacts__av" anim="idle" role={u.role} />
                   <div className="contacts__info">
                     <span className="contacts__pseudo">{u.pseudo}</span>
                     <span className="contacts__numero">📞 {u.numero}</span>
@@ -220,7 +220,7 @@ export default function Contacts() {
           <ul className="contacts__list">
             {contacts.map((c) => (
               <li key={c.id} className="contacts__item">
-                <FallGuy avatar={c.avatar} className="contacts__av" anim="idle" role={c.role} vip={c.vip} />
+                <FallGuy avatar={c.avatar} className="contacts__av" anim="idle" role={c.role} />
                 <div className="contacts__info">
                   <span className="contacts__pseudo">{c.pseudo}</span>
                   <span className="contacts__numero">📞 {c.numero}</span>

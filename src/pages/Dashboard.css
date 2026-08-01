@@ -74,21 +74,6 @@
   background: rgba(0, 191, 255, 0.16);
   border-color: rgba(0, 191, 255, 0.4);
 }
-.counter--burger {
-  background: rgba(245, 184, 0, 0.18);
-  border-color: rgba(245, 184, 0, 0.45);
-}
-
-.dash__vip-crown {
-  margin-left: 6px;
-  font-size: 1rem;
-}
-.dash__vip-countdown {
-  margin: 2px 0 0;
-  font-size: 12px;
-  font-weight: 700;
-  color: #b8860b;
-}
 
 .dash__logout {
   background: rgba(124, 58, 255, 0.12);

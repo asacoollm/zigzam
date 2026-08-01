@@ -89,10 +89,6 @@
   background: linear-gradient(135deg, var(--bleu), var(--violet));
 }
 
-.eco__pastille--burger {
-  background: linear-gradient(135deg, #f5b800, #ff8c42);
-}
-
 .eco__pastille-valeur {
   font-size: 2.2rem;
   line-height: 1;

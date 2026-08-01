@@ -15,8 +15,6 @@ import FloorIsLava from './pages/FloorIsLava'
 import Serie from './pages/Serie'
 import EpisodePlayer from './pages/EpisodePlayer'
 import BoiteMystere from './pages/BoiteMystere'
-import Shop from './pages/Shop'
-import MegaBoite from './pages/MegaBoite'
 import ParentalGuard from './components/ParentalGuard'
 import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
@@ -148,18 +146,6 @@ export default function App() {
         path="/boites"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <BoiteMystere />
-        }
-      />
-      <Route
-        path="/shop"
-        element={
-          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Shop />
-        }
-      />
-      <Route
-        path="/mega-boites"
-        element={
-          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <MegaBoite />
         }
       />
       <Route

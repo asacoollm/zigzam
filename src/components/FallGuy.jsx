@@ -96,32 +96,6 @@ function ColorDefs() {
 
       {/* ====== 🏰 ZIGZAMLAND PARIS — couleurs exclusives de saison ====== */}
       <DisneyColorDefs />
-
-      {/* ====== 👑 PASS VIP — skins dorés/premium exclusifs ====== */}
-      <linearGradient id="body-vipdiamond" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#ffffff" /><stop offset="0.45" stopColor="#bfe9ff" />
-        <stop offset="1" stopColor="#5fb8e6" />
-      </linearGradient>
-      <linearGradient id="body-vipemerald" x1="0" y1="0" x2="0.6" y2="1">
-        <stop offset="0" stopColor="#c8ffe0" /><stop offset="0.45" stopColor="#22c98a" />
-        <stop offset="1" stopColor="#0a6b46" />
-      </linearGradient>
-      <linearGradient id="body-vipruby" x1="0" y1="0" x2="0.6" y2="1">
-        <stop offset="0" stopColor="#ffd0d8" /><stop offset="0.45" stopColor="#e0264f" />
-        <stop offset="1" stopColor="#7a0f28" />
-      </linearGradient>
-      <linearGradient id="body-vipsapphire" x1="0" y1="0" x2="0.6" y2="1">
-        <stop offset="0" stopColor="#cfe0ff" /><stop offset="0.45" stopColor="#2952d6" />
-        <stop offset="1" stopColor="#122a7a" />
-      </linearGradient>
-      <linearGradient id="body-viprosegold" x1="0" y1="0" x2="0.6" y2="1">
-        <stop offset="0" stopColor="#ffe4e0" /><stop offset="0.45" stopColor="#e8a0a0" />
-        <stop offset="1" stopColor="#b06a5a" />
-      </linearGradient>
-      <linearGradient id="body-vipobsidian" x1="0" y1="0" x2="0.6" y2="1">
-        <stop offset="0" stopColor="#c9a6ff" /><stop offset="0.45" stopColor="#2b1a4a" />
-        <stop offset="1" stopColor="#0a0614" />
-      </linearGradient>
     </>
   )
 }
@@ -148,14 +122,6 @@ function RoleBadge({ role }) {
     )
   }
   return null
-}
-
-// Couronne dorée 👑 affichée au-dessus de la tête pour les membres Pass VIP actif.
-function VipCrown({ vip }) {
-  if (!vip) return null
-  return (
-    <text className="fg__vip" x="60" y="-4" textAnchor="middle" fontSize="22">👑</text>
-  )
 }
 
 // ============================================================
@@ -264,10 +230,9 @@ function expressionMouth(expr) {
 // - `eyesClosed` : true → yeux fermés (petits arcs), pour la Série Zigzam
 // - `expression` : 'fier'|'gene'|'blase'|'moque'|'choque'|'vexe'|'triste'|'neutre' (Série Zigzam)
 // - `role`       : 'admin' | 'superadmin' → affiche un badge sur le ventre
-// - `vip`        : true → affiche une couronne dorée au-dessus de la tête
 export default function FallGuy({
   color = 'violet', avatar = null, anim = null, className = '', role = null,
-  eyesClosed = false, expression = null, vip = false,
+  eyesClosed = false, expression = null,
 }) {
   // Une expression (≠ neutre) prend la main sur les yeux et la bouche.
   const expr = expression && expression !== 'neutre' ? expression : null
@@ -300,7 +265,6 @@ export default function FallGuy({
           {fullSkin}
           {a?.animal && renderAnimal(a.animal)}
           <RoleBadge role={role} />
-          <VipCrown vip={vip} />
         </>
       ) : (
       <>
@@ -365,7 +329,6 @@ export default function FallGuy({
 
       {/* Badge de rôle (admin / superadmin), par-dessus tout, sur le ventre */}
       <RoleBadge role={role} />
-      <VipCrown vip={vip} />
       </>
       )}
     </svg>

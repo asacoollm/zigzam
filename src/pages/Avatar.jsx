@@ -1,29 +1,22 @@
 import { useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSaison } from '../context/SaisonContext'
-import { isSaisonTerminee } from '../lib/saison'
 import { saveAvatar, buyAccessory } from '../lib/auth'
 import { buyCustomSkin } from '../lib/modules'
-import { isVipActive } from '../lib/vip'
 import {
   CATEGORIES, normalizeAvatar, isUnlocked, accKey, getSaisonItems,
   getSaisonsPossedees, SAISON_LABELS, SAISON_EMOJIS,
-  getVipItems, hasVipItemsPossedes, VIP_LABEL, VIP_EMOJI,
 } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import './Avatar.css'
 
-const VIP_TAB_ID = '__vip'
-
 export default function Avatar() {
   const { user, updateUser } = useAuth()
-  const { active: saisonActive, slug: saisonSlug, saisons } = useSaison()
+  const { active: saisonActive, terminee: saisonTerminee, slug: saisonSlug } = useSaison()
   const navigate = useNavigate()
-  const location = useLocation()
-  const vipActive = isVipActive(user.vip_expire_at)
 
   const [avatar, setAvatar] = useState(() => normalizeAvatar(user.avatar))
 
@@ -37,16 +30,11 @@ export default function Avatar() {
     return slugs.sort((a, b) => (a === saisonSlug ? -1 : b === saisonSlug ? 1 : 0))
   }, [avatar, saisonSlug, saisonActive])
 
-  // Onglet virtuel VIP : visible si le pass est actif OU si l'élève possède
-  // déjà au moins un skin VIP (gardé équipable à vie, comme les saisons).
-  const showVipTab = vipActive || hasVipItemsPossedes(avatar)
-
-  // Onglets de saison (id = `__saison:<slug>`) + onglet VIP, suivis des
-  // catégories normales. Une catégorie dont TOUS les items sont exclusifs
-  // (ex. « Skins complets ») n'apparaît pas dans les onglets normaux : elle
-  // serait vide.
+  // Onglets de saison (id = `__saison:<slug>`), suivis des catégories normales.
+  // Une catégorie dont TOUS les items sont exclusifs de saison (ex. « Skins
+  // complets ») n'apparaît pas dans les onglets normaux : elle serait vide.
   const TABS = useMemo(() => {
-    const catsNormales = CATEGORIES.filter((c) => c.items.some((it) => !it.saison && !it.vip))
+    const catsNormales = CATEGORIES.filter((c) => c.items.some((it) => !it.saison))
     return [
       ...saisonSlugs.map((slug) => ({
         id: `__saison:${slug}`,
@@ -54,19 +42,13 @@ export default function Avatar() {
         emoji: SAISON_EMOJIS[slug] || '⭐',
         virtual: true,
       })),
-      ...(showVipTab ? [{ id: VIP_TAB_ID, label: VIP_LABEL, emoji: VIP_EMOJI, virtual: true }] : []),
       ...catsNormales,
     ]
-  }, [saisonSlugs, showVipTab])
+  }, [saisonSlugs])
 
-  // Un onglet initial peut être imposé par la navigation (ex. le Shop qui
-  // renvoie vers une catégorie précise pour équiper un accessoire).
-  const initialTab = (
-    location.state?.tab && CATEGORIES.some((c) => c.id === location.state.tab)
-  ) ? location.state.tab
-    : saisonSlugs.length ? `__saison:${saisonSlugs[0]}` : CATEGORIES[0].id
-
-  const [tab, setTab] = useState(initialTab)
+  const [tab, setTab] = useState(
+    saisonSlugs.length ? `__saison:${saisonSlugs[0]}` : CATEGORIES[0].id,
+  )
   const [pending, setPending] = useState(null) // accessoire payant en attente de confirmation
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
@@ -78,43 +60,28 @@ export default function Avatar() {
   // Onglet de saison : `__saison:<slug>` → on en extrait le slug.
   const tabSaisonSlug = tab.startsWith('__saison:') ? tab.slice('__saison:'.length) : null
   const isSaisonTab = !!tabSaisonSlug
-  const isVipTab = tab === VIP_TAB_ID
   const saisonItems = useMemo(() => getSaisonItems(tabSaisonSlug), [tabSaisonSlug])
-  const vipItems = useMemo(() => (isVipTab ? getVipItems() : []), [isVipTab])
+  // La saison de l'onglet courant tourne-t-elle vraiment en ce moment ?
+  const tabSaisonEnCours = !!tabSaisonSlug
+    && saisonActive && tabSaisonSlug === saisonSlug && !saisonTerminee
+  const tabEmoji = SAISON_EMOJIS[tabSaisonSlug] || '⭐'
 
-  // Config base (actif/dates) d'une saison donnée, par slug.
-  const saisonConfigOf = (slug) => saisons?.find((s) => s.slug === slug) ?? null
-
-  // Une saison n'est « terminée » (skins verrouillés) QUE si sa date de fin
-  // est définie ET déjà passée. Un commutateur `actif` à false (ex. saison pas
-  // encore lancée, ou tests superadmin) ne doit PAS afficher « terminée » :
-  // tant qu'aucune date de fin n'est dépassée, les skins restent achetables.
-  const tabSaisonEnCours = !!tabSaisonSlug && !isSaisonTerminee(saisonConfigOf(tabSaisonSlug))
-  const tabEmoji = isVipTab ? VIP_EMOJI : (SAISON_EMOJIS[tabSaisonSlug] || '⭐')
-
-  // Un skin de saison n'est verrouillé que si sa saison est réellement terminée.
-  // Un skin VIP non possédé n'est achetable que pendant que le pass est actif.
-  const estFerme = (item, owned) => {
-    if (owned) return false
-    if (item.saison) return isSaisonTerminee(saisonConfigOf(item.saison))
-    if (item.vip) return !vipActive
-    return false
-  }
+  // Un skin de saison non possédé n'est achetable que pendant sa saison.
+  const estFerme = (item, owned) => !!item.saison && !owned
+    && !(saisonActive && item.saison === saisonSlug && !saisonTerminee)
   const activeCategory = useMemo(
     () => CATEGORIES.find((c) => c.id === tab),
     [tab],
   )
 
-  // Catégorie native d'un item (pour les onglets saison/VIP, chaque item porte _cat).
+  // Catégorie native d'un item (pour l'onglet saison, chaque item porte _cat).
   const catOf = (item) => item._cat || tab
 
-  // Items affichés dans la grille : onglet saison/VIP = items exclusifs ;
-  // onglets normaux = leurs items SANS les exclusifs de saison/VIP.
+  // Items affichés dans la grille : onglet saison = items de saison ;
+  // onglets normaux = leurs items SANS les exclusifs de saison.
   const gridItems = isSaisonTab
     ? saisonItems
-    : isVipTab
-      ? vipItems
-      : (activeCategory?.items ?? []).filter((it) => !it.saison && !it.vip)
+    : (activeCategory?.items ?? []).filter((it) => !it.saison)
 
   const flash = (msg) => {
     setToast(msg)
@@ -134,15 +101,10 @@ export default function Avatar() {
   const pickItem = (item) => {
     const cat = catOf(item)
     const owned = (avatar.owned ?? []).includes(accKey(cat, item.id))
-    // Un skin de saison ne s'achète que pendant SA saison, un skin VIP que
-    // pendant que le pass est actif. Une fois acquis il reste équipable à
-    // vie, y compris après la fin de la saison / du pass.
+    // Un skin de saison ne s'achète que pendant SA saison. Une fois acquis il
+    // reste équipable à vie, y compris après la fin.
     if (estFerme(item, owned)) {
-      if (item.vip) {
-        flash('👑 Il te faut un Pass VIP actif pour acheter ce skin !')
-      } else {
-        flash(`${SAISON_EMOJIS[item.saison] || '⭐'} Saison terminée — ce skin n’est plus disponible à l’achat.`)
-      }
+      flash(`${SAISON_EMOJIS[item.saison] || '⭐'} Saison terminée — ce skin n’est plus disponible à l’achat.`)
       return
     }
     // Retirer l'accessoire déjà équipé (sauf la couleur, toujours présente).
@@ -256,16 +218,6 @@ export default function Avatar() {
             </p>
           )}
 
-          {/* Bandeau de l'onglet exclusif VIP */}
-          {isVipTab && (
-            <p className={`av__saison-note ${vipActive ? '' : 'av__saison-note--over'}`}>
-              {tabEmoji}{' '}
-              {vipActive
-                ? 'Skins exclusifs du Pass VIP ! Achète-les tant que ton pass est actif : ils restent à vie sur ton compte.'
-                : 'Pass VIP inactif — tu gardes à vie les skins déjà acquis, mais les autres ne sont plus achetables. Direction le Shop 🛍️ !'}
-            </p>
-          )}
-
           {/* Grille d'accessoires de la catégorie active */}
           <div className="av__grid">
             {gridItems.map((item) => {
@@ -291,9 +243,7 @@ export default function Avatar() {
                   />
                   <span className="acc__label">{item.label}</span>
                   {closed ? (
-                    <span className="acc__tag acc__tag--closed">
-                      {item.vip ? 'Pass VIP requis' : 'Saison terminée'}
-                    </span>
+                    <span className="acc__tag acc__tag--closed">Saison terminée</span>
                   ) : item.price === 0 ? (
                     <span className="acc__tag acc__tag--free">Gratuit</span>
                   ) : owned ? (
