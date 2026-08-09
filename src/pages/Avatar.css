@@ -309,6 +309,78 @@
   box-shadow: 0 4px 10px rgba(61, 214, 140, 0.5);
 }
 
+/* ============================================================
+   🪆 POUPERS COLLECTORE — onglet « Mes Poupers » (lecture seule)
+   ============================================================ */
+.av__saison-note--poupers {
+  color: #5a1fd4;
+  background: linear-gradient(120deg, rgba(124, 58, 255, 0.16), rgba(255, 77, 141, 0.1));
+  border: 1.5px solid rgba(124, 58, 255, 0.3);
+}
+.av__grid--poupers {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+.pouper-acc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2.5px solid rgba(124, 58, 255, 0.14);
+  border-radius: 18px;
+  padding: 14px 10px;
+}
+.pouper-acc__img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(43, 35, 80, 0.22));
+  transform-origin: 50% 90%;
+  animation: pouper-acc-sway 2.6s ease-in-out infinite;
+}
+@keyframes pouper-acc-sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pouper-acc__img { animation: none; }
+}
+.pouper-acc__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--texte);
+  text-align: center;
+}
+.pouper-acc__record {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--texte-doux);
+  text-align: center;
+}
+.pouper-acc__positions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+.pouper-acc__pos {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--violet);
+  background: rgba(124, 58, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px 8px;
+  transition: background 0.15s, color 0.15s;
+}
+.pouper-acc__pos:hover {
+  background: rgba(124, 58, 255, 0.18);
+}
+.pouper-acc__pos--on {
+  background: var(--degrade-zigzam);
+  color: #fff;
+}
+
 /* Popup de confirmation */
 .modal {
   position: fixed;

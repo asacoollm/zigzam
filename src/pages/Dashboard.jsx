@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getBadges, markTutorialDone, getMyBoites, checkAndApplyTaxes } from '../lib/modules'
+import {
+  getBadges, markTutorialDone, getMyBoites, checkAndApplyTaxes,
+  checkPouperRecords, getPouperNotifications,
+} from '../lib/modules'
 import { isModuleBlocked } from '../lib/parental'
 import { isVipActive, formatVipTimeLeft, useVipCountdown } from '../lib/vip'
+import { pouperRecordLabel } from '../lib/poupers'
 import Backdrop from '../components/Backdrop'
 import Buddy from '../components/Buddy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import Tutorial from '../components/Tutorial'
 import {
   IconDiscuter, IconActualites, IconContacts, IconAvatar, IconDonutsGemmes,
-  IconShop, IconParametres, IconFloorIsLava, IconSerie, IconAdmin,
+  IconShop, IconParametres, IconFloorIsLava, IconSerie, IconAdmin, IconPoupers,
 } from '../components/icons'
 import './Dashboard.css'
 
@@ -21,6 +25,7 @@ const MODULES = [
   { Icon: IconAvatar, label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar', tut: 'avatar' },
   { Icon: IconDonutsGemmes, label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { Icon: IconShop, label: 'Shop', color: 'var(--orange)', to: '/shop', key: 'shop' },
+  { Icon: IconPoupers, label: 'Poupers', color: 'var(--violet)', to: '/poupers', key: 'poupers' },
   { Icon: IconParametres, label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
   { Icon: IconFloorIsLava, label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
   { Icon: IconSerie, label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
@@ -80,6 +85,28 @@ export default function Dashboard() {
       if (!on || !res.applied) return
       updateUser({ donuts: res.donuts, gemmes: res.gemmes })
       flash(`💸 Les impôts sont passés ! Tu as perdu ${res.donuts_perdus} 🍩 et ${res.gemmes_perdus} 💎.`)
+    })
+    return () => { on = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id])
+
+  // 🪆 Poupers Collectore : recalcule les 9 records à la connexion, puis
+  // affiche en cascade les notifications de gain/perte en attente (même
+  // celles générées pendant que ce joueur n'était pas connecté).
+  useEffect(() => {
+    let on = true
+    checkPouperRecords().then(() => {
+      if (!on) return
+      getPouperNotifications(user.id).then((notifs) => {
+        if (!on || !notifs.length) return
+        notifs.forEach((n, i) => {
+          const label = pouperRecordLabel(n.record_type)
+          const msg = n.type === 'gain'
+            ? `🪆 Tu as gagné la poupée ${n.pouper_nom} ! Tu détiens maintenant le record de ${label} !`
+            : `🪆 ${n.autre_pseudo || 'Quelqu’un'} t'a pris la poupée ${n.pouper_nom} ! Il/elle a battu ton record de ${label}.`
+          setTimeout(() => on && flash(msg), i * 3200)
+        })
+      })
     })
     return () => { on = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps

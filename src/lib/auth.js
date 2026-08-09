@@ -122,5 +122,6 @@ export async function buyAccessory(userId, category, itemId, price) {
   }
   if (data?.error) return { error: 'Oups, une erreur est survenue. Réessaie !' }
 
+  supabase.rpc('check_pouper_records') // 🪆 nb_accessoires a peut-être changé de main
   return { gemmes: data.gemmes, avatar: data.avatar }
 }

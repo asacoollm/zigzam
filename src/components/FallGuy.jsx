@@ -444,8 +444,29 @@ export default function FallGuy({
       {/* Badge de rôle (admin / superadmin), par-dessus tout, sur le ventre */}
       <RoleBadge role={role} />
       <VipCrown vip={vip} />
+
+      {/* 🪆 Poupers Collectore : poupée gagnée, affichée sur la tête ou le bras */}
+      <PouperDoll pouper={a?.pouperEquipped} />
       </>
       )}
     </svg>
+  )
+}
+
+// Poupée vaudou gagnée (record battu), posée sur la tête ou accrochée au bras.
+function PouperDoll({ pouper }) {
+  if (!pouper?.image_url) return null
+  const onHead = pouper.position !== 'bras'
+  const box = onHead
+    ? { x: 44, y: -20, w: 32, h: 32 }
+    : { x: 94, y: 58, w: 26, h: 26 }
+  return (
+    <g className={`fg__pouper fg__pouper--${onHead ? 'tete' : 'bras'}`}>
+      <image
+        href={pouper.image_url}
+        x={box.x} y={box.y} width={box.w} height={box.h}
+        preserveAspectRatio="xMidYMid meet"
+      />
+    </g>
   )
 }

@@ -17,6 +17,7 @@ import EpisodePlayer from './pages/EpisodePlayer'
 import BoiteMystere from './pages/BoiteMystere'
 import Shop from './pages/Shop'
 import MegaBoite from './pages/MegaBoite'
+import Poupers from './pages/Poupers'
 import ParentalGuard from './components/ParentalGuard'
 import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
@@ -160,6 +161,12 @@ export default function App() {
         path="/mega-boites"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <MegaBoite />
+        }
+      />
+      <Route
+        path="/poupers"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Poupers />
         }
       />
       <Route

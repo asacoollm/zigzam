@@ -52,6 +52,7 @@ export async function sendMessage(discussionId, auteurId, contenu) {
   const r = await rpc('send_message', {
     p_discussion: discussionId, p_auteur: auteurId, p_contenu: contenu,
   })
+  if (!r.error) checkPouperRecords() // 🪆 nb_messages a peut-être changé de main
   return r.error ? r : { message: r.data }
 }
 
@@ -123,6 +124,7 @@ export async function sendVocalMessage(discussionId, auteurId, audioUrl) {
   const r = await rpc('send_vocal_message', {
     p_discussion: discussionId, p_auteur: auteurId, p_audio_url: audioUrl,
   })
+  if (!r.error) checkPouperRecords() // 🪆 nb_messages a peut-être changé de main
   return r.error ? r : { message: r.data }
 }
 // Marque un vocal comme écouté par l'utilisateur (au moment de la lecture).
@@ -163,6 +165,7 @@ export async function createActu(auteurId, titre, contenu, image) {
   if (r.data?.error === 'not_enough_donuts') {
     return { error: 'Il te faut 10 🍩 donuts pour publier une nouvelle actu.' }
   }
+  checkPouperRecords() // 🪆 nb_actus / nb_donuts ont peut-être changé de main
   return { ok: true, donuts: r.data.donuts, id: r.data.id }
 }
 export async function viewActu(actuId, userId) {
@@ -260,6 +263,7 @@ export async function exchange(userId, sens) {
   if (r.error) return r
   if (r.data?.error === 'not_enough') return { error: 'Solde insuffisant.' }
   if (r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_donuts / nb_gemmes ont peut-être changé de main
   return { ok: true, donuts: r.data.donuts, gemmes: r.data.gemmes }
 }
 export async function sendValue(fromId, numero, devise, montant) {
@@ -272,6 +276,7 @@ export async function sendValue(fromId, numero, devise, montant) {
   if (e === 'soi_meme') return { error: 'Tu ne peux pas t’envoyer à toi-même 😅' }
   if (e === 'not_enough') return { error: 'Solde insuffisant.' }
   if (e) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_donuts / nb_gemmes ont peut-être changé de main
   return { ok: true, donuts: r.data.donuts, gemmes: r.data.gemmes }
 }
 export async function getTransactions(userId) {
@@ -285,6 +290,7 @@ export async function exchangeToBurgers(userId, gemmesAmount) {
   if (r.error) return r
   if (r.data?.error === 'not_enough') return { error: 'Solde insuffisant.' }
   if (r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_gemmes a peut-être changé de main
   return { ok: true, gemmes: r.data.gemmes, burgers: r.data.burgers }
 }
 
@@ -314,6 +320,7 @@ export async function addContact(userId, numero) {
   if (e === 'numero_introuvable') return { error: 'Aucun élève avec ce numéro.' }
   if (e === 'soi_meme') return { error: 'C’est ton propre numéro 😄' }
   if (e) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_contacts a peut-être changé de main
   return { ok: true, contact: r.data.contact }
 }
 export async function removeContact(userId, contactId) {
@@ -430,6 +437,7 @@ export async function getFlavaLevel(userId) {
 export async function flavaWin(userId, level) {
   const r = await rpc('flava_win', { p_user: userId, p_level: level })
   if (r.error || r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 niveau_lava a peut-être changé de main
   return { ok: true, niveau: r.data.niveau }
 }
 
@@ -512,6 +520,7 @@ export async function openBoite(userId, boiteId) {
   const r = await rpc('open_boite', { p_user: userId, p_boite: boiteId })
   if (r.error) return r
   if (r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_boites / nb_accessoires / nb_donuts / nb_gemmes
   return r.data
 }
 
@@ -592,6 +601,7 @@ export async function buyBurgers(userId, amount, costGemmes) {
   if (r.error) return r
   if (r.data?.error === 'not_enough') return { error: 'Pas assez de gemmes 💎' }
   if (r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_gemmes a peut-être changé de main
   return { ok: true, gemmes: r.data.gemmes, burgers: r.data.burgers }
 }
 
@@ -607,6 +617,7 @@ export async function claimDailyGift(userId) {
   if (r.error) return r
   if (r.data?.error === 'deja_recupere') return { error: 'déjà récupéré', next_reset: r.data.next_reset }
   if (r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_donuts / nb_gemmes ont peut-être changé de main
   return r.data
 }
 
@@ -620,6 +631,7 @@ export async function buyMegaBoite(userId, niveau) {
   if (r.error) return r
   if (r.data?.error === 'not_enough') return { error: 'Pas assez de burgers 🍔' }
   if (r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_boites a peut-être changé de main
   return {
     ok: true, id: r.data.id, burgers: r.data.burgers,
     evolved: r.data.evolved, niveauAchete: r.data.niveau_achete, niveauFinal: r.data.niveau_final,
@@ -629,6 +641,7 @@ export async function openMegaBoite(userId, boiteId) {
   const r = await rpc('open_mega_boite', { p_user: userId, p_boite: boiteId })
   if (r.error) return r
   if (r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_accessoires / nb_donuts / nb_gemmes
   return r.data
 }
 
@@ -638,6 +651,7 @@ export async function buyVipPass(userId) {
   if (r.error) return r
   if (r.data?.error === 'not_enough') return { error: 'Il te faut 40 🍩 + 5 💎 + 30 🍔.' }
   if (r.data?.error) return { error: ERR }
+  checkPouperRecords() // 🪆 nb_donuts / nb_gemmes / nb_boites
   return r.data
 }
 
@@ -647,4 +661,24 @@ export async function checkAndApplyTaxes(userId) {
   const r = await rpc('apply_taxes', { p_user: userId })
   if (r.error || r.data?.error) return { applied: false }
   return r.data
+}
+
+// ---------------- POUPERS COLLECTORE 🪆 ----------------
+// Liste publique des 9 poupées + leur détenteur actuel (page /poupers).
+export async function getPoupers() {
+  const r = await rpc('get_poupers')
+  return r.error ? [] : r.data
+}
+// Recalcule les 9 records et transfère les poupées si besoin. Appelée à la
+// connexion et après chaque action significative — on l'appelle "à la volée"
+// (sans bloquer l'UI), les notifications éventuelles sont récupérées ensuite
+// via getPouperNotifications() au prochain passage sur le dashboard.
+export async function checkPouperRecords() {
+  return rpc('check_pouper_records')
+}
+// Notifications de gain/perte en attente pour l'utilisateur (marquées vues
+// au passage). Appelée au montage du dashboard.
+export async function getPouperNotifications(userId) {
+  const r = await rpc('get_pending_pouper_notifications', { p_user: userId })
+  return r.error ? [] : r.data
 }

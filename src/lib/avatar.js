@@ -333,6 +333,9 @@ export const DEFAULT_AVATAR = {
   sport: null, animal: null, face: null,
   full: null, // skin complet (remplace tout le bonhomme) — null = bonhomme normal
   owned: [],
+  // 🪆 Poupers Collectore : { slug, nom, image_url, position } | null.
+  // Retirée automatiquement côté serveur si le record est perdu.
+  pouperEquipped: null,
 }
 
 export function accKey(categoryId, itemId) {

@@ -113,6 +113,24 @@
 }
 
 /* ============================================================
+   🪆 POUPERS COLLECTORE — poupée gagnée, légère oscillation en boucle.
+   ============================================================ */
+.fg__pouper {
+  transform-box: fill-box;
+  animation: fg-pouper-sway 2.4s ease-in-out infinite;
+}
+.fg__pouper--tete { transform-origin: 50% 100%; }
+.fg__pouper--bras { transform-origin: 50% 0%; }
+@keyframes fg-pouper-sway {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg__pouper { animation: none; }
+}
+
+/* ============================================================
    🦕 JURASSIC WEB — animations des skins de saison (dans le SVG).
    Les skins sont gardés à vie : ces animations tournent en continu.
    ============================================================ */

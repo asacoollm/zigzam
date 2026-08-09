@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSaison } from '../context/SaisonContext'
 import { isSaisonTerminee } from '../lib/saison'
 import { saveAvatar, buyAccessory } from '../lib/auth'
-import { buyCustomSkin } from '../lib/modules'
+import { buyCustomSkin, getPoupers } from '../lib/modules'
 import { isVipActive } from '../lib/vip'
+import { pouperRecordLabel, POUPER_POSITIONS } from '../lib/poupers'
 import {
   CATEGORIES, normalizeAvatar, isUnlocked, accKey, getSaisonItems,
   getSaisonsPossedees, SAISON_LABELS, SAISON_EMOJIS,
@@ -17,6 +18,7 @@ import ZigzamLogo from '../components/ZigzamLogo'
 import './Avatar.css'
 
 const VIP_TAB_ID = '__vip'
+const POUPERS_TAB_ID = '__poupers'
 
 export default function Avatar() {
   const { user, updateUser } = useAuth()
@@ -26,6 +28,16 @@ export default function Avatar() {
   const vipActive = isVipActive(user.vip_expire_at)
 
   const [avatar, setAvatar] = useState(() => normalizeAvatar(user.avatar))
+
+  // 🪆 Poupers Collectore : poupées dont l'élève détient actuellement le record.
+  const [myPoupers, setMyPoupers] = useState([])
+  useEffect(() => {
+    let on = true
+    getPoupers().then((list) => {
+      if (on) setMyPoupers(list.filter((p) => p.detenteur?.id === user.id))
+    })
+    return () => { on = false }
+  }, [user.id])
 
   // Un onglet virtuel par saison : celle en cours, plus toutes celles dont
   // l'élève possède déjà au moins un skin (gardés à vie, ré-équipables même
@@ -55,9 +67,12 @@ export default function Avatar() {
         virtual: true,
       })),
       ...(showVipTab ? [{ id: VIP_TAB_ID, label: VIP_LABEL, emoji: VIP_EMOJI, virtual: true }] : []),
+      ...(myPoupers.length
+        ? [{ id: POUPERS_TAB_ID, label: '🪆 Mes Poupers', emoji: '🪆', virtual: true }]
+        : []),
       ...catsNormales,
     ]
-  }, [saisonSlugs, showVipTab])
+  }, [saisonSlugs, showVipTab, myPoupers])
 
   // Un onglet initial peut être imposé par la navigation (ex. le Shop qui
   // renvoie vers une catégorie précise pour équiper un accessoire).
@@ -79,6 +94,7 @@ export default function Avatar() {
   const tabSaisonSlug = tab.startsWith('__saison:') ? tab.slice('__saison:'.length) : null
   const isSaisonTab = !!tabSaisonSlug
   const isVipTab = tab === VIP_TAB_ID
+  const isPoupersTab = tab === POUPERS_TAB_ID
   const saisonItems = useMemo(() => getSaisonItems(tabSaisonSlug), [tabSaisonSlug])
   const vipItems = useMemo(() => (isVipTab ? getVipItems() : []), [isVipTab])
 
@@ -129,6 +145,21 @@ export default function Avatar() {
     updateUser({ avatar: next })
     const res = await saveAvatar(user.id, next)
     if (res.error) flash(res.error)
+  }
+
+  // 🪆 Mes Poupers — lecture seule : choisit où afficher une poupée déjà
+  // gagnée (tête / bras), ou la retire. Une seule poupée affichée à la fois.
+  const equippedPouperSlug = avatar.pouperEquipped?.slug
+  const pickPouper = (pouper, position) => {
+    if (equippedPouperSlug === pouper.slug && avatar.pouperEquipped?.position === position) {
+      applyFree({ pouperEquipped: null })
+      return
+    }
+    applyFree({
+      pouperEquipped: {
+        slug: pouper.slug, nom: pouper.nom, image_url: pouper.image_url, position,
+      },
+    })
   }
 
   const pickItem = (item) => {
@@ -266,7 +297,45 @@ export default function Avatar() {
             </p>
           )}
 
+          {/* Bandeau de l'onglet « Mes Poupers » */}
+          {isPoupersTab && (
+            <p className="av__saison-note av__saison-note--poupers">
+              🪆 Poupées gagnées en battant des records Zigzam — lecture seule,
+              rien à acheter ici ! Choisis où l'afficher, une seule à la fois.
+              Attention, elle disparaît automatiquement si quelqu'un te bat 😉
+            </p>
+          )}
+
+          {/* Grille des poupées gagnées (lecture seule, position au choix) */}
+          {isPoupersTab && (
+            <div className="av__grid av__grid--poupers">
+              {myPoupers.map((p) => (
+                <div key={p.slug} className="pouper-acc">
+                  <img className="pouper-acc__img" src={p.image_url} alt={p.nom} />
+                  <span className="pouper-acc__label">{p.nom}</span>
+                  <span className="pouper-acc__record">{pouperRecordLabel(p.record_type)}</span>
+                  <div className="pouper-acc__positions">
+                    {POUPER_POSITIONS.map((pos) => {
+                      const on = equippedPouperSlug === p.slug && avatar.pouperEquipped?.position === pos.id
+                      return (
+                        <button
+                          key={pos.id}
+                          type="button"
+                          className={`pouper-acc__pos ${on ? 'pouper-acc__pos--on' : ''}`}
+                          onClick={() => pickPouper(p, pos.id)}
+                        >
+                          {pos.emoji} {on ? 'Affichée' : pos.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Grille d'accessoires de la catégorie active */}
+          {!isPoupersTab && (
           <div className="av__grid">
             {gridItems.map((item) => {
               const cat = catOf(item)
@@ -308,6 +377,7 @@ export default function Avatar() {
               )
             })}
           </div>
+          )}
         </section>
       </main>
 

@@ -1,0 +1,204 @@
+/* ============================================================
+   Poupers.css — page « Poupers Collectore » 🪆
+   ============================================================ */
+
+.poup {
+  position: relative;
+  z-index: 0;
+  min-height: 100svh;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px;
+  padding-bottom: 60px;
+}
+
+.poup__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  padding: 14px 18px;
+  box-shadow: 0 16px 36px rgba(124, 58, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+}
+
+.poup__retour {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--violet);
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+.poup__retour:hover { background: rgba(124, 58, 255, 0.1); }
+
+.poup__titre {
+  text-align: center;
+  font-size: 1.9rem;
+  color: var(--texte);
+  margin: 0 0 6px;
+}
+
+.poup__sous-titre {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--texte-doux);
+  margin: 0 0 24px;
+}
+
+.poup__loading {
+  text-align: center;
+  font-weight: 700;
+  color: var(--texte-doux);
+  margin-top: 40px;
+}
+
+.poup__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.poup__carte {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(124, 58, 255, 0.18);
+  padding: 22px 16px 18px;
+}
+
+.poup__carte--moi {
+  border-color: rgba(245, 184, 0, 0.7);
+  box-shadow: 0 16px 36px rgba(245, 184, 0, 0.35), 0 0 0 2px rgba(245, 184, 0, 0.5) inset;
+}
+
+.poup__badge-moi {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #f5b800, #ff8c42);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(245, 184, 0, 0.4);
+}
+
+.poup__doll-wrap {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.poup__doll {
+  max-width: 100%;
+  max-height: 100%;
+  filter: drop-shadow(0 10px 16px rgba(43, 35, 80, 0.25));
+  transform-origin: 50% 90%;
+  animation: poup-sway 2.6s ease-in-out infinite;
+}
+@keyframes poup-sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .poup__doll { animation: none; }
+}
+
+.poup__nom {
+  font-family: var(--font-titre);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--texte);
+  margin: 0 0 2px;
+}
+
+.poup__record {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--violet);
+  margin: 0 0 6px;
+}
+
+.poup__desc {
+  font-size: 0.82rem;
+  color: var(--texte-doux);
+  margin: 0 0 14px;
+  min-height: 34px;
+}
+
+.poup__detenteur {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: rgba(124, 58, 255, 0.08);
+  border-radius: 16px;
+  padding: 8px 12px;
+}
+
+.poup__detenteur-avatar {
+  width: 42px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.poup__detenteur-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.poup__detenteur-pseudo {
+  font-weight: 800;
+  color: var(--texte);
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 130px;
+}
+
+.poup__detenteur-valeur {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--texte-doux);
+}
+
+.poup__libre {
+  width: 100%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--texte-doux);
+  background: rgba(43, 35, 80, 0.06);
+  border-radius: 16px;
+  padding: 10px 12px;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .poup { padding: 12px; }
+  .poup__grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .poup__doll-wrap { width: 90px; height: 90px; }
+}
