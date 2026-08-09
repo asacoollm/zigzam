@@ -289,6 +289,22 @@
   background: rgba(180, 160, 120, 0.16);
   border-color: rgba(150, 130, 90, 0.3);
 }
+
+/* ⭐ Onglet « Skin Sur Mesure » — thème or, distinct des onglets de saison */
+.av__tab--custom {
+  background: linear-gradient(120deg, #b8860b, #ffd23f);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(184, 134, 11, 0.35);
+}
+.av__tab--custom.av__tab--on {
+  background: linear-gradient(120deg, #8a660a, #e0a92a);
+  outline: 2px solid #ffe98a;
+}
+.av__saison-note--custom {
+  color: #7a5a06;
+  background: linear-gradient(120deg, rgba(255, 210, 63, 0.22), rgba(184, 134, 11, 0.12));
+  border: 1.5px solid rgba(184, 134, 11, 0.35);
+}
 .acc--closed {
   opacity: 0.62;
   filter: grayscale(0.85) sepia(0.2);

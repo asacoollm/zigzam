@@ -1225,6 +1225,94 @@ const ANIMAL_PLACEMENT = {
 // nécessitent tous le viewBox élargi pour ne pas être coupés.
 export function animalWide() { return true }
 
+// ============================================================
+//  ⭐ SKIN SUR MESURE — skins complets créés à la demande pour un
+//  membre précis (cf. table public.skins_sur_mesure). Même patron que
+//  les skins complets de saison (DISNEY_FULL) : chaque fonction
+//  renvoie LE BONHOMME ENTIER (repère identique, cf. disneyFull.jsx).
+//  Visibilité gérée côté serveur (RPC), pas ici : cette fonction est
+//  toujours exportée, mais n'est utilisée que si le skin est équipé.
+// ============================================================
+
+// 🎎 penpenkimono — corps beige/crème, kimono vert/rouge/noir à
+// bandes verticales, col en V, obi et manches larges.
+function penpenKimono() {
+  const CREAM = '#f5dab3'
+  const FACE_CREAM = '#fbe8c8'
+  const GREEN = '#2d5016'
+  const RED = '#cc2200'
+  const BLACK = '#1a1a1a'
+  const T = '#241c2a'
+  return (
+    <g>
+      {/* Jambes + sandales noires */}
+      <rect x="41" y="118" width="13" height="32" rx="6.5" fill={CREAM} stroke={T} strokeWidth="1.5" />
+      <rect x="66" y="118" width="13" height="32" rx="6.5" fill={CREAM} stroke={T} strokeWidth="1.5" />
+      <ellipse cx="44" cy="150" rx="12" ry="7" fill={BLACK} stroke={T} strokeWidth="1.5" />
+      <ellipse cx="76" cy="150" rx="12" ry="7" fill={BLACK} stroke={T} strokeWidth="1.5" />
+
+      {/* Bras (peau) */}
+      <rect x="6" y="58" width="13" height="44" rx="6.5" fill={CREAM} stroke={T} strokeWidth="1.5" />
+      <rect x="101" y="58" width="13" height="44" rx="6.5" fill={CREAM} stroke={T} strokeWidth="1.5" />
+      <circle cx="12.5" cy="104" r="6.5" fill={CREAM} stroke={T} strokeWidth="1.5" />
+      <circle cx="107.5" cy="104" r="6.5" fill={CREAM} stroke={T} strokeWidth="1.5" />
+
+      {/* Manches larges du kimono, par-dessus les bras — dépassent légèrement */}
+      <path d="M4 64 Q-3 82 5 100 Q15 96 17 84 Q17 71 10 62 Z" fill={GREEN} stroke={T} strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M116 64 Q123 82 115 100 Q105 96 103 84 Q103 71 110 62 Z" fill={GREEN} stroke={T} strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M5 70 Q1 84 8 96" stroke={RED} strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.85" />
+      <path d="M115 70 Q119 84 112 96" stroke={RED} strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.85" />
+
+      {/* Corps « haricot » crème */}
+      <rect x="18" y="16" width="84" height="116" rx="42" fill={CREAM} stroke={T} strokeWidth="1.8" />
+      <ellipse cx="46" cy="40" rx="23" ry="18" fill="#fff" opacity="0.16" />
+
+      {/* Bandes verticales du kimono (motif japonais simple) — SOUS le visage,
+          uniquement sur le buste (le panneau visage occupe déjà y42-78). */}
+      <rect x="25" y="84" width="9" height="30" rx="3" fill={GREEN} stroke={T} strokeWidth="1" />
+      <rect x="36" y="84" width="7" height="30" rx="3" fill={RED} stroke={T} strokeWidth="1" />
+      <rect x="45" y="84" width="30" height="30" rx="3" fill={BLACK} stroke={T} strokeWidth="1" />
+      <rect x="77" y="84" width="7" height="30" rx="3" fill={RED} stroke={T} strokeWidth="1" />
+      <rect x="86" y="84" width="9" height="30" rx="3" fill={GREEN} stroke={T} strokeWidth="1" />
+      {/* Petit accent façon croix japonaise sur la bande centrale */}
+      <path d="M56 98 h8 M60 94 v8" stroke="#fff" strokeWidth="1.6" opacity="0.5" strokeLinecap="round" />
+
+      {/* Obi (ceinture) avec nœud rouge central */}
+      <rect x="25" y="100" width="70" height="13" rx="3" fill={BLACK} stroke={T} strokeWidth="1.5" />
+      <rect x="53" y="97" width="14" height="19" rx="2.5" fill={RED} stroke={T} strokeWidth="1.3" />
+      <path d="M53 106 h14" stroke={BLACK} strokeWidth="1.6" opacity="0.6" />
+
+      {/* Col en V — patch crème exposé sous le menton + bandes noires bordées
+          de rouge (dessiné APRÈS les bandes/l'obi, mais AVANT le visage qui
+          doit rester par-dessus le col, pas l'inverse). */}
+      <path d="M38 78 L82 78 L60 94 Z" fill={CREAM} />
+      <path d="M26 77 L60 92" stroke={BLACK} strokeWidth="7" strokeLinecap="round" />
+      <path d="M94 77 L60 92" stroke={BLACK} strokeWidth="7" strokeLinecap="round" />
+      <path d="M30 78 L60 89" stroke={RED} strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+      <path d="M90 78 L60 89" stroke={RED} strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+
+      {/* Visage (par-dessus le col, comme sur le bonhomme par défaut) */}
+      <rect x="33" y="42" width="54" height="36" rx="18" fill={FACE_CREAM} />
+      <circle cx="49" cy="60" r="6" fill="#241c2a" />
+      <circle cx="71" cy="60" r="6" fill="#241c2a" />
+      <circle cx="51.4" cy="57.6" r="2.1" fill="#fff" />
+      <circle cx="73.4" cy="57.6" r="2.1" fill="#fff" />
+      <circle cx="38" cy="70" r="4.6" fill="#ff8fb0" opacity="0.75" />
+      <circle cx="82" cy="70" r="4.6" fill="#ff8fb0" opacity="0.75" />
+      <path d="M52 71 q8 7 16 0" stroke="#c46a7a" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+
+      {/* Cheveux courts, noirs */}
+      <path d="M31 38 q3 -19 29 -19 q26 0 29 19 q-10 -9 -29 -9 q-19 0 -29 9 Z"
+        fill={BLACK} stroke={T} strokeWidth="1.6" strokeLinejoin="round" />
+    </g>
+  )
+}
+
+// Registre des skins sur mesure. Clé = item_id (public.skins_sur_mesure).
+export const CUSTOM_FULL = {
+  penpenkimono: () => penpenKimono(),
+}
+
 // ---- Sélecteurs exportés ----
 //  Les skins exclusifs de la saison « Zigzamland Paris » vivent dans leurs
 //  propres fichiers (disneyHats / disneyFaces / disneyAnimals / disneyFull)
@@ -1243,7 +1331,7 @@ export function renderAnimal(id) {
   return <g transform={placement}>{draw}</g>
 }
 // Skin « complet » : remplace tout le bonhomme (cf. FallGuy).
-export function renderFull(id) { return DISNEY_FULL[id]?.() ?? null }
+export function renderFull(id) { return DISNEY_FULL[id]?.() ?? CUSTOM_FULL[id]?.() ?? null }
 
 // ----------------------------------------------------------------
 //  CHAPEAUX  (posés sur le crâne, centrés x=60 ; couvrent le haut des cheveux)

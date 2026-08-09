@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSaison } from '../context/SaisonContext'
 import { saveAvatar, buyAccessory } from '../lib/auth'
-import { buyCustomSkin } from '../lib/modules'
+import { buyCustomSkin, getMyCustomSkins } from '../lib/modules'
 import {
   CATEGORIES, normalizeAvatar, isUnlocked, accKey, getSaisonItems,
   getSaisonsPossedees, SAISON_LABELS, SAISON_EMOJIS,
@@ -13,12 +13,28 @@ import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import './Avatar.css'
 
+const CUSTOM_TAB_ID = '__custom'
+
 export default function Avatar() {
   const { user, updateUser } = useAuth()
   const { active: saisonActive, terminee: saisonTerminee, slug: saisonSlug } = useSaison()
   const navigate = useNavigate()
 
   const [avatar, setAvatar] = useState(() => normalizeAvatar(user.avatar))
+
+  // ⭐ Skins Sur Mesure : uniquement ceux VALIDÉS par Asacool (jamais ceux en
+  // attente — c'est ce qui les garde invisibles tant que la validation
+  // n'a pas eu lieu, même si le skin est techniquement déjà « acquis »).
+  const [myCustomSkins, setMyCustomSkins] = useState([])
+  useEffect(() => {
+    let on = true
+    getMyCustomSkins(user.id).then((list) => on && setMyCustomSkins(Array.isArray(list) ? list : []))
+    return () => { on = false }
+  }, [user.id])
+  const customItems = useMemo(
+    () => myCustomSkins.map((s) => ({ id: s.item_id, label: s.nom, price: 20, _cat: s.category })),
+    [myCustomSkins],
+  )
 
   // Un onglet virtuel par saison : celle en cours, plus toutes celles dont
   // l'élève possède déjà au moins un skin (gardés à vie, ré-équipables même
@@ -42,9 +58,12 @@ export default function Avatar() {
         emoji: SAISON_EMOJIS[slug] || '⭐',
         virtual: true,
       })),
+      ...(customItems.length
+        ? [{ id: CUSTOM_TAB_ID, label: '⭐ Skin Sur Mesure', emoji: '⭐', virtual: true }]
+        : []),
       ...catsNormales,
     ]
-  }, [saisonSlugs])
+  }, [saisonSlugs, customItems])
 
   const [tab, setTab] = useState(
     saisonSlugs.length ? `__saison:${saisonSlugs[0]}` : CATEGORIES[0].id,
@@ -60,6 +79,7 @@ export default function Avatar() {
   // Onglet de saison : `__saison:<slug>` → on en extrait le slug.
   const tabSaisonSlug = tab.startsWith('__saison:') ? tab.slice('__saison:'.length) : null
   const isSaisonTab = !!tabSaisonSlug
+  const isCustomTab = tab === CUSTOM_TAB_ID
   const saisonItems = useMemo(() => getSaisonItems(tabSaisonSlug), [tabSaisonSlug])
   // La saison de l'onglet courant tourne-t-elle vraiment en ce moment ?
   const tabSaisonEnCours = !!tabSaisonSlug
@@ -78,10 +98,13 @@ export default function Avatar() {
   const catOf = (item) => item._cat || tab
 
   // Items affichés dans la grille : onglet saison = items de saison ;
-  // onglets normaux = leurs items SANS les exclusifs de saison.
+  // onglet skin sur mesure = skins validés de l'utilisateur ; onglets
+  // normaux = leurs items SANS les exclusifs de saison.
   const gridItems = isSaisonTab
     ? saisonItems
-    : (activeCategory?.items ?? []).filter((it) => !it.saison)
+    : isCustomTab
+      ? customItems
+      : (activeCategory?.items ?? []).filter((it) => !it.saison)
 
   const flash = (msg) => {
     setToast(msg)
@@ -199,7 +222,9 @@ export default function Avatar() {
                 key={c.id}
                 role="tab"
                 aria-selected={tab === c.id}
-                className={`av__tab ${tab === c.id ? 'av__tab--on' : ''} ${c.virtual ? 'av__tab--saison' : ''}`}
+                className={`av__tab ${tab === c.id ? 'av__tab--on' : ''} ${
+                  c.id === CUSTOM_TAB_ID ? 'av__tab--custom' : c.virtual ? 'av__tab--saison' : ''
+                }`}
                 onClick={() => setTab(c.id)}
               >
                 <span className="av__tab-emoji">{c.emoji}</span>
@@ -215,6 +240,14 @@ export default function Avatar() {
               {tabSaisonEnCours
                 ? 'Skins exclusifs de la saison ! Achète-les pendant la saison : ils restent à vie sur ton compte.'
                 : 'Saison terminée — tu gardes à vie les skins déjà acquis, mais les autres ne sont plus achetables.'}
+            </p>
+          )}
+
+          {/* Bandeau de l'onglet « Skin Sur Mesure » */}
+          {isCustomTab && (
+            <p className="av__saison-note av__saison-note--custom">
+              ⭐ Skin créé spécialement pour toi par Asacool, déjà acquis —
+              choisis-le pour l'équiper !
             </p>
           )}
 

@@ -574,3 +574,22 @@ export async function adminSaisonStats(adminId, slug) {
   const r = await rpc('admin_saison_stats', { p_admin: adminId, p_slug: slug })
   return r.error ? null : r.data
 }
+
+// ---------------- SKINS SUR MESURE ⭐ ----------------
+// Skins complets validés de l'utilisateur (jamais ceux en attente).
+export async function getMyCustomSkins(userId) {
+  const r = await rpc('get_my_custom_skins', { p_user: userId })
+  return r.error ? [] : r.data
+}
+// Superadmin : tous les skins sur mesure (en attente + validés).
+export async function adminListCustomSkins(adminId) {
+  const r = await rpc('admin_list_custom_skins', { p_admin: adminId })
+  return r.error ? [] : r.data
+}
+// Superadmin : valide un skin en attente → devient équipable par son
+// bénéficiaire, qui reçoit un message dans Discuter pour l'annoncer.
+export async function adminValidateCustomSkin(adminId, skinId) {
+  const r = await rpc('admin_validate_custom_skin', { p_admin: adminId, p_id: skinId })
+  if (r.error || r.data?.error) return { error: ERR }
+  return { ok: true }
+}

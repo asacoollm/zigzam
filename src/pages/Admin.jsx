@@ -30,6 +30,9 @@ import {
   adminListSaisons,
   adminUpdateSaison,
   adminSaisonStats,
+  adminListCustomSkins,
+  adminValidateCustomSkin,
+  createBugReport,
 } from '../lib/modules'
 import { EPISODES, isPublished } from '../data/episodes'
 import { CATEGORIES, getItem } from '../lib/avatar'
@@ -833,6 +836,140 @@ function SectionBugReports({ adminId }) {
   )
 }
 
+// --------------- Skins Sur Mesure ⭐ (superadmin only) ---------------
+function CustomSkinCard({ skin, adminId, onValidated }) {
+  const [busy, setBusy] = useState(false)
+  const [correctionOpen, setCorrectionOpen] = useState(false)
+  const [correctionNote, setCorrectionNote] = useState('')
+  const [correctionSent, setCorrectionSent] = useState(false)
+
+  const enAttente = skin.statut !== 'valide'
+
+  async function handleValidate() {
+    setBusy(true)
+    const res = await adminValidateCustomSkin(adminId, skin.id)
+    setBusy(false)
+    if (!res.error) onValidated(skin.id)
+  }
+
+  async function sendCorrection() {
+    if (!correctionNote.trim()) return
+    setBusy(true)
+    const message = `[Skin sur mesure] Correction demandée pour « ${skin.nom} » `
+      + `(${skin.destinataire?.pseudo}) : ${correctionNote.trim()}`
+    const res = await createBugReport(adminId, message)
+    setBusy(false)
+    if (!res.error) {
+      setCorrectionSent(true)
+      setCorrectionNote('')
+      setTimeout(() => { setCorrectionOpen(false); setCorrectionSent(false) }, 1800)
+    }
+  }
+
+  return (
+    <article className={`bug-card ${enAttente ? 'bug-card--nouveau' : 'bug-card--resolu'}`}>
+      <div className="bug-card__head">
+        <div className="bug-card__author">
+          <FallGuy
+            className="skin-card__preview"
+            avatar={{ color: '#c9cde0', full: skin.item_id }}
+          />
+          <div className="bug-card__meta">
+            <span className="bug-card__pseudo">{skin.nom}</span>
+            <span className="bug-card__date">Pour {skin.destinataire?.pseudo ?? '—'}</span>
+          </div>
+        </div>
+        <span className={`bug-card__status bug-card__status--${enAttente ? 'nouveau' : 'resolu'}`}>
+          {enAttente ? '⏳ En attente' : '✅ Validé'}
+        </span>
+      </div>
+
+      {skin.description && <p className="bug-card__message">{skin.description}</p>}
+
+      {enAttente && (
+        <>
+          <div className="bug-card__statuts">
+            <button
+              className="admin-btn admin-btn--vert admin-btn--sm"
+              onClick={handleValidate}
+              disabled={busy}
+            >
+              {busy ? '…' : `✅ Valider et envoyer à ${skin.destinataire?.pseudo ?? 'l’élève'}`}
+            </button>
+            <button
+              className="admin-btn admin-btn--sm"
+              onClick={() => setCorrectionOpen((v) => !v)}
+              disabled={busy}
+            >
+              ✏️ Demander une correction à Claude Code
+            </button>
+          </div>
+
+          {correctionOpen && (
+            <div className="bug-card__note">
+              <textarea
+                className="admin-input bug-card__note-input"
+                placeholder="Décris la correction à apporter au skin…"
+                value={correctionNote}
+                onChange={(e) => setCorrectionNote(e.target.value)}
+                rows={2}
+              />
+              <button
+                className="admin-btn admin-btn--primary admin-btn--sm"
+                onClick={sendCorrection}
+                disabled={busy || !correctionNote.trim()}
+              >
+                {busy ? '…' : correctionSent ? '✅' : '📨 Envoyer'}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </article>
+  )
+}
+
+function SectionCustomSkins({ adminId }) {
+  const [skins, setSkins] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let on = true
+    adminListCustomSkins(adminId).then((data) => {
+      if (!on) return
+      setSkins(Array.isArray(data) ? data : [])
+      setLoading(false)
+    })
+    return () => { on = false }
+  }, [adminId])
+
+  function markValidated(id) {
+    setSkins((prev) => prev.map((s) => (s.id === id ? { ...s, statut: 'valide' } : s)))
+  }
+
+  const nbEnAttente = skins.filter((s) => s.statut === 'en_attente').length
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">
+        🎨 Skins Sur Mesure en attente
+        {nbEnAttente > 0 && <span className="bug-count">{nbEnAttente}</span>}
+      </h2>
+      {loading && <p className="admin-loading">Chargement…</p>}
+      {!loading && skins.length === 0 && (
+        <p className="admin-empty">Aucun skin sur mesure pour l'instant.</p>
+      )}
+      {!loading && skins.length > 0 && (
+        <div className="bug-list">
+          {skins.map((s) => (
+            <CustomSkinCard key={s.id} skin={s} adminId={adminId} onValidated={markValidated} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 // --------------- Série Zigzam 🎬 ---------------
 function SectionSerie({ adminId }) {
   const [overrides, setOverrides] = useState({})
@@ -1490,6 +1627,7 @@ export default function Admin() {
 
       {isSuperAdmin && (
         <>
+          <SectionCustomSkins adminId={user.id} />
           <SectionCreerCompte adminId={user.id} onUserCreated={handleUserCreated} />
           <SectionUtilisateurs adminId={user.id} refreshTrigger={refreshUsers} />
           <SectionCodes adminId={user.id} />
