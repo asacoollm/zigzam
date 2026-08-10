@@ -11,6 +11,8 @@ import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FloorMulti from './FloorMulti'
+import FloorVs from './FloorVs'
+import FloorChemins from './FloorChemins'
 import './FloorIsLava.css'
 
 const AIRBORNE_MS = 1000     // durée du saut (immunité à la lave en l'air) = 1 s pile
@@ -245,9 +247,15 @@ export default function FloorIsLava() {
     return !!(a?.animal && animalWide(a.animal))
   }, [user?.avatar])
 
-  // Choix du mode (solo / multijoueur) avant de jouer.
+  // Choix du mode (solo / multijoueur / vs / chemins) avant de jouer.
   if (mode === 'multi') {
     return <FloorMulti onBack={() => setMode(null)} />
+  }
+  if (mode === 'vs') {
+    return <FloorVs onBack={() => setMode(null)} />
+  }
+  if (mode === 'chemins') {
+    return <FloorChemins onBack={() => setMode(null)} />
   }
 
   if (mode === null) {
@@ -271,6 +279,16 @@ export default function FloorIsLava() {
             <span className="flava__mode-emoji">👥</span>
             <span className="flava__mode-title">Multijoueur</span>
             <span className="flava__mode-desc">Rejoins la partie commune en temps réel</span>
+          </button>
+          <button className="flava__mode flava__mode--vs" onClick={() => setMode('vs')}>
+            <span className="flava__mode-emoji">⚔️</span>
+            <span className="flava__mode-title">VS</span>
+            <span className="flava__mode-desc">1 contre 1 chronométré, contre un ami ou un bot</span>
+          </button>
+          <button className="flava__mode flava__mode--chemins" onClick={() => setMode('chemins')}>
+            <span className="flava__mode-emoji">🧠</span>
+            <span className="flava__mode-title">Chemins</span>
+            <span className="flava__mode-desc">Mémorise le chemin lumineux et reproduis-le</span>
           </button>
         </div>
       </div>

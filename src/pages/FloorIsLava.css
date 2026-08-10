@@ -680,3 +680,149 @@
 
 /* Bot sur le plateau : petit badge 🤖 hérité du style --other */
 .flava__player--bot .flava__player-name { background: linear-gradient(90deg, #ff8c42, #ef4444); }
+
+/* ============================================================
+   ⚔️ MODE VS — cases bleues/roses, score, chrono, choix du bot
+   ============================================================ */
+.flava__mode--vs { border-color: rgba(0, 191, 255, 0.5); }
+.flava__mode--chemins { border-color: rgba(124, 58, 255, 0.5); }
+
+/* Écran de choix : contre un bot (niveau) ou contre un humain */
+.flava__vs-choice {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 560px;
+}
+.flava__vs-card {
+  flex: 1 1 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 16px 36px rgba(124, 58, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+.flava__vs-card-title { font-size: 17px; font-weight: 900; color: var(--texte); margin: 0; }
+.flava__vs-card-desc { font-size: 13px; color: var(--texte-doux); text-align: center; margin: 0 0 4px; }
+.flava__vs-levels {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+.flava__vs-level {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: rgba(124, 58, 255, 0.1);
+  color: var(--violet-fonce);
+  font-weight: 800;
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+.flava__vs-level:hover { background: rgba(124, 58, 255, 0.2); }
+.flava__vs-level--on {
+  background: var(--degrade-zigzam);
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 6px 14px rgba(124, 58, 255, 0.4);
+}
+
+/* HUD chrono + score en jeu */
+.flava__vs-timer {
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #ef4444, #ff8c42);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+  white-space: nowrap;
+}
+.flava__vs-score {
+  display: flex;
+  gap: 10px;
+  margin: 2px 0 12px;
+}
+.flava__vs-score-chip {
+  font-size: 14px;
+  font-weight: 800;
+  padding: 7px 14px;
+  border-radius: 14px;
+  color: #fff;
+}
+.flava__vs-score-chip--bleu { background: linear-gradient(120deg, #00bfff, #0077c8); }
+.flava__vs-score-chip--rose { background: linear-gradient(120deg, #ff4d8d, #d6276b); }
+
+/* Cases d'équipe : bleu / rose, pleines une fois activées */
+.flava__tile--bleu {
+  background: #bfe8ff;
+  box-shadow: 0 5px 0 #4fb8e6, inset 0 3px 0 rgba(255, 255, 255, 0.6);
+}
+.flava__tile--rose {
+  background: #ffd0e4;
+  box-shadow: 0 5px 0 #e670a0, inset 0 3px 0 rgba(255, 255, 255, 0.6);
+}
+.flava__tile--bleu-on {
+  background: var(--bleu, #00bfff);
+  box-shadow: 0 5px 0 #0077c8, 0 0 14px rgba(0, 191, 255, 0.7), inset 0 3px 0 rgba(255, 255, 255, 0.5);
+}
+.flava__tile--rose-on {
+  background: var(--rose, #ff4d8d);
+  box-shadow: 0 5px 0 #d6276b, 0 0 14px rgba(255, 77, 141, 0.7), inset 0 3px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Anneau au sol coloré par équipe */
+.flava__player-shadow--bleu {
+  border-color: var(--bleu, #00bfff);
+  background: radial-gradient(ellipse, rgba(0, 191, 255, 0.5), rgba(0, 191, 255, 0.12) 72%);
+  box-shadow: 0 0 12px 2px rgba(0, 191, 255, 0.55);
+}
+.flava__player-shadow--rose {
+  border-color: var(--rose, #ff4d8d);
+  background: radial-gradient(ellipse, rgba(255, 77, 141, 0.5), rgba(255, 77, 141, 0.12) 72%);
+  box-shadow: 0 0 12px 2px rgba(255, 77, 141, 0.55);
+}
+
+/* ============================================================
+   🧠 MODE CHEMINS — chemin lumineux à mémoriser
+   ============================================================ */
+.flava__tile--path {
+  background: #fff4b0;
+  box-shadow: 0 5px 0 #e6c94a, inset 0 0 0 4px #fffbe0, 0 0 16px rgba(255, 210, 63, 0.8);
+  animation: flava-path-pulse 0.7s ease-in-out infinite;
+}
+@keyframes flava-path-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+}
+.flava__tile--path-start {
+  background: #b0f5cf;
+  box-shadow: 0 5px 0 #3dd68c, inset 0 0 0 4px #e0fff0, 0 0 16px rgba(61, 214, 140, 0.8);
+}
+.flava__tile--path-walked {
+  background: rgba(124, 58, 255, 0.28);
+  box-shadow: 0 5px 0 rgba(90, 31, 212, 0.35), inset 0 3px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* Mauvaise case : le bonhomme tremble en rouge */
+.flava__player--wrong .flava__avatar svg {
+  filter: brightness(0.9) sepia(1) saturate(4) hue-rotate(-40deg) drop-shadow(0 0 8px #ef4444);
+  animation: flava-wrong-shake 0.4s ease-in-out;
+}
+@keyframes flava-wrong-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flava__tile--path, .flava__player--wrong .flava__avatar svg { animation: none; }
+}
