@@ -933,9 +933,12 @@ function SectionCustomSkins({ adminId }) {
   const [skins, setSkins] = useState([])
   const [loading, setLoading] = useState(true)
 
+  console.log('[SectionCustomSkins] rendu, adminId =', adminId)
+
   useEffect(() => {
     let on = true
     adminListCustomSkins(adminId).then((data) => {
+      console.log('[SectionCustomSkins] adminListCustomSkins a renvoyé :', data)
       if (!on) return
       setSkins(Array.isArray(data) ? data : [])
       setLoading(false)
@@ -1599,6 +1602,7 @@ export default function Admin() {
   const [refreshUsers, setRefreshUsers] = useState(0)
 
   const isSuperAdmin = user?.role === 'superadmin'
+  console.log('[Admin] pseudo =', user?.pseudo, '| role =', user?.role, '| isSuperAdmin =', isSuperAdmin)
 
   function handleUserCreated() {
     setRefreshUsers((n) => n + 1)
