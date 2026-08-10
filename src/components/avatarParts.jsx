@@ -1237,7 +1237,7 @@ export function animalWide() { return true }
 // 🎎 penpenkimono — corps beige/crème, kimono vert/rouge/noir à
 // bandes verticales, col en V, obi et manches larges.
 function penpenKimono() {
-  const CREAM = '#f5dab3'
+  const CREAM = '#F5DEB3'
   const FACE_CREAM = '#fbe8c8'
   const GREEN = '#2d5016'
   const RED = '#cc2200'
