@@ -1025,3 +1025,63 @@
   border-radius: 8px;
   padding: 2px 0;
 }
+
+/* ============================================================
+   🃏 CARTES ZIGZAM COLLECTORE — gros gains + export PDF
+   ============================================================ */
+.carte-win-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.carte-win {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1.5px solid rgba(124, 58, 255, 0.18);
+}
+.carte-win__card { width: 80px; flex-shrink: 0; }
+.carte-win__info { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.carte-win__msg { margin: 0; font-size: 14px; color: var(--texte); }
+.carte-win__date { margin: 0; font-size: 12px; color: var(--texte-doux); }
+
+/* Vue imprimable — carte au format A6, visible uniquement à l'impression */
+.carte-print {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(43, 35, 80, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+.carte-print__page {
+  width: 240px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.carte-print__card { width: 100%; }
+.carte-print__pseudo { margin: 0; font-weight: 800; color: var(--texte); }
+
+@media print {
+  body * { visibility: hidden; }
+  .carte-print, .carte-print * { visibility: visible; }
+  .carte-print {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+  }
+  .carte-print__page { box-shadow: none; }
+  .no-print { display: none !important; }
+  @page { size: 105mm 148mm; margin: 8mm; }
+}

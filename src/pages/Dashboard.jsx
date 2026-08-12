@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getBadges, markTutorialDone, getMyBoites } from '../lib/modules'
+import { getPendingCardNotifications } from '../lib/cartes'
 import { isModuleBlocked } from '../lib/parental'
 import Backdrop from '../components/Backdrop'
 import Buddy from '../components/Buddy'
@@ -15,6 +16,7 @@ const MODULES = [
   { emoji: '👥', label: 'Contacts', color: 'var(--violet)', to: '/contacts', key: 'contacts' },
   { emoji: '🎨', label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar', tut: 'avatar' },
   { emoji: '🍩', label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
+  { emoji: '🎰', label: 'Roulette Zigzam', color: 'var(--violet)', to: '/roulette', key: 'roulette' },
   { emoji: '⚙️', label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
   { emoji: '🌋', label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
   { emoji: '🎬', label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
@@ -58,6 +60,23 @@ export default function Dashboard() {
     getBadges(user.id).then((b) => on && setBadges(b))
     getMyBoites(user.id).then((b) => on && setBoiteCount(Array.isArray(b) ? b.length : 0))
     return () => { on = false }
+  }, [user.id])
+
+  // 🃏 Carte IMPOSSIBLE : notifie si elle vient d'être gagnée ou perdue
+  // (transfert géré côté serveur, remis au prochain passage sur le dashboard).
+  useEffect(() => {
+    let on = true
+    getPendingCardNotifications(user.id).then((notifs) => {
+      if (!on || !notifs.length) return
+      notifs.forEach((n, i) => {
+        const msg = n.type === 'gagnee'
+          ? `🃏 Tu as gagné la carte ${n.card_nom} ! Elle t'a été transférée par ${n.autre_pseudo}.`
+          : `🃏 ${n.autre_pseudo} a gagné la carte ${n.card_nom} ! Elle ne t'appartient plus.`
+        setTimeout(() => on && flash(msg), i * 3200)
+      })
+    })
+    return () => { on = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id])
 
   // Relance manuelle depuis Paramètres ("Revoir le tutoriel").
