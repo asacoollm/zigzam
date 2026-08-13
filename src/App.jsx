@@ -18,6 +18,8 @@ import BoiteMystere from './pages/BoiteMystere'
 import Shop from './pages/Shop'
 import MegaBoite from './pages/MegaBoite'
 import Poupers from './pages/Poupers'
+import Map from './pages/Map'
+import MapPays from './pages/MapPays'
 import ParentalGuard from './components/ParentalGuard'
 import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
@@ -167,6 +169,18 @@ export default function App() {
         path="/poupers"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Poupers />
+        }
+      />
+      <Route
+        path="/map"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Map />
+        }
+      />
+      <Route
+        path="/map/:slug"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <MapPays />
         }
       />
       <Route

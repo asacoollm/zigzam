@@ -14,7 +14,7 @@ import ZigzamLogo from '../components/ZigzamLogo'
 import Tutorial from '../components/Tutorial'
 import {
   IconDiscuter, IconActualites, IconContacts, IconAvatar, IconDonutsGemmes,
-  IconShop, IconParametres, IconFloorIsLava, IconSerie, IconAdmin, IconPoupers,
+  IconShop, IconParametres, IconFloorIsLava, IconSerie, IconAdmin, IconPoupers, IconMap,
 } from '../components/icons'
 import './Dashboard.css'
 
@@ -26,6 +26,7 @@ const MODULES = [
   { Icon: IconDonutsGemmes, label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
   { Icon: IconShop, label: 'Shop', color: 'var(--orange)', to: '/shop', key: 'shop' },
   { Icon: IconPoupers, label: 'Poupers', color: 'var(--violet)', to: '/poupers', key: 'poupers' },
+  { Icon: IconMap, label: 'Map Zigzam', color: 'var(--bleu)', to: '/map', key: 'map' },
   { Icon: IconParametres, label: 'Paramètres', color: 'var(--rose)', to: '/parametres' },
   { Icon: IconFloorIsLava, label: 'Floor is Lava', color: 'var(--orange)', to: '/floor-is-lava', key: 'floor-is-lava', tut: 'floor' },
   { Icon: IconSerie, label: 'Série Zigzam', color: 'var(--bleu)', to: '/serie', key: 'serie' },
