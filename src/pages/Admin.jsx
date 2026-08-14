@@ -31,10 +31,12 @@ import {
   adminUpdateSaison,
   adminSaisonStats,
 } from '../lib/modules'
+import { adminListBigCardWins } from '../lib/cartes'
 import { EPISODES, isPublished } from '../data/episodes'
 import { CATEGORIES, getItem } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
+import ZigzamCard from '../components/ZigzamCard'
 import FallGuy from '../components/FallGuy'
 import './Admin.css'
 
@@ -237,6 +239,77 @@ function SectionActus({ adminId }) {
           )
         )}
       </div>
+    </section>
+  )
+}
+
+// --------------- Cartes Zigzam Collectore 🃏 (superadmin only) ---------------
+function CarteWinRow({ win, onPrint }) {
+  return (
+    <article className="carte-win">
+      <ZigzamCard card={win.carte} className="carte-win__card" />
+      <div className="carte-win__info">
+        <p className="carte-win__msg">
+          🃏 <strong>{win.pseudo}</strong> a gagné la carte <strong>{win.carte.nom}</strong>{' '}
+          ({win.carte.rarete === 'impossible' ? 'IMPOSSIBLE' : 'Incroyable'}) !
+        </p>
+        <p className="carte-win__date">{new Date(win.date).toLocaleString('fr-FR')}</p>
+        <button className="admin-btn admin-btn--primary admin-btn--sm" onClick={() => onPrint(win)}>
+          📄 Générer le PDF
+        </button>
+      </div>
+    </article>
+  )
+}
+
+function SectionCartes({ adminId }) {
+  const [wins, setWins] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [printWin, setPrintWin] = useState(null)
+
+  useEffect(() => {
+    let on = true
+    adminListBigCardWins(adminId).then((data) => {
+      if (!on) return
+      setWins(Array.isArray(data) ? data : [])
+      setLoading(false)
+    })
+    return () => { on = false }
+  }, [adminId])
+
+  useEffect(() => {
+    if (!printWin) return
+    const id = setTimeout(() => window.print(), 200)
+    return () => clearTimeout(id)
+  }, [printWin])
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">🃏 Cartes Incroyable / IMPOSSIBLE gagnées</h2>
+      {loading && <p className="admin-loading">Chargement…</p>}
+      {!loading && wins.length === 0 && (
+        <p className="admin-empty">Aucune carte Incroyable ou IMPOSSIBLE gagnée pour l'instant.</p>
+      )}
+      {!loading && wins.length > 0 && (
+        <div className="carte-win-list">
+          {wins.map((w) => (
+            <CarteWinRow key={w.id} win={w} onPrint={setPrintWin} />
+          ))}
+        </div>
+      )}
+
+      {/* Carte imprimable au format A6 — seule visible via @media print (Admin.css) */}
+      {printWin && (
+        <div className="carte-print" onClick={() => setPrintWin(null)}>
+          <div className="carte-print__page" onClick={(e) => e.stopPropagation()}>
+            <ZigzamCard card={printWin.carte} className="carte-print__card" />
+            <p className="carte-print__pseudo">{printWin.pseudo}</p>
+          </div>
+          <button className="admin-btn admin-btn--sm carte-print__close no-print" onClick={() => setPrintWin(null)}>
+            Fermer
+          </button>
+        </div>
+      )}
     </section>
   )
 }
@@ -1490,6 +1563,7 @@ export default function Admin() {
 
       {isSuperAdmin && (
         <>
+          <SectionCartes adminId={user.id} />
           <SectionCreerCompte adminId={user.id} onUserCreated={handleUserCreated} />
           <SectionUtilisateurs adminId={user.id} refreshTrigger={refreshUsers} />
           <SectionCodes adminId={user.id} />

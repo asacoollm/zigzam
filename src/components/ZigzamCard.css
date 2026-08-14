@@ -1,0 +1,129 @@
+/* ============================================================
+   ZigzamCard — carte façon Pokémon 🃏
+   ============================================================ */
+.zcard {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: 20px;
+  padding: 5px;
+  background: linear-gradient(160deg, #c7ccd6, #8b93a3);
+  box-shadow: 0 12px 26px rgba(43, 35, 80, 0.28);
+}
+.zcard__inner {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  border-radius: 16px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
+.zcard__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 8px 2px;
+  text-align: center;
+}
+.zcard__nom {
+  font-family: var(--font-titre);
+  font-weight: 800;
+  font-size: 12.5px;
+  line-height: 1.15;
+  color: var(--texte);
+}
+.zcard__rarete {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.zcard__stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+}
+.zcard__avatar {
+  display: block;
+  width: 78%;
+  height: auto;
+  filter: drop-shadow(0 8px 10px rgba(43, 35, 80, 0.25));
+}
+
+.zcard__foot {
+  text-align: center;
+  padding: 4px 8px 8px;
+}
+.zcard__type {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--texte);
+  background: rgba(43, 35, 80, 0.08);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+/* ---- Rareté : cadre coloré ---- */
+.zcard--normale { background: linear-gradient(160deg, #d4d8e0, #9aa3b2); }
+
+.zcard--rare { background: linear-gradient(160deg, #7fe0ff, #0077c8); }
+.zcard--rare .zcard__rarete { color: #0077c8; }
+
+.zcard--super_rare { background: linear-gradient(160deg, #c3a6ff, #5a1fd4); }
+.zcard--super_rare .zcard__rarete { color: #7c3aff; }
+
+.zcard--incroyable { background: linear-gradient(160deg, #ffe08a, #d9640f); }
+.zcard--incroyable .zcard__rarete { color: #d9640f; }
+
+.zcard--impossible {
+  background: linear-gradient(90deg, #ff4d8d, #ff8c42, #fbbf24, #3dd68c, #00bfff, #7c3aff, #ff4d8d);
+  background-size: 300% 300%;
+  animation: zcard-rainbow 3s linear infinite;
+}
+.zcard--impossible .zcard__rarete {
+  background: linear-gradient(90deg, #ff4d8d, #7c3aff, #00bfff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@keyframes zcard-rainbow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* ---- Effet holographique (incroyable + impossible) ---- */
+.zcard--holo .zcard__inner { position: relative; }
+.zcard__shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, transparent 35%, rgba(255, 255, 255, 0.75) 50%, transparent 65%);
+  background-size: 250% 250%;
+  mix-blend-mode: overlay;
+  animation: zcard-shine 2.4s ease-in-out infinite;
+}
+@keyframes zcard-shine {
+  0% { background-position: 200% 200%; }
+  100% { background-position: -50% -50%; }
+}
+
+/* ---- Verrouillée (page Collection, pas encore obtenue) ---- */
+.zcard--locked {
+  background: linear-gradient(160deg, #d8dae0, #aeb2bc);
+  animation: none !important;
+}
+.zcard--locked .zcard__inner { filter: grayscale(1) brightness(0.85); }
+.zcard--locked .zcard__shine { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .zcard--impossible, .zcard__shine { animation: none; }
+}

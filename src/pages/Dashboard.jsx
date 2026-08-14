@@ -5,6 +5,7 @@ import {
   getBadges, markTutorialDone, getMyBoites, checkAndApplyTaxes,
   checkPouperRecords, getPouperNotifications,
 } from '../lib/modules'
+import { getPendingCardNotifications } from '../lib/cartes'
 import { isModuleBlocked } from '../lib/parental'
 import { isVipActive, formatVipTimeLeft, useVipCountdown } from '../lib/vip'
 import { pouperRecordLabel } from '../lib/poupers'
@@ -15,6 +16,7 @@ import Tutorial from '../components/Tutorial'
 import {
   IconDiscuter, IconActualites, IconContacts, IconAvatar, IconDonutsGemmes,
   IconShop, IconParametres, IconFloorIsLava, IconSerie, IconAdmin, IconPoupers, IconMap,
+  IconRoulette,
 } from '../components/icons'
 import './Dashboard.css'
 
@@ -24,6 +26,7 @@ const MODULES = [
   { Icon: IconContacts, label: 'Contacts', color: 'var(--violet)', to: '/contacts', key: 'contacts' },
   { Icon: IconAvatar, label: 'Avatar', color: 'var(--bleu)', to: '/avatar', key: 'avatar', tut: 'avatar' },
   { Icon: IconDonutsGemmes, label: 'Donuts & Gemmes', color: 'var(--vert)', to: '/economie', key: 'economie' },
+  { Icon: IconRoulette, label: 'Roulette Zigzam', color: 'var(--violet)', to: '/roulette', key: 'roulette' },
   { Icon: IconShop, label: 'Shop', color: 'var(--orange)', to: '/shop', key: 'shop' },
   { Icon: IconPoupers, label: 'Poupers', color: 'var(--violet)', to: '/poupers', key: 'poupers' },
   { Icon: IconMap, label: 'Map Zigzam', color: 'var(--bleu)', to: '/map', key: 'map' },
@@ -107,6 +110,23 @@ export default function Dashboard() {
             : `🪆 ${n.autre_pseudo || 'Quelqu’un'} t'a pris la poupée ${n.pouper_nom} ! Il/elle a battu ton record de ${label}.`
           setTimeout(() => on && flash(msg), i * 3200)
         })
+      })
+    })
+    return () => { on = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id])
+
+  // 🃏 Carte IMPOSSIBLE : notifie si elle vient d'être gagnée ou perdue
+  // (transfert géré côté serveur, remis au prochain passage sur le dashboard).
+  useEffect(() => {
+    let on = true
+    getPendingCardNotifications(user.id).then((notifs) => {
+      if (!on || !notifs.length) return
+      notifs.forEach((n, i) => {
+        const msg = n.type === 'gagnee'
+          ? `🃏 Tu as gagné la carte ${n.card_nom} ! Elle t'a été transférée par ${n.autre_pseudo}.`
+          : `🃏 ${n.autre_pseudo} a gagné la carte ${n.card_nom} ! Elle ne t'appartient plus.`
+        setTimeout(() => on && flash(msg), i * 3200)
       })
     })
     return () => { on = false }

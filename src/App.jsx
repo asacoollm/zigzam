@@ -20,6 +20,8 @@ import MegaBoite from './pages/MegaBoite'
 import Poupers from './pages/Poupers'
 import Map from './pages/Map'
 import MapPays from './pages/MapPays'
+import Roulette from './pages/Roulette'
+import Collection from './pages/Collection'
 import ParentalGuard from './components/ParentalGuard'
 import InactivityGuard from './components/InactivityGuard'
 import OnlineWidget from './components/OnlineWidget'
@@ -181,6 +183,18 @@ export default function App() {
         path="/map/:slug"
         element={
           !user || user.premiere_connexion ? <Navigate to={home} replace /> : <MapPays />
+        }
+      />
+      <Route
+        path="/roulette"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Roulette />
+        }
+      />
+      <Route
+        path="/collection"
+        element={
+          !user || user.premiere_connexion ? <Navigate to={home} replace /> : <Collection />
         }
       />
       <Route
