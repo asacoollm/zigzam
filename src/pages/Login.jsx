@@ -92,7 +92,7 @@ export default function Login() {
       if (remember) rememberPseudo(pseudoSaisi)
       else forgetDevice()
       signIn({ ...result.user, parental })
-      navigate(result.user.premiere_connexion ? '/onboarding' : '/accueil', {
+      navigate(result.user.premiere_connexion ? '/onboarding' : '/dashboard', {
         replace: true,
       })
     } catch (err) {

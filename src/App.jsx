@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
-import Accueil from './pages/Accueil'
 import Dashboard from './pages/Dashboard'
 import Avatar from './pages/Avatar'
 import Discuter from './pages/Discuter'
@@ -46,14 +45,12 @@ export default function App() {
     }
   }, [])
 
-  // Destination par défaut selon l'état de l'utilisateur.
-  // Un utilisateur déjà installé arrive d'abord sur l'écran d'accueil
-  // (/accueil), qui mène ensuite au Dashboard via son bouton « Entrer ».
+  // Destination par défaut selon l'état de l'utilisateur
   const home = !user
     ? '/login'
     : user.premiere_connexion
       ? '/onboarding'
-      : '/accueil'
+      : '/dashboard'
 
   return (
     <>
@@ -74,16 +71,6 @@ export default function App() {
             <Onboarding />
           ) : (
             <Navigate to="/dashboard" replace />
-          )
-        }
-      />
-      <Route
-        path="/accueil"
-        element={
-          !user || user.premiere_connexion ? (
-            <Navigate to={home} replace />
-          ) : (
-            <Accueil />
           )
         }
       />
