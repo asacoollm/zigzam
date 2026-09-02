@@ -1308,9 +1308,89 @@ function penpenKimono() {
   )
 }
 
+// ⚓ penpenmarin — uniforme de marin/glacier vintage : chemise et col
+// marin bleu marine à liseré blanc, casquette blanche à étoile, short
+// crème et badge rond « Glaces Zigzam » (cornet stylisé) sur la poitrine.
+function penpenMarin() {
+  const NAVY = '#1e3a5f'
+  const WHITE = '#f5f5fb'
+  const CREAM = '#f3e6c8'
+  const SKIN = '#ffd9b0'
+  const GOLD = '#ffcf3f'
+  const RED = '#cc2200'
+  const T = '#241c2a'
+  return (
+    <g>
+      {/* Jambes (peau) + chaussures blanches à semelle marine */}
+      <rect x="41" y="118" width="13" height="32" rx="6.5" fill={SKIN} stroke={T} strokeWidth="1.5" />
+      <rect x="66" y="118" width="13" height="32" rx="6.5" fill={SKIN} stroke={T} strokeWidth="1.5" />
+      <ellipse cx="44" cy="153" rx="12" ry="6.5" fill={NAVY} stroke={T} strokeWidth="1.5" />
+      <ellipse cx="76" cy="153" rx="12" ry="6.5" fill={NAVY} stroke={T} strokeWidth="1.5" />
+      <ellipse cx="44" cy="149" rx="11.5" ry="7" fill={WHITE} stroke={T} strokeWidth="1.5" />
+      <ellipse cx="76" cy="149" rx="11.5" ry="7" fill={WHITE} stroke={T} strokeWidth="1.5" />
+
+      {/* Bras : manches marine, poignets blancs, mains (peau) */}
+      <rect x="6" y="58" width="13" height="44" rx="6.5" fill={NAVY} stroke={T} strokeWidth="1.5" />
+      <rect x="101" y="58" width="13" height="44" rx="6.5" fill={NAVY} stroke={T} strokeWidth="1.5" />
+      <rect x="5" y="92" width="15" height="7" rx="3" fill={WHITE} stroke={T} strokeWidth="1.2" />
+      <rect x="100" y="92" width="15" height="7" rx="3" fill={WHITE} stroke={T} strokeWidth="1.2" />
+      <circle cx="12.5" cy="104" r="6.5" fill={SKIN} stroke={T} strokeWidth="1.5" />
+      <circle cx="107.5" cy="104" r="6.5" fill={SKIN} stroke={T} strokeWidth="1.5" />
+
+      {/* Corps « haricot » : chemise bleu marine + reflet */}
+      <rect x="18" y="16" width="84" height="116" rx="42" fill={NAVY} stroke={T} strokeWidth="1.8" />
+      <ellipse cx="46" cy="40" rx="23" ry="18" fill="#fff" opacity="0.12" />
+
+      {/* Short crème (épouse la calotte basse du corps) */}
+      <path d="M18.6 96 A42 42 0 0 0 101.4 96 Z" fill={CREAM} stroke={T} strokeWidth="1.5" />
+      <path d="M60 96 L60 130" stroke={T} strokeWidth="1.3" opacity="0.4" />
+      <path d="M22 101 Q60 118 98 101" stroke="#fff" strokeWidth="1.6" fill="none" opacity="0.3" />
+
+      {/* Col marin : rabat sur la nuque + pointes en V devant, liseré
+          blanc et mouchoir rouge — dessiné AVANT le visage (le panneau
+          visage recouvre le milieu, ne laissant voir que le bord). */}
+      <path d="M30 54 Q60 46 90 54 L84 66 Q60 58 36 66 Z" fill={NAVY} stroke={T} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M36 63 L52 66 L60 88 Z" fill={NAVY} stroke={T} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M84 63 L68 66 L60 88 Z" fill={NAVY} stroke={T} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M34 57 Q60 49 86 57" stroke={WHITE} strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M39 63 L60 85 L81 63" stroke={WHITE} strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M56 82 L64 82 L62 93 L58 93 Z" fill={RED} stroke={T} strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M56 82 Q60 85 64 82" stroke={T} strokeWidth="1" fill="none" opacity="0.4" />
+
+      {/* Badge rond « Glaces Zigzam » : cornet + boule menthe + cerise */}
+      <circle cx="43" cy="88" r="8" fill={WHITE} stroke={NAVY} strokeWidth="2" />
+      <circle cx="43" cy="88" r="8" fill="none" stroke={T} strokeWidth="0.8" />
+      <path d="M39.5 87 L46.5 87 L43 94 Z" fill="#e0b063" stroke={T} strokeWidth="0.7" strokeLinejoin="round" />
+      <path d="M39.5 87 a3.5 3.5 0 0 1 7 0 Z" fill="#7ad0c0" stroke={T} strokeWidth="0.7" />
+      <circle cx="43" cy="83.6" r="1.1" fill={RED} />
+
+      {/* Panneau visage + yeux + joues + sourire */}
+      <rect x="33" y="42" width="54" height="36" rx="18" fill="#fff" opacity="0.96" />
+      <circle cx="49" cy="60" r="6" fill="#241c2a" />
+      <circle cx="71" cy="60" r="6" fill="#241c2a" />
+      <circle cx="51.4" cy="57.6" r="2.1" fill="#fff" />
+      <circle cx="73.4" cy="57.6" r="2.1" fill="#fff" />
+      <circle cx="38" cy="70" r="4.6" fill="#ff8fb0" opacity="0.75" />
+      <circle cx="82" cy="70" r="4.6" fill="#ff8fb0" opacity="0.75" />
+      <path d="M52 71 q8 7 16 0" stroke="#c46a7a" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+
+      {/* Casquette blanche de marin : calotte + bord retroussé + bandeau
+          marine, liseré blanc et petite étoile dorée devant. */}
+      <path d="M31 38 Q31 13 60 11 Q89 13 89 38 Z" fill={WHITE} stroke={T} strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M29 38 Q60 27 91 38 Q60 49 29 38 Z" fill={WHITE} stroke={T} strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M34 36 Q60 28 86 36 Q60 43 34 36 Z" fill={NAVY} />
+      <path d="M35 33 Q60 26 85 33" stroke={WHITE} strokeWidth="1.6" fill="none" />
+      <path d="M60 30 l1.4 2.9 3.2 .3 -2.4 2.1 .7 3.1 -2.9 -1.7 -2.9 1.7 .7 -3.1 -2.4 -2.1 3.2 -.3 Z" fill={GOLD} stroke={T} strokeWidth="0.5" strokeLinejoin="round" />
+      <path d="M38 20 Q48 13 60 13" stroke="#fff" strokeWidth="3" fill="none" opacity="0.6" strokeLinecap="round" />
+      <path d="M34 40 Q60 47 86 40" stroke={T} strokeWidth="1" fill="none" opacity="0.22" />
+    </g>
+  )
+}
+
 // Registre des skins sur mesure. Clé = item_id (public.skins_sur_mesure).
 export const CUSTOM_FULL = {
   penpenkimono: () => penpenKimono(),
+  penpenmarin: () => penpenMarin(),
 }
 
 // ---- Sélecteurs exportés ----
