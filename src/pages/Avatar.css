@@ -55,8 +55,13 @@
   .av__main {
     grid-template-columns: 1fr;
   }
-  /* Empilement vertical réel : le bonhomme ne reste plus collé en haut */
-  .av__stage {
+  /* Empilement vertical réel : le bonhomme ne reste plus collé en haut.
+     Sélecteur volontairement plus spécifique que `.av__stage` seul : la
+     règle de base `position: sticky` est déclarée plus bas dans le fichier
+     et gagnerait sinon par ordre de cascade — ce qui laissait la scène
+     collée en haut sur mobile et rendait ses boutons (💾 Enregistrer cette
+     tenue) incliquables une fois la grille scrollée par-dessus. */
+  .av .av__stage {
     position: static;
     padding: 18px;
   }
@@ -323,6 +328,114 @@
   font-size: 14px;
   font-weight: 700;
   box-shadow: 0 4px 10px rgba(61, 214, 140, 0.5);
+}
+
+/* 👗 Bouton « Enregistrer cette tenue » (sous le bonhomme en grand) */
+.av__save-look {
+  margin-top: 4px;
+  width: 100%;
+  max-width: 240px;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 14px;
+  background: var(--degrade-zigzam);
+  background-size: 160% 100%;
+  box-shadow: 0 8px 18px rgba(124, 58, 255, 0.35);
+  transition: transform 0.1s ease, background-position 0.4s ease;
+}
+.av__save-look:hover {
+  background-position: 100% 0;
+  transform: translateY(-2px);
+}
+.av__save-look:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* 👗 Section « Mes tenues sauvegardées » */
+.av__looks {
+  margin-top: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 28px;
+  padding: 22px;
+  box-shadow:
+    0 24px 60px rgba(124, 58, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.av__looks-title {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: var(--texte);
+}
+.av__looks-empty {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texte-doux);
+}
+.av__looks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 12px;
+}
+.look {
+  position: relative;
+  display: flex;
+}
+.look__equip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2.5px solid rgba(124, 58, 255, 0.14);
+  border-radius: 18px;
+  padding: 14px 8px 10px;
+  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.look__equip:hover {
+  transform: translateY(-3px);
+  border-color: var(--violet);
+  box-shadow: 0 12px 22px rgba(124, 58, 255, 0.2);
+}
+.look__equip:active {
+  transform: translateY(0) scale(0.98);
+}
+.look__preview {
+  width: 52px;
+  height: 72px;
+  display: block;
+}
+.look__name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--texte);
+  text-align: center;
+  word-break: break-word;
+}
+.look__del {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid rgba(43, 35, 80, 0.15);
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(43, 35, 80, 0.22);
+  transition: transform 0.1s ease, background 0.12s;
+}
+.look__del:hover {
+  background: #ffe1e1;
+  transform: scale(1.08);
 }
 
 /* Popup de confirmation */

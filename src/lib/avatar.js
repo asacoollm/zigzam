@@ -383,6 +383,44 @@ export function getSaisonItems(saisonId) {
   return out
 }
 
+// ============================================================
+//  Tenues sauvegardées 👗 — reconstruire un avatar équipable à
+//  partir d'un snapshot enregistré.
+// ============================================================
+
+// Clés de catégorie réellement portées par l'objet avatar (pas « special »).
+const LOADOUT_KEYS = Object.keys(DEFAULT_AVATAR).filter((k) => k !== 'owned')
+
+// Construit un avatar équipable depuis une tenue sauvegardée : on repart de
+// l'avatar courant (donc de son `owned`), et pour chaque catégorie on ne
+// reprend la valeur de la tenue QUE si l'élève la possède encore (gratuite,
+// ou présente dans `owned`). Les skins sur mesure retirés, les skins de
+// saison non acquis, etc. sont donc silencieusement ignorés — ré-équiper une
+// tenue n'ajoute jamais rien à `owned`.
+export function loadoutToAvatar(saved, current) {
+  const cur = normalizeAvatar(current)
+  const src = normalizeAvatar(saved)
+  const owned = new Set(cur.owned ?? [])
+
+  const canEquip = (categoryId, itemId) => {
+    if (!itemId) return false
+    // Couleur legacy stockée en hex : toujours autorisée (aucun coût).
+    if (categoryId === 'color' && typeof itemId === 'string' && itemId.startsWith('#')) return true
+    const item = getItem(categoryId, itemId)
+    if (item) return item.price === 0 || owned.has(accKey(categoryId, itemId))
+    // Hors catalogue (skin sur mesure) : uniquement si explicitement possédé.
+    return owned.has(accKey(categoryId, itemId))
+  }
+
+  const next = { ...cur }
+  for (const key of LOADOUT_KEYS) {
+    const val = src[key]
+    if (key === 'color') next.color = canEquip('color', val) ? val : cur.color
+    else next[key] = canEquip(key, val) ? val : null
+  }
+  return next
+}
+
 // Slugs des saisons dont l'élève possède au moins un skin — sert à garder
 // leur onglet visible à vie, même une fois la saison terminée.
 export function getSaisonsPossedees(avatar) {

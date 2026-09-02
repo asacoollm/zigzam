@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { useSaison } from '../context/SaisonContext'
 import { saveAvatar, buyAccessory } from '../lib/auth'
 import { buyCustomSkin, getMyCustomSkins } from '../lib/modules'
+import { saveAvatarLoadout, getMyAvatarLoadouts, deleteAvatarLoadout } from '../lib/loadouts'
 import {
   CATEGORIES, normalizeAvatar, isUnlocked, accKey, getSaisonItems,
-  getSaisonsPossedees, SAISON_LABELS, SAISON_EMOJIS,
+  getSaisonsPossedees, loadoutToAvatar, SAISON_LABELS, SAISON_EMOJIS,
 } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
 import FallGuy from '../components/FallGuy'
@@ -75,6 +76,18 @@ export default function Avatar() {
   const [skinDesc, setSkinDesc] = useState('')
   const [skinRef, setSkinRef] = useState('')
   const [celebrate, setCelebrate] = useState(null) // avatar fêté après un achat (animation)
+
+  // 👗 Tenues sauvegardées
+  const [loadouts, setLoadouts] = useState([])
+  const [saveForm, setSaveForm] = useState(false)   // modale « nommer la tenue »
+  const [loadoutName, setLoadoutName] = useState('')
+  const [pendingDeleteLook, setPendingDeleteLook] = useState(null) // tenue en attente de suppression
+
+  useEffect(() => {
+    let on = true
+    getMyAvatarLoadouts(user.id).then((list) => on && setLoadouts(Array.isArray(list) ? list : []))
+    return () => { on = false }
+  }, [user.id])
 
   // Onglet de saison : `__saison:<slug>` → on en extrait le slug.
   const tabSaisonSlug = tab.startsWith('__saison:') ? tab.slice('__saison:'.length) : null
@@ -195,6 +208,65 @@ export default function Avatar() {
     flash('🎉 Ta demande est envoyée ! Asacool l’a reçue dans Discuter avec ta description.')
   }
 
+  // 👗 --- Tenues sauvegardées ---
+  const openSaveLook = () => {
+    setLoadoutName('')
+    setSaveForm(true)
+  }
+
+  const submitSaveLook = async (e) => {
+    e.preventDefault()
+    const nom = loadoutName.trim()
+    if (!nom) {
+      flash('Donne un petit nom à ta tenue 👗')
+      return
+    }
+    setBusy(true)
+    const res = await saveAvatarLoadout(user.id, nom, avatar)
+    setBusy(false)
+    if (res.error === 'trop_de_looks') {
+      setSaveForm(false)
+      flash('Tu as déjà 6 tenues sauvegardées, supprimes-en une avant d’en ajouter une nouvelle !')
+      return
+    }
+    if (res.error) {
+      flash(res.error)
+      return
+    }
+    setSaveForm(false)
+    setLoadouts((prev) => [
+      { id: res.id, nom, avatar, date_creation: new Date().toISOString() },
+      ...prev,
+    ])
+    flash('💾 Tenue sauvegardée !')
+  }
+
+  // Équipe une tenue entière (uniquement ce que l'élève possède encore ;
+  // rien n'est ajouté à `owned` — c'est un changement gratuit comme un autre).
+  const equipLook = async (lo) => {
+    const next = loadoutToAvatar(lo.avatar, avatar)
+    setAvatar(next)
+    updateUser({ avatar: next })
+    const res = await saveAvatar(user.id, next)
+    if (res.error) flash(res.error)
+    else flash(`✨ Tenue « ${lo.nom} » équipée !`)
+  }
+
+  const confirmDeleteLook = async () => {
+    if (!pendingDeleteLook) return
+    setBusy(true)
+    const res = await deleteAvatarLoadout(user.id, pendingDeleteLook.id)
+    setBusy(false)
+    if (res.error) {
+      flash(res.error === 'introuvable' ? 'Cette tenue n’existe plus.' : res.error)
+      setPendingDeleteLook(null)
+      return
+    }
+    setLoadouts((prev) => prev.filter((l) => l.id !== pendingDeleteLook.id))
+    setPendingDeleteLook(null)
+    flash('🗑️ Tenue supprimée.')
+  }
+
   return (
     <div className="av">
       <Backdrop />
@@ -212,6 +284,9 @@ export default function Avatar() {
         <section className="av__stage">
           <FallGuy className="av__hero" avatar={avatar} anim="idle" />
           <p className="av__name">{user.pseudo}</p>
+          <button className="av__save-look" onClick={openSaveLook}>
+            💾 Enregistrer cette tenue
+          </button>
         </section>
 
         <section className="av__panel">
@@ -293,6 +368,36 @@ export default function Avatar() {
           </div>
         </section>
       </main>
+
+      {/* 👗 Mes tenues sauvegardées */}
+      <section className="av__looks">
+        <h2 className="av__looks-title">👗 Mes tenues sauvegardées</h2>
+        {loadouts.length === 0 ? (
+          <p className="av__looks-empty">Tu n'as pas encore sauvegardé de tenue !</p>
+        ) : (
+          <div className="av__looks-grid">
+            {loadouts.map((lo) => (
+              <div key={lo.id} className="look">
+                <button
+                  className="look__equip"
+                  onClick={() => equipLook(lo)}
+                  title={`Équiper « ${lo.nom} »`}
+                >
+                  <FallGuy className="look__preview" avatar={lo.avatar} />
+                  <span className="look__name">{lo.nom}</span>
+                </button>
+                <button
+                  className="look__del"
+                  onClick={() => setPendingDeleteLook(lo)}
+                  aria-label={`Supprimer la tenue ${lo.nom}`}
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Popup d'aperçu d'un accessoire verrouillé */}
       {pending && (
@@ -377,6 +482,64 @@ export default function Avatar() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* 👗 Modale : nommer la tenue à sauvegarder */}
+      {saveForm && (
+        <div className="modal" onClick={() => !busy && setSaveForm(false)}>
+          <form
+            className="modal__card skin-form"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={submitSaveLook}
+          >
+            <h3 className="modal__title">💾 Enregistrer cette tenue</h3>
+            <p className="modal__desc">Donne-lui un petit nom pour la retrouver plus tard.</p>
+            <input
+              className="skin-form__input"
+              value={loadoutName}
+              onChange={(e) => setLoadoutName(e.target.value)}
+              placeholder="Ex : Look plage"
+              maxLength={40}
+              autoFocus
+            />
+            <div className="modal__actions">
+              <button
+                type="button"
+                className="modal__btn modal__btn--ghost"
+                onClick={() => setSaveForm(false)}
+                disabled={busy}
+              >
+                Annuler
+              </button>
+              <button className="modal__btn" type="submit" disabled={busy}>
+                {busy ? 'Sauvegarde…' : 'Sauvegarder 💾'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* 👗 Modale : confirmation de suppression d'une tenue */}
+      {pendingDeleteLook && (
+        <div className="modal" onClick={() => !busy && setPendingDeleteLook(null)}>
+          <div className="modal__card" onClick={(e) => e.stopPropagation()}>
+            <FallGuy className="modal__preview" avatar={pendingDeleteLook.avatar} />
+            <h3 className="modal__title">Supprimer « {pendingDeleteLook.nom} » ?</h3>
+            <p className="modal__desc">Cette tenue sauvegardée sera perdue (ton bonhomme actuel ne change pas).</p>
+            <div className="modal__actions">
+              <button
+                className="modal__btn modal__btn--ghost"
+                onClick={() => setPendingDeleteLook(null)}
+                disabled={busy}
+              >
+                Annuler
+              </button>
+              <button className="modal__btn" onClick={confirmDeleteLook} disabled={busy}>
+                {busy ? 'Suppression…' : 'Supprimer 🗑️'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
