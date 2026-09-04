@@ -1,19 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './InactivityGuard.css'
 
-// Déconnexion automatique après 10 min d'inactivité.
-// - Avertissement à 9 min (1 min avant la déconnexion).
+// Retour automatique à l'écran d'accueil après 10 min d'inactivité (l'utilisateur
+// reste connecté, comme s'il venait de rallumer l'appli).
+// - Avertissement à 9 min (1 min avant le retour à l'accueil).
 // - Le compteur repart à zéro à chaque interaction (clic, scroll, toucher, clavier).
 const TOTAL_MS = 10 * 60 * 1000
 const WARN_MS = 9 * 60 * 1000
-export const INACTIVITY_MESSAGE =
-  'Tu as été déconnecté après 10 minutes d\'inactivité. À bientôt ! 👋'
 
 const ACTIVITY_EVENTS = ['mousedown', 'click', 'keydown', 'scroll', 'touchstart']
 
 export default function InactivityGuard() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [warn, setWarn] = useState(false)
   const warnTimer = useRef(null)
   const outTimer = useRef(null)
@@ -29,7 +30,11 @@ export default function InactivityGuard() {
         warnShown.current = true
         setWarn(true)
       }, WARN_MS)
-      outTimer.current = setTimeout(() => signOut(INACTIVITY_MESSAGE), TOTAL_MS)
+      outTimer.current = setTimeout(() => {
+        warnShown.current = false
+        setWarn(false)
+        navigate('/accueil', { replace: true })
+      }, TOTAL_MS)
     }
 
     const onActivity = () => {
@@ -63,7 +68,7 @@ export default function InactivityGuard() {
       <div className="inactivity__card" role="alertdialog" aria-live="assertive">
         <span className="inactivity__emoji">👀</span>
         <p className="inactivity__text">
-          Tu es toujours là&nbsp;? Tu vas être déconnecté dans{' '}
+          Tu es toujours là&nbsp;? Tu vas être renvoyé à l'accueil dans{' '}
           <strong>1&nbsp;minute</strong> si tu ne fais rien&nbsp;!
         </p>
         <button className="inactivity__btn" onClick={dismiss}>
