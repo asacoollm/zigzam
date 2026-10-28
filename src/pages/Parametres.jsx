@@ -527,6 +527,9 @@ export default function Parametres() {
       {farcesVisibles && !farcesLoading && (
         <div className="settings__card">
           <h2 className="settings__section-title">Farces d'Halloween 🎃</h2>
+          <p className="settings__warning">
+            ⚠️ Attention, ces farces font sursauter ! Tu peux les désactiver ici.
+          </p>
           <label className="settings__toggle-row">
             <span className="settings__toggle-label">Recevoir des farces</span>
             <div
@@ -542,7 +545,7 @@ export default function Parametres() {
           </label>
           <p className="settings__note">
             {recoitFarces
-              ? 'Tes amis peuvent t\'envoyer des farces mignonnes (🕷️ 👻 🦇 🎃).'
+              ? 'Tes amis peuvent t\'envoyer des farces qui font sursauter (🕷️ 👻 🦇 🎃).'
               : 'Tu ne recevras plus aucune farce pendant la saison Halloween.'}
           </p>
         </div>

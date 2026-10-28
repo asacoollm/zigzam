@@ -9,99 +9,111 @@ import './FarceOverlay.css'
 //  FarceOverlay — monté une seule fois dans App.jsx.
 //  Détecte une farce reçue (temps réel via le canal « zigzam:farce », avec
 //  un filet de sécurité : vérification au chargement + toutes les 30s),
-//  joue l'animation correspondante en plein écran, puis la marque comme vue.
-//  Mignon, jamais effrayant : 4 animations possibles, toujours avec le nom
-//  de l'expéditeur affiché. Se ferme seule après 6s, ou avec le bouton ✕.
+//  joue un jump scare façon dessin animé (écran noir → apparition
+//  brutale géante, secousse + zoom, « BOUH ! », puis bandeau avec le nom
+//  de l'expéditeur), avant de rassurer (« Ce n'était qu'une farce ! »).
+//  Jamais de sang, de gore ni de visage réaliste. Jamais de clignotement
+//  rapide (une seule transition noir → révélé, pas de stroboscope).
+//  Bouton fermer cliquable dès l'affichage. Version calme (sans secousse
+//  ni zoom, image qui apparaît directement) sous prefers-reduced-motion.
 // ============================================================
 
-const DUREE_MS = 6000
+const DUREE_MS = 6000     // durée totale max d'affichage (dont le noir initial)
+const NOIR_MS = 400       // écran noir avant l'apparition brutale
+const RASSURE_MS = 2000   // message « Ce n'était qu'une farce ! » après fermeture
 const POLL_MS = 30000
 
-// ---- Scènes, en SVG/CSS pur ------------------------------------------
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(() => (
+    typeof window !== 'undefined'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ))
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const onChange = (e) => setReduced(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return reduced
+}
+
+// ---- Créatures, en SVG/CSS pur — géantes, dessin animé, jamais réalistes --
 
 function SceneAraignee() {
   return (
-    <div className="farce__scene farce__scene--araignee">
-      <div className="farce__web-fil">
-        <div className="farce__spider">
-          <svg viewBox="0 0 40 36" fill="none" aria-hidden="true">
-            <g stroke="#2a2040" strokeWidth="2" strokeLinecap="round" fill="none">
-              <path d="M14 18 Q4 14 2 8" /><path d="M14 20 Q3 20 1 20" /><path d="M14 22 Q4 26 3 32" />
-              <path d="M26 18 Q36 14 38 8" /><path d="M26 20 Q37 20 39 20" /><path d="M26 22 Q36 26 37 32" />
-            </g>
-            <circle cx="20" cy="20" r="9" fill="#3a2d5c" />
-            <circle cx="20" cy="11" r="5.5" fill="#3a2d5c" />
-            <circle cx="17.5" cy="10" r="2.1" fill="#fff" />
-            <circle cx="22.5" cy="10" r="2.1" fill="#fff" />
-            <circle cx="17.8" cy="10.3" r="1.1" fill="#1a1430" />
-            <circle cx="22.8" cy="10.3" r="1.1" fill="#1a1430" />
-          </svg>
-        </div>
-      </div>
-      <div className="farce__runner">
-        <svg viewBox="0 0 40 36" fill="none" aria-hidden="true">
-          <g className="farce__legs" stroke="#2a2040" strokeWidth="2" strokeLinecap="round" fill="none">
-            <path d="M14 18 Q4 14 2 8" /><path d="M14 20 Q3 20 1 20" /><path d="M14 22 Q4 26 3 32" />
-            <path d="M26 18 Q36 14 38 8" /><path d="M26 20 Q37 20 39 20" /><path d="M26 22 Q36 26 37 32" />
-          </g>
-          <circle cx="20" cy="20" r="9" fill="#3a2d5c" />
-          <circle cx="20" cy="11" r="5.5" fill="#3a2d5c" />
-          <circle cx="17.5" cy="10" r="2.1" fill="#fff" />
-          <circle cx="22.5" cy="10" r="2.1" fill="#fff" />
-          <circle cx="17.8" cy="10.3" r="1.1" fill="#1a1430" />
-          <circle cx="22.8" cy="10.3" r="1.1" fill="#1a1430" />
-        </svg>
-      </div>
+    <div className="farce__creature farce__creature--araignee">
+      <svg viewBox="0 0 220 210" fill="none" aria-hidden="true">
+        <g className="farce__legs" stroke="#1a1424" strokeWidth="9" strokeLinecap="round" fill="none">
+          <path d="M80 110 Q30 90 6 50" /><path d="M85 130 Q25 130 2 118" /><path d="M90 150 Q32 172 14 198" />
+          <path d="M140 110 Q190 90 214 50" /><path d="M135 130 Q195 130 218 118" /><path d="M130 150 Q188 172 206 198" />
+        </g>
+        <circle cx="110" cy="118" r="58" fill="#1a1424" />
+        <circle cx="110" cy="62" r="36" fill="#1a1424" />
+        {/* yeux rouges luisants, façon dessin animé */}
+        <g className="farce__eye-glow">
+          <circle cx="92" cy="54" r="9" fill="#ff1a1a" />
+          <circle cx="128" cy="54" r="9" fill="#ff1a1a" />
+          <circle cx="78" cy="68" r="5" fill="#ff1a1a" />
+          <circle cx="142" cy="68" r="5" fill="#ff1a1a" />
+        </g>
+        {/* petits crocs blancs, cartoon */}
+        <path d="M98 88 L92 102 L104 94 Z" fill="#fff" />
+        <path d="M122 88 L128 102 L116 94 Z" fill="#fff" />
+      </svg>
     </div>
   )
 }
 
 function SceneFantome() {
   return (
-    <div className="farce__scene farce__scene--fantome">
-      <div className="farce__ghost-cross">
-        <svg viewBox="0 0 60 64" fill="none" aria-hidden="true">
-          <path
-            d="M30 2 C14 2 4 14 4 30 L4 56 Q9 50 14 56 Q19 50 24 56 Q27 52 30 56 Q33 52 36 56 Q41 50 46 56 Q51 50 56 56 L56 30 C56 14 46 2 30 2 Z"
-            fill="#fff4e0"
-          />
-          <circle cx="21" cy="28" r="3.4" fill="#2b1750" />
-          <circle cx="39" cy="28" r="3.4" fill="#2b1750" />
-          <path d="M24 38 Q30 44 36 38" stroke="#2b1750" strokeWidth="2" fill="none" strokeLinecap="round" />
-          <circle cx="14" cy="34" r="3" fill="#ff9fb0" opacity="0.5" />
-          <circle cx="46" cy="34" r="3" fill="#ff9fb0" opacity="0.5" />
-        </svg>
-        <div className="farce__bulle">Bouh !</div>
-      </div>
+    <div className="farce__creature farce__creature--fantome">
+      <svg viewBox="0 0 220 230" fill="none" aria-hidden="true">
+        <path
+          d="M110 6 C50 6 14 46 14 104 L14 206 Q28 188 42 206 Q56 188 70 206 Q82 194 94 206 Q98 198 110 206 Q122 198 126 206 Q138 194 150 206 Q164 188 178 206 Q192 188 206 206 L206 104 C206 46 170 6 110 6 Z"
+          fill="#fdf6e8" opacity="0.96"
+        />
+        {/* orbites noires, bouche grande ouverte — stylisé cartoon, pas réaliste */}
+        <ellipse cx="74" cy="100" rx="16" ry="22" fill="#15101f" />
+        <ellipse cx="146" cy="100" rx="16" ry="22" fill="#15101f" />
+        <ellipse cx="110" cy="152" rx="30" ry="34" fill="#15101f" />
+        <ellipse cx="110" cy="146" rx="18" ry="10" fill="#fdf6e8" opacity="0.5" />
+      </svg>
     </div>
   )
 }
 
-const CHAUVES = [
-  [10, 0, -6], [24, 0.15, 4], [38, 0.05, -10], [52, 0.2, 8], [66, 0.1, -4], [80, 0.18, 10],
-]
+const CHAUVES = Array.from({ length: 11 }, (_, i) => {
+  const a = (i / 11) * Math.PI * 2
+  return {
+    left: 50 + Math.cos(a) * 36,
+    top: 50 + Math.sin(a) * 32,
+    delay: (i % 5) * 0.07,
+    scale: 0.7 + (i % 4) * 0.12,
+  }
+})
 function SceneChauvesSouris() {
   return (
-    <div className="farce__scene farce__scene--chauves">
-      {CHAUVES.map(([top, delay, offset], i) => (
+    <div className="farce__creature farce__creature--chauves">
+      {CHAUVES.map((b, i) => (
         <div
           key={i}
-          className="farce__bat"
-          style={{ top: `${top}%`, animationDelay: `${delay}s`, '--bat-y': `${offset}vh` }}
+          className="farce__bat-geant"
+          style={{
+            left: `${b.left}%`, top: `${b.top}%`,
+            animationDelay: `${b.delay}s`, '--bat-scale': b.scale,
+          }}
         >
-          <svg viewBox="0 0 80 50" fill="none" aria-hidden="true">
+          <svg viewBox="0 0 90 56" fill="none" aria-hidden="true">
             <g className="farce__wing farce__wing--l">
-              <path d="M38 24 Q18 6 2 10 Q14 16 18 24 Q10 26 0 24 Q12 34 32 28 Z" fill="#3a2d5c" />
+              <path d="M43 28 Q18 4 2 10 Q16 18 20 28 Q10 30 0 28 Q14 40 36 32 Z" fill="#0d0612" />
             </g>
             <g className="farce__wing farce__wing--r">
-              <path d="M42 24 Q62 6 78 10 Q66 16 62 24 Q70 26 80 24 Q68 34 48 28 Z" fill="#3a2d5c" />
+              <path d="M47 28 Q72 4 88 10 Q74 18 70 28 Q80 30 90 28 Q76 40 54 32 Z" fill="#0d0612" />
             </g>
-            <circle cx="40" cy="26" r="9" fill="#4a3a74" />
-            <path d="M33 19 l2 -6 4 4Z" fill="#4a3a74" />
-            <path d="M47 19 l-2 -6 -4 4Z" fill="#4a3a74" />
-            <circle cx="36.5" cy="25" r="2" fill="#fff" /><circle cx="43.5" cy="25" r="2" fill="#fff" />
-            <circle cx="36.8" cy="25.3" r="1" fill="#1a1430" /><circle cx="43.2" cy="25.3" r="1" fill="#1a1430" />
-            <path d="M37 30 Q40 32 43 30" stroke="#1a1430" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+            <circle cx="45" cy="30" r="10" fill="#171022" />
+            <path d="M37 21 l3 -7 4 5Z" fill="#171022" /><path d="M53 21 l-3 -7 -4 5Z" fill="#171022" />
+            <circle className="farce__eye-glow" cx="41" cy="29" r="2.4" fill="#ff1a1a" />
+            <circle className="farce__eye-glow" cx="49" cy="29" r="2.4" fill="#ff1a1a" />
           </svg>
         </div>
       ))}
@@ -111,21 +123,26 @@ function SceneChauvesSouris() {
 
 function SceneCitrouille() {
   return (
-    <div className="farce__scene farce__scene--citrouille">
-      <div className="farce__pumpkin-jump">
-        <svg viewBox="0 0 70 60" fill="none" aria-hidden="true">
-          <path d="M35 10 Q38 2 42 6 Q39 8 38 12" stroke="#4a7a2a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          <ellipse cx="35" cy="36" rx="32" ry="22" fill="#ff7a18" />
-          <g stroke="#e8650a" strokeWidth="2" opacity="0.65">
-            <path d="M17 16 Q13 36 17 56" fill="none" /><path d="M26 13 Q22 36 26 58" fill="none" />
-            <path d="M44 13 Q48 36 44 58" fill="none" /><path d="M53 16 Q57 36 53 56" fill="none" />
-          </g>
-          <g fill="#fff4e0">
-            <path d="M18 32 L26 32 L22 40 Z" /><path d="M44 32 L52 32 L48 40 Z" />
-            <path d="M14 44 Q35 58 56 44 Q35 52 14 44 Z" />
-          </g>
-        </svg>
-      </div>
+    <div className="farce__creature farce__creature--citrouille">
+      <svg viewBox="0 0 220 190" fill="none" aria-hidden="true">
+        <path d="M110 28 Q116 10 126 18 Q120 22 118 30" stroke="#3f6a22" strokeWidth="9" fill="none" strokeLinecap="round" />
+        <ellipse cx="110" cy="112" rx="98" ry="68" fill="#ff7a18" />
+        <g stroke="#d4570a" strokeWidth="5" opacity="0.6">
+          <path d="M56 50 Q44 112 56 174" fill="none" /><path d="M82 42 Q70 112 82 180" fill="none" />
+          <path d="M138 42 Q150 112 138 180" fill="none" /><path d="M164 50 Q176 112 164 174" fill="none" />
+        </g>
+        {/* yeux jaunes qui s'allument dans le noir */}
+        <g className="farce__eye-glow-jaune">
+          <path d="M58 92 L86 92 L72 116 Z" fill="#ffe14d" />
+          <path d="M134 92 L162 92 L148 116 Z" fill="#ffe14d" />
+        </g>
+        {/* grand sourire à dents, façon citrouille sculptée */}
+        <path
+          d="M48 138 Q60 156 76 140 Q88 160 104 140 Q116 160 132 140 Q148 160 160 140 Q172 156 184 138
+             Q172 176 110 178 Q48 176 48 138 Z"
+          fill="#fff4e0"
+        />
+      </svg>
     </div>
   )
 }
@@ -140,11 +157,15 @@ const SCENES = {
 export default function FarceOverlay() {
   const { user } = useAuth()
   const [queue, setQueue] = useState([])
+  const [revealed, setRevealed] = useState(false)
+  const [rassure, setRassure] = useState(false)
   // La farce affichée est toujours la tête de file (pas d'état séparé à
   // synchroniser) : fermer() avance juste la file d'un cran.
   const current = queue[0] ?? null
   const closeTimer = useRef(null)
+  const rassureTimer = useRef(null)
   const seenIds = useRef(new Set())
+  const reducedMotion = usePrefersReducedMotion()
 
   const enqueue = useCallback((list) => {
     if (!list?.length) return
@@ -177,31 +198,66 @@ export default function FarceOverlay() {
     return unsub
   }, [user?.id, enqueue])
 
+  // Fermeture : marque vue côté serveur, puis 2s de message rassurant avant
+  // de passer à la farce suivante de la file (s'il y en a une).
   const fermer = useCallback(() => {
-    if (!current) return
+    if (!current || rassure) return
     clearTimeout(closeTimer.current)
     seenIds.current.add(current.id)
     markFarceVue(user.id, current.id)
-    setQueue((prev) => prev.slice(1))
-  }, [current, user])
+    setRassure(true)
+    rassureTimer.current = setTimeout(() => {
+      setQueue((prev) => prev.slice(1))
+      setRassure(false)
+      setRevealed(false)
+    }, RASSURE_MS)
+  }, [current, rassure, user])
 
-  // Ferme automatiquement après 6s ; relance le minuteur à chaque nouvelle
-  // farce affichée (current?.id en dépendance, pas l'objet lui-même).
+  // Séquence de chaque nouvelle farce : écran noir 0,4s puis apparition
+  // brutale (sautée si prefers-reduced-motion : l'image apparaît direct).
+  // Fermeture automatique après DUREE_MS au total.
   useEffect(() => {
-    if (!current) return
+    if (!current || rassure) return
+    let noirTimer = null
+    // Bascule synchrone nécessaire : la révélation (ou son absence, en
+    // reduced-motion) doit être décidée dès ce tick, avant tout timer.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRevealed(reducedMotion)
+    if (!reducedMotion) {
+      noirTimer = setTimeout(() => setRevealed(true), NOIR_MS)
+    }
     closeTimer.current = setTimeout(fermer, DUREE_MS)
-    return () => clearTimeout(closeTimer.current)
+    return () => { clearTimeout(noirTimer); clearTimeout(closeTimer.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current?.id])
+  }, [current?.id, reducedMotion])
+
+  useEffect(() => () => clearTimeout(rassureTimer.current), [])
 
   if (!current) return null
+
+  if (rassure) {
+    return (
+      <div className="farce-overlay farce-overlay--rassure" role="status" aria-live="polite">
+        <div className="farce-overlay__rassure-msg">😄 Ce n'était qu'une farce !</div>
+      </div>
+    )
+  }
 
   const Scene = SCENES[current.type] || SceneCitrouille
 
   return (
-    <div className="farce-overlay" role="status" aria-live="polite">
-      <div className="farce-overlay__banner">🎃 Une farce de {current.expediteur_pseudo} ! 🎃</div>
-      <Scene />
+    <div
+      className={`farce-overlay ${revealed ? 'farce-overlay--jump' : 'farce-overlay--noir'}`}
+      role="status" aria-live="polite"
+    >
+      {revealed && <div className="farce-overlay__vignette" />}
+      <div className="farce-overlay__banner">Une farce de {current.expediteur_pseudo} !</div>
+      {revealed && (
+        <div className="farce-overlay__stage">
+          <Scene />
+          <div className="farce-overlay__bouh">BOUH !</div>
+        </div>
+      )}
       <button className="farce-overlay__close" onClick={fermer} aria-label="Fermer">✕</button>
     </div>
   )

@@ -244,6 +244,9 @@ const CONTENUS = {
         skins et de nouveaux objets vont arriver petit à petit pendant toute
         la saison.
         <strong> Reviens souvent pour ne rien manquer !</strong>
+        <br />
+        ⚠️ Attention, les farces d’Halloween font sursauter ! Tu peux les
+        désactiver dans tes réglages.
       </>
     ),
     bouton: 'Entrer dans la saison 🎃',

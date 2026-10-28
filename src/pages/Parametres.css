@@ -111,6 +111,17 @@
   line-height: 1.5;
 }
 
+.settings__warning {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #b4530a;
+  background: rgba(255, 122, 24, 0.14);
+  border: 1.5px solid rgba(255, 122, 24, 0.35);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
 /* --- Formulaire --- */
 .settings__form {
   display: flex;

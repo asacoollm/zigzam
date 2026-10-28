@@ -308,6 +308,10 @@ export default function Contacts() {
               ✕
             </button>
 
+            <p className="farce-modal__warning">
+              ⚠️ Attention, ces farces font sursauter ! Tu peux les désactiver dans tes réglages.
+            </p>
+
             {!farceType ? (
               <>
                 <h2 className="farce-modal__title">🎃 Envoyer une farce à {farceCible.pseudo}</h2>

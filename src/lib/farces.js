@@ -14,12 +14,14 @@ async function rpc(fn, params) {
   return { data }
 }
 
-// Les 4 farces prédéfinies — aucun texte libre, jamais effrayantes.
+// Les 4 farces prédéfinies — aucun texte libre. Jump scare façon dessin
+// animé (pas de sang, pas de gore, pas de visage réaliste) : voir
+// FarceOverlay pour la mise en scène (écran noir → apparition brutale).
 export const TYPES_FARCES = [
-  { id: 'araignee', emoji: '🕷️', label: 'Araignée mignonne' },
-  { id: 'fantome', emoji: '👻', label: 'Fantôme qui dit Bouh !' },
+  { id: 'araignee', emoji: '🕷️', label: 'Araignée géante' },
+  { id: 'fantome', emoji: '👻', label: 'Fantôme qui crie Bouh !' },
   { id: 'chauves_souris', emoji: '🦇', label: 'Nuée de chauves-souris' },
-  { id: 'citrouille', emoji: '🎃', label: 'Citrouille rigolote' },
+  { id: 'citrouille', emoji: '🎃', label: 'Citrouille qui rigole' },
 ]
 
 const MESSAGES_ERREUR = {
