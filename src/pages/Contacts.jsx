@@ -1,15 +1,58 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useSaison } from '../context/SaisonContext'
 import { getContacts, addContact, removeContact, searchUsers } from '../lib/modules'
+import { TYPES_FARCES, getFarcesReglages, sendFarce, broadcastFarce } from '../lib/farces'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
 import './Contacts.css'
 
 export default function Contacts() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
+  const { active: saisonActive, slug: saisonSlug } = useSaison()
   const navigate = useNavigate()
+  const farcesVisibles = saisonActive && saisonSlug === 'halloween'
+
+  // --- Farces d'Halloween 🎃 ---
+  const [farceCible, setFarceCible] = useState(null)  // contact ciblé (ouvre le choix)
+  const [farceType, setFarceType] = useState(null)     // type choisi (ouvre la confirmation)
+  const [farcePrix, setFarcePrix] = useState(10)
+  const [farceBusy, setFarceBusy] = useState(false)
+  const [farceMsg, setFarceMsg] = useState(null)
+
+  useEffect(() => {
+    if (!farcesVisibles) return
+    getFarcesReglages().then((r) => setFarcePrix(r.prix ?? 10))
+  }, [farcesVisibles])
+
+  const flashFarce = (type, text) => {
+    setFarceMsg({ type, text })
+    window.setTimeout(() => setFarceMsg(null), 3500)
+  }
+
+  const handleEnvoyerFarce = async () => {
+    if (!farceCible || !farceType || farceBusy) return
+    setFarceBusy(true)
+    const res = await sendFarce(user.id, farceCible.id, farceType)
+    setFarceBusy(false)
+    if (res.error) {
+      flashFarce('err', res.error)
+      return
+    }
+    updateUser({ donuts: res.donuts })
+    broadcastFarce({
+      destinataire_id: farceCible.id,
+      id: res.id,
+      type: farceType,
+      expediteur_pseudo: res.expediteur_pseudo,
+      created_at: new Date().toISOString(),
+    })
+    flashFarce('ok', `🎃 Farce envoyée à ${res.destinataire_pseudo} !`)
+    setFarceCible(null)
+    setFarceType(null)
+  }
 
   // --- Liste de contacts ---
   const [contacts, setContacts] = useState([])
@@ -232,6 +275,14 @@ export default function Contacts() {
                   >
                     💬 Discuter
                   </button>
+                  {farcesVisibles && (
+                    <button
+                      className="contacts__btn contacts__btn--sm contacts__btn--farce"
+                      onClick={() => { setFarceCible(c); setFarceType(null) }}
+                    >
+                      🎃 Envoyer une farce
+                    </button>
+                  )}
                   <button
                     className="contacts__btn contacts__btn--sm contacts__btn--remove"
                     onClick={() => handleRemove(c.id)}
@@ -244,6 +295,67 @@ export default function Contacts() {
           </ul>
         )}
       </section>
+
+      {/* Modale Farce d'Halloween 🎃 : choix du type, puis confirmation */}
+      {farceCible && (
+        <div className="farce-modal" onMouseDown={() => { setFarceCible(null); setFarceType(null) }}>
+          <div className="farce-modal__panel" onMouseDown={(e) => e.stopPropagation()}>
+            <button
+              className="farce-modal__close"
+              onClick={() => { setFarceCible(null); setFarceType(null) }}
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+
+            {!farceType ? (
+              <>
+                <h2 className="farce-modal__title">🎃 Envoyer une farce à {farceCible.pseudo}</h2>
+                <ul className="farce-modal__list">
+                  {TYPES_FARCES.map((t) => (
+                    <li key={t.id}>
+                      <button className="farce-modal__item" onClick={() => setFarceType(t.id)}>
+                        <span className="farce-modal__item-emoji">{t.emoji}</span>
+                        <span className="farce-modal__item-label">{t.label}</span>
+                        <span className="farce-modal__item-prix">🍩 {farcePrix}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h2 className="farce-modal__title">
+                  {TYPES_FARCES.find((t) => t.id === farceType)?.emoji} Envoyer une farce à{' '}
+                  {farceCible.pseudo} pour {farcePrix} 🍩 ?
+                </h2>
+                <div className="farce-modal__confirm-row">
+                  <button
+                    className="contacts__btn contacts__btn--sm"
+                    onClick={() => setFarceType(null)}
+                    disabled={farceBusy}
+                  >
+                    Retour
+                  </button>
+                  <button
+                    className="contacts__btn contacts__btn--sm contacts__btn--farce"
+                    onClick={handleEnvoyerFarce}
+                    disabled={farceBusy}
+                  >
+                    {farceBusy ? 'Envoi…' : 'Envoyer 🎃'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {farceMsg && (
+        <div className={`contacts__flash contacts__flash--${farceMsg.type}`}>
+          {farceMsg.text}
+        </div>
+      )}
     </div>
   )
 }

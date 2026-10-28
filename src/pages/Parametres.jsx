@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useSaison } from '../context/SaisonContext'
 import {
   changePassword,
   changePseudo,
@@ -9,6 +10,7 @@ import {
   verifyParentalCode,
   updateParental,
 } from '../lib/modules'
+import { getFarcesDesactivees, setFarcesDesactivees } from '../lib/farces'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
@@ -30,7 +32,33 @@ function toHHMM(timeStr) {
 
 export default function Parametres() {
   const { user, updateUser } = useAuth()
+  const { active: saisonActive, slug: saisonSlug } = useSaison()
   const navigate = useNavigate()
+  const farcesVisibles = saisonActive && saisonSlug === 'halloween'
+
+  // --- Farces d'Halloween 🎃 : opt-out ---
+  const [recoitFarces, setRecoitFarces] = useState(true)
+  const [farcesLoading, setFarcesLoading] = useState(true)
+  const [farcesBusy, setFarcesBusy] = useState(false)
+
+  useEffect(() => {
+    // Rien à charger si la saison n'est pas active : la section reste
+    // masquée (farcesVisibles && !farcesLoading), inutile de toucher l'état.
+    if (!farcesVisibles) return
+    getFarcesDesactivees(user.id).then((desactivees) => {
+      setRecoitFarces(!desactivees)
+      setFarcesLoading(false)
+    })
+  }, [farcesVisibles, user.id])
+
+  async function handleToggleFarces() {
+    if (farcesBusy) return
+    const nouvelleValeur = !recoitFarces
+    setFarcesBusy(true)
+    const res = await setFarcesDesactivees(user.id, !nouvelleValeur)
+    setFarcesBusy(false)
+    if (!res.error) setRecoitFarces(nouvelleValeur)
+  }
 
   // --- Pseudo ---
   const [newPseudo, setNewPseudo] = useState('')
@@ -494,6 +522,31 @@ export default function Parametres() {
           </p>
         )}
       </div>
+
+      {/* Section : Farces d'Halloween 🎃 (visible seulement pendant la saison) */}
+      {farcesVisibles && !farcesLoading && (
+        <div className="settings__card">
+          <h2 className="settings__section-title">Farces d'Halloween 🎃</h2>
+          <label className="settings__toggle-row">
+            <span className="settings__toggle-label">Recevoir des farces</span>
+            <div
+              className={`settings__toggle ${recoitFarces ? 'settings__toggle--on' : ''}`}
+              role="switch"
+              aria-checked={recoitFarces}
+              tabIndex={0}
+              onClick={handleToggleFarces}
+              onKeyDown={(e) => e.key === ' ' && handleToggleFarces()}
+            >
+              <div className="settings__toggle-thumb" />
+            </div>
+          </label>
+          <p className="settings__note">
+            {recoitFarces
+              ? 'Tes amis peuvent t\'envoyer des farces mignonnes (🕷️ 👻 🦇 🎃).'
+              : 'Tu ne recevras plus aucune farce pendant la saison Halloween.'}
+          </p>
+        </div>
+      )}
 
       {/* Section : Contrôle parental */}
       <div className="settings__card">

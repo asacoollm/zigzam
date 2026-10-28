@@ -1,0 +1,271 @@
+/* ============================================================
+   Farces d'Halloween 🎃 — overlay plein écran, 6 s, mignon jamais
+   effrayant. La durée des animations (6s) doit rester alignée avec
+   DUREE_MS dans FarceOverlay.jsx.
+   `pointer-events: none` partout sauf le bouton fermer, comme demandé :
+   la farce ne doit jamais bloquer l'app en dessous.
+   ============================================================ */
+.farce-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.farce-overlay__banner {
+  margin-top: 18px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(26, 11, 46, 0.88);
+  color: #fff4e0;
+  font-weight: 800;
+  font-size: 15px;
+  text-align: center;
+  max-width: 88vw;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border: 1.5px solid rgba(255, 122, 24, 0.55);
+  animation: farce-banner-in 0.4s ease-out both;
+  z-index: 2;
+}
+@keyframes farce-banner-in {
+  0% { opacity: 0; transform: translateY(-14px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.farce-overlay__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(26, 11, 46, 0.85);
+  color: #fff4e0;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  z-index: 3;
+}
+.farce-overlay__close:active { transform: scale(0.92); }
+
+.farce__scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   🕷️ ARAIGNÉE — descend sur son fil, puis court en travers de l'écran
+   ============================================================ */
+.farce__web-fil {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 160px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(230, 220, 255, 0.6), rgba(230, 220, 255, 0.1));
+  animation: farce-web-fade 6s ease-in-out both;
+}
+@keyframes farce-web-fade {
+  0%, 100% { opacity: 0; }
+  10%, 45% { opacity: 1; }
+  55% { opacity: 0; }
+}
+.farce__spider {
+  position: absolute;
+  left: 50%;
+  width: 70px;
+  height: 62px;
+  margin-left: -35px;
+  animation: farce-spider-drop 6s ease-in-out both;
+}
+.farce__spider svg { width: 100%; height: 100%; display: block; }
+@keyframes farce-spider-drop {
+  0% { top: -70px; opacity: 0; }
+  10% { opacity: 1; }
+  38%, 48% { top: 150px; opacity: 1; }
+  58%, 100% { top: 150px; opacity: 0; }
+}
+.farce__runner {
+  position: absolute;
+  top: 48%;
+  width: 70px;
+  height: 62px;
+  opacity: 0;
+  animation: farce-run 6s ease-in-out both;
+}
+.farce__runner svg { width: 100%; height: 100%; display: block; }
+@keyframes farce-run {
+  0%, 48% { left: -90px; opacity: 0; }
+  52% { opacity: 1; }
+  92% { left: 108vw; opacity: 1; }
+  100% { left: 108vw; opacity: 0; }
+}
+.farce__legs { transform-origin: center; animation: farce-legs 0.2s linear infinite; }
+@keyframes farce-legs {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.85); }
+}
+
+/* ============================================================
+   👻 FANTÔME — traverse l'écran en disant « Bouh ! »
+   ============================================================ */
+.farce__ghost-cross {
+  position: absolute;
+  top: 40%;
+  width: 110px;
+  animation: farce-ghost-cross 6s ease-in-out both;
+}
+@keyframes farce-ghost-cross {
+  0% { left: -120px; opacity: 0; }
+  8% { opacity: 1; }
+  50% { left: calc(50% - 55px); }
+  92% { opacity: 1; }
+  100% { left: 110vw; opacity: 0; }
+}
+.farce__ghost-cross svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+  animation: farce-ghost-bob 1.6s ease-in-out infinite;
+}
+@keyframes farce-ghost-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.farce__bulle {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  white-space: nowrap;
+  padding: 5px 12px;
+  border-radius: 10px;
+  background: #fff;
+  color: #2b1750;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  animation: farce-bulle-pop 6s ease-in-out both;
+}
+.farce__bulle::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 24px;
+  border: 6px solid transparent;
+  border-top-color: #fff;
+}
+@keyframes farce-bulle-pop {
+  0%, 30% { opacity: 0; transform: translateX(-20%) scale(0.4); }
+  38% { opacity: 1; transform: translateX(-20%) scale(1.15); }
+  46%, 80% { opacity: 1; transform: translateX(-20%) scale(1); }
+  92%, 100% { opacity: 0; transform: translateX(-20%) scale(1); }
+}
+
+/* ============================================================
+   🦇 CHAUVES-SOURIS — une petite nuée passe devant l'écran
+   ============================================================ */
+.farce__bat {
+  position: absolute;
+  left: -90px;
+  width: 70px;
+  height: 44px;
+  animation: farce-bat-fly 6s ease-in-out both;
+}
+.farce__bat svg { width: 100%; height: 100%; display: block; }
+@keyframes farce-bat-fly {
+  0% { transform: translate(0, 0); opacity: 0; }
+  6% { opacity: 0.95; }
+  50% { transform: translate(60vw, var(--bat-y, 0)); }
+  94% { opacity: 0.95; }
+  100% { transform: translate(120vw, var(--bat-y, 0)); opacity: 0; }
+}
+.farce__wing { transform-box: fill-box; transform-origin: 100% 50%; animation: farce-wing-flap 0.4s ease-in-out infinite; }
+.farce__wing--r { transform-origin: 0% 50%; }
+@keyframes farce-wing-flap {
+  0%, 100% { transform: scaleY(1) rotate(0deg); }
+  50% { transform: scaleY(0.5) rotate(-10deg); }
+}
+
+/* ============================================================
+   🎃 CITROUILLE — apparaît au milieu et rigole en faisant de petits sauts
+   ============================================================ */
+.farce__pumpkin-jump {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220px;
+  margin-top: -90px;
+  margin-left: -110px;
+  animation: farce-pumpkin-wrap 6s ease-in-out both;
+}
+.farce__pumpkin-jump svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4));
+  animation: farce-pumpkin-bounce 0.9s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+@keyframes farce-pumpkin-wrap {
+  0% { opacity: 0; transform: scale(0.2); }
+  10% { opacity: 1; transform: scale(1.1); }
+  16%, 88% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.85); }
+}
+@keyframes farce-pumpkin-bounce {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-24px) rotate(3deg); }
+}
+
+/* ============================================================
+   Petits écrans : tailles réduites, rien ne dépasse de l'écran
+   ============================================================ */
+@media (max-width: 640px) {
+  .farce-overlay__banner { font-size: 13px; padding: 8px 16px; }
+  .farce__ghost-cross { width: 86px; }
+  .farce__pumpkin-jump { width: 160px; margin-top: -66px; margin-left: -80px; }
+  .farce__bat { width: 52px; height: 32px; }
+}
+
+/* ============================================================
+   prefers-reduced-motion : version calme, sans aucun mouvement —
+   on garde la bannière, l'icône centrée et le bouton fermer.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .farce-overlay__banner,
+  .farce__web-fil, .farce__spider,
+  .farce__runner, .farce__legs,
+  .farce__ghost-cross, .farce__ghost-cross svg, .farce__bulle,
+  .farce__bat, .farce__wing,
+  .farce__pumpkin-jump, .farce__pumpkin-jump svg {
+    animation: none !important;
+  }
+  .farce__web-fil, .farce__spider { display: none; }
+  .farce__runner {
+    top: 50%; left: 50%; opacity: 1;
+    width: 130px; height: 114px;
+    transform: translate(-50%, -50%);
+  }
+  .farce__ghost-cross {
+    top: 50%; left: 50%; opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  .farce__bulle { opacity: 1; transform: translateX(-20%); }
+  .farce__bat { display: none; }
+  .farce__bat:nth-child(1) { display: block; opacity: 1; top: 50% !important; left: calc(50% - 40px); transform: translate(-50%, -50%); }
+  .farce__bat:nth-child(2) { display: block; opacity: 1; top: 50% !important; left: 50%; transform: translate(-50%, -62%); }
+  .farce__bat:nth-child(3) { display: block; opacity: 1; top: 50% !important; left: calc(50% + 40px); transform: translate(-50%, -50%); }
+  .farce__pumpkin-jump { opacity: 1; transform: scale(1); margin-top: -90px; }
+}

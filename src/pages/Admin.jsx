@@ -34,6 +34,7 @@ import {
   adminValidateCustomSkin,
   createBugReport,
 } from '../lib/modules'
+import { adminListFarces, adminSetFarcesActives, getFarcesReglages, TYPES_FARCES } from '../lib/farces'
 import { EPISODES, isPublished } from '../data/episodes'
 import { CATEGORIES, getItem } from '../lib/avatar'
 import Backdrop from '../components/Backdrop'
@@ -1595,6 +1596,72 @@ function SectionSaisons({ adminId }) {
   )
 }
 
+function FarceHistoryRow({ farce }) {
+  const info = TYPES_FARCES.find((t) => t.id === farce.type)
+  return (
+    <div className="boite-row">
+      <span className="boite-row__contenu">
+        {farce.expediteur?.pseudo ?? '—'} → {farce.destinataire?.pseudo ?? '—'}
+      </span>
+      <span className="boite-row__niveau">
+        {info ? `${info.emoji} ${info.label}` : farce.type}
+      </span>
+      <span className="boite-row__contenu">🍩 {farce.prix}</span>
+      <span className={`boite-row__state boite-row__state--${farce.vue_at ? 'open' : 'closed'}`}>
+        {farce.vue_at ? '✅ Vue' : '👀 Pas encore vue'}
+      </span>
+    </div>
+  )
+}
+
+function SectionFarces({ adminId }) {
+  const [actives, setActives] = useState(true)
+  const [prix, setPrix] = useState(10)
+  const [history, setHistory] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+
+  const reload = () => {
+    Promise.all([adminListFarces(adminId), getFarcesReglages()]).then(([list, reglages]) => {
+      setHistory(Array.isArray(list) ? list : [])
+      setActives(reglages.actives ?? true)
+      setPrix(reglages.prix ?? 10)
+      setLoading(false)
+    })
+  }
+
+  useEffect(() => {
+    reload()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminId])
+
+  async function toggle() {
+    setBusy(true)
+    const res = await adminSetFarcesActives(adminId, !actives)
+    setBusy(false)
+    if (!res.error) setActives(res.actives)
+  }
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">🎃 Farces d'Halloween</h2>
+      <p className="admin-note">Prix actuel : {prix} 🍩 par farce.</p>
+      <button
+        className={`admin-btn admin-btn--sm ${actives ? '' : 'admin-btn--primary'}`}
+        onClick={toggle}
+        disabled={busy || loading}
+      >
+        {actives ? '⏸️ Couper les farces' : '▶️ Réactiver les farces'}
+      </button>
+
+      <h3 className="admin-subsection-title">30 dernières farces envoyées</h3>
+      {loading && <p className="admin-loading">Chargement…</p>}
+      {!loading && history.length === 0 && <p className="admin-empty">Aucune farce envoyée pour l'instant.</p>}
+      {!loading && history.map((f) => <FarceHistoryRow key={f.id} farce={f} />)}
+    </section>
+  )
+}
+
 // --------------- Page principale ---------------
 export default function Admin() {
   const { user } = useAuth()
@@ -1639,6 +1706,7 @@ export default function Admin() {
           <SectionPropositions adminId={user.id} />
           <SectionBoites adminId={user.id} />
           <SectionSaisons adminId={user.id} />
+          <SectionFarces adminId={user.id} />
         </>
       )}
     </div>

@@ -96,6 +96,19 @@
   margin: 0;
 }
 
+.admin-subsection-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--texte);
+  margin: 6px 0 0;
+}
+
+.admin-note {
+  font-size: 14px;
+  color: var(--texte-doux);
+  margin: 0;
+}
+
 /* ---- Formulaire créer compte ---- */
 .admin-form {
   display: flex;
