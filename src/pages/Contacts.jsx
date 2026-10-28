@@ -21,6 +21,7 @@ export default function Contacts() {
   const [farcePrix, setFarcePrix] = useState(10)
   const [farceBusy, setFarceBusy] = useState(false)
   const [farceMsg, setFarceMsg] = useState(null)
+  const farceClickLockRef = useRef(false)
 
   useEffect(() => {
     if (!farcesVisibles) return
@@ -33,7 +34,13 @@ export default function Contacts() {
   }
 
   const handleEnvoyerFarce = async () => {
-    if (!farceCible || !farceType || farceBusy) return
+    // Verrou synchrone (pas seulement l'état React) : un double-clic très
+    // rapide peut arriver avant le prochain rendu qui désactiverait le
+    // bouton. Bloqué ~1s après le clic, indépendamment de la rapidité
+    // de la réponse serveur.
+    if (!farceCible || !farceType || farceBusy || farceClickLockRef.current) return
+    farceClickLockRef.current = true
+    setTimeout(() => { farceClickLockRef.current = false }, 1000)
     setFarceBusy(true)
     const res = await sendFarce(user.id, farceCible.id, farceType)
     setFarceBusy(false)

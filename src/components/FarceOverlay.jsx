@@ -216,6 +216,20 @@ export default function FarceOverlay() {
     }, RASSURE_MS)
   }, [current, rassure, user])
 
+  // Ferme toute la file d'un coup (visible seulement s'il y a plus d'une
+  // farce en attente) : marque chacune comme vue sans les rejouer.
+  const fermerToutes = useCallback(() => {
+    clearTimeout(closeTimer.current)
+    clearTimeout(rassureTimer.current)
+    queue.forEach((f) => {
+      seenIds.current.add(f.id)
+      markFarceVue(user.id, f.id)
+    })
+    setQueue([])
+    setRassure(false)
+    setRevealed(false)
+  }, [queue, user])
+
   // Séquence de chaque nouvelle farce : écran noir 0,4s puis apparition
   // brutale (sautée si prefers-reduced-motion : l'image apparaît direct).
   // Fermeture automatique après DUREE_MS au total.
@@ -243,10 +257,19 @@ export default function FarceOverlay() {
 
   if (!current) return null
 
+  // Farces encore en attente derrière celle affichée en ce moment.
+  const restantes = queue.length - 1
+  const boutonFermerToutes = restantes >= 1 && (
+    <button className="farce-overlay__close-all" onClick={fermerToutes}>
+      Fermer toutes les farces ({restantes + 1})
+    </button>
+  )
+
   if (rassure) {
     return (
       <div className="farce-overlay farce-overlay--rassure" role="status" aria-live="polite">
         <div className="farce-overlay__rassure-msg">😄 Ce n'était qu'une farce !</div>
+        {boutonFermerToutes}
       </div>
     )
   }
@@ -266,6 +289,7 @@ export default function FarceOverlay() {
           <div className="farce-overlay__bouh">BOUH !</div>
         </div>
       )}
+      {boutonFermerToutes}
       <button className="farce-overlay__close" onClick={fermer} aria-label="Fermer">✕</button>
     </div>
   )

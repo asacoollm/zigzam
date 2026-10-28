@@ -32,8 +32,6 @@ const MESSAGES_ERREUR = {
   expediteur_introuvable: ERR,
   dest_introuvable: 'Cet élève est introuvable.',
   destinataire_refuse: 'Cet élève ne veut pas recevoir de farces.',
-  limite_quotidienne: 'Tu as déjà envoyé 5 farces aujourd’hui, reviens demain !',
-  limite_destinataire: 'Tu as déjà envoyé 2 farces à cette personne aujourd’hui.',
   not_enough_donuts: 'Tu n’as pas assez de donuts 🍩 pour cette farce.',
 }
 
