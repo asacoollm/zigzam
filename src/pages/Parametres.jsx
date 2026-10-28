@@ -528,7 +528,7 @@ export default function Parametres() {
         <div className="settings__card">
           <h2 className="settings__section-title">Farces d'Halloween 🎃</h2>
           <p className="settings__warning">
-            ⚠️ Attention, ces farces font sursauter ! Tu peux les désactiver ici.
+            ⚠️ Ces farces font sursauter, avec du son ! Tu peux les désactiver ici.
           </p>
           <label className="settings__toggle-row">
             <span className="settings__toggle-label">Recevoir des farces</span>

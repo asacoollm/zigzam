@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import {
   getMyFarcesNonVues, markFarceVue, subscribeToFarce,
 } from '../lib/farces'
+import { playFarceSound } from '../lib/halloweenAudio'
 import './FarceOverlay.css'
 
 // ============================================================
@@ -16,6 +17,8 @@ import './FarceOverlay.css'
 //  rapide (une seule transition noir → révélé, pas de stroboscope).
 //  Bouton fermer cliquable dès l'affichage. Version calme (sans secousse
 //  ni zoom, image qui apparaît directement) sous prefers-reduced-motion.
+//  Un son (1s max, synthétisé par Web Audio, voir lib/halloweenAudio.js)
+//  accompagne la révélation — coupé par le bouton 🔇 de la musique.
 // ============================================================
 
 const DUREE_MS = 6000     // durée totale max d'affichage (dont le noir initial)
@@ -223,8 +226,13 @@ export default function FarceOverlay() {
     // reduced-motion) doit être décidée dès ce tick, avant tout timer.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setRevealed(reducedMotion)
-    if (!reducedMotion) {
-      noirTimer = setTimeout(() => setRevealed(true), NOIR_MS)
+    if (reducedMotion) {
+      playFarceSound(current.type)
+    } else {
+      noirTimer = setTimeout(() => {
+        setRevealed(true)
+        playFarceSound(current.type)
+      }, NOIR_MS)
     }
     closeTimer.current = setTimeout(fermer, DUREE_MS)
     return () => { clearTimeout(noirTimer); clearTimeout(closeTimer.current) }

@@ -49,8 +49,12 @@ body.saison-halloween .zlogo__sub {
    Lisibilité d'abord : texte clair (crème) sur fond sombre partout.
    ============================================================ */
 
-/* ---- Dashboard : tuiles au contour orange citrouille ---- */
+/* ---- Dashboard : tuiles au contour orange citrouille ----
+   `--texte` est redéfinie ici (pas seulement `color`) car .tile__label
+   a sa propre règle `color: var(--texte)` dans Dashboard.css : un
+   `color` posé sur .tile seul ne l'atteint pas, la variable si. */
 body.saison-halloween .tile {
+  --texte: #fff4e0;
   background: rgba(43, 23, 80, 0.55);
   border-color: rgba(255, 122, 24, 0.45);
   box-shadow:
@@ -91,8 +95,14 @@ body.saison-halloween .disc__bubble--mine {
   box-shadow: 0 0 10px rgba(255, 122, 24, 0.18);
 }
 
-/* ---- Actualités : cartes au fond violet nuit ---- */
+/* ---- Actualités : cartes au fond violet nuit ----
+   Même raison que .tile ci-dessus : pseudo/titre/texte/date/compteur
+   ont chacun leur propre `color: var(--texte...)` dans Actualites.css,
+   donc on redéfinit les variables plutôt que juste `color`. */
 body.saison-halloween .news__card {
+  --texte: #fff4e0;
+  --texte-doux: #e0c9a6;
+  --violet-fonce: #ffb066;
   background-color: rgba(43, 23, 80, 0.6);
   border-color: rgba(255, 122, 24, 0.32);
   color: #fff4e0;

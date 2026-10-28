@@ -165,6 +165,14 @@ export default function Contacts() {
         <ZigzamLogo size="sm" />
       </header>
 
+      {/* Bandeau saison Halloween : disparaît dès que la saison n'est plus active */}
+      {farcesVisibles && (
+        <div className="contacts__halloween-banner">
+          🎃 Pendant Halloween, tu peux aussi envoyer des farces à tes amis ici !
+          Clique sur 🎃 Envoyer une farce à côté d'un contact.
+        </div>
+      )}
+
       {/* Flash message global */}
       {addMsg && (
         <div className={`contacts__flash contacts__flash--${addMsg.type}`}>
@@ -309,7 +317,7 @@ export default function Contacts() {
             </button>
 
             <p className="farce-modal__warning">
-              ⚠️ Attention, ces farces font sursauter ! Tu peux les désactiver dans tes réglages.
+              ⚠️ Ces farces font sursauter, avec du son ! Tu peux les désactiver dans tes réglages.
             </p>
 
             {!farceType ? (

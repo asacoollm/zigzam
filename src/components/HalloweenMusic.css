@@ -1,0 +1,29 @@
+/* ============================================================
+   Bouton 🔊 / 🔇 de la musique d'Halloween — coin haut gauche,
+   libre de tout autre élément fixe (Qui est en ligne = bas gauche,
+   Signaler un problème = bas droite).
+   ============================================================ */
+.halloween-audio-btn {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 60;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  background: rgba(26, 11, 46, 0.78);
+  border: 1.5px solid rgba(255, 122, 24, 0.5);
+  color: #fff4e0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s, background 0.12s;
+}
+.halloween-audio-btn:hover { transform: translateY(-1px) scale(1.05); }
+.halloween-audio-btn:active { transform: scale(0.94); }
+
+@media (max-width: 480px) {
+  .halloween-audio-btn { top: 10px; left: 10px; width: 38px; height: 38px; font-size: 17px; }
+}

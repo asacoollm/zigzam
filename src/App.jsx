@@ -22,6 +22,7 @@ import ReportButton from './components/ReportButton'
 import BirthdayModal from './components/BirthdayModal'
 import SaisonAnnounce from './components/SaisonAnnounce'
 import FarceOverlay from './components/FarceOverlay'
+import HalloweenMusic from './components/HalloweenMusic'
 
 export default function App() {
   const { user } = useAuth()
@@ -167,6 +168,7 @@ export default function App() {
     <ReportButton />
     <SaisonAnnounce />
     <FarceOverlay />
+    <HalloweenMusic />
     </>
   )
 }
