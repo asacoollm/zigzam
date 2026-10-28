@@ -357,12 +357,14 @@ export function isUnlocked(avatar, categoryId, item) {
 export const SAISON_LABELS = {
   jurassic: '🦕 Jurassic Web — Exclusif',
   disney: '🏰 Zigzamland — Exclusif',
+  halloween: '🎃 Halloween — Exclusif',
 }
 
 // Emoji de l'onglet virtuel par saison.
 export const SAISON_EMOJIS = {
   jurassic: '🦕',
   disney: '🏰',
+  halloween: '🎃',
 }
 
 // True si l'item appartient à une (la) saison donnée.

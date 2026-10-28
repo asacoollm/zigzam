@@ -16,6 +16,7 @@ import './Actualites.css'
 const LIBELLE_ECRIRE = {
   jurassic: '🪨 Graver une actu sur la roche',
   disney: '📖 Écrire dans le livre magique',
+  halloween: '🎃 Écrire une actu citrouille',
 }
 
 function formatDate(iso) {

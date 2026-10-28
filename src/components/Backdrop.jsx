@@ -1,6 +1,7 @@
 import FallGuy from './FallGuy'
 import JurassicDecor from './JurassicDecor'
 import DisneyDecor from './DisneyDecor'
+import HalloweenDecor from './HalloweenDecor'
 import { useSaison } from '../context/SaisonContext'
 import './Backdrop.css'
 
@@ -9,6 +10,7 @@ import './Backdrop.css'
 const DECORS = {
   jurassic: { Decor: JurassicDecor, guys: ['#3dd68c', '#8ff196'] },
   disney: { Decor: DisneyDecor, guys: ['#ffd76a', '#ff8fc7'] },
+  halloween: { Decor: HalloweenDecor, guys: ['#ff7a18', '#7bff4f'] },
 }
 
 // Décor de fond partagé par toutes les pages.

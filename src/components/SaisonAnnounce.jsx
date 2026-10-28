@@ -122,6 +122,41 @@ function ChateauAnnonce() {
   )
 }
 
+// Scène de la modale Halloween : une citrouille souriante + un petit
+// fantôme mignon qui flotte à côté. Jamais effrayant.
+function SceneHalloween() {
+  return (
+    <div className="sann__halloween-scene">
+      <svg className="sann__pumpkin" viewBox="0 0 70 60" fill="none" aria-hidden="true">
+        <path d="M35 10 Q38 2 42 6 Q39 8 38 12" stroke="#4a7a2a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        <ellipse cx="35" cy="36" rx="32" ry="22" fill="#ff7a18" />
+        <g stroke="#e8650a" strokeWidth="2" opacity="0.65">
+          <path d="M17 16 Q13 36 17 56" fill="none" />
+          <path d="M26 13 Q22 36 26 58" fill="none" />
+          <path d="M44 13 Q48 36 44 58" fill="none" />
+          <path d="M53 16 Q57 36 53 56" fill="none" />
+        </g>
+        <g fill="#fff4e0">
+          <path d="M18 32 L26 32 L22 40 Z" />
+          <path d="M44 32 L52 32 L48 40 Z" />
+          <path d="M16 46 Q35 56 54 46 Q35 50 16 46 Z" />
+        </g>
+      </svg>
+      <svg className="sann__ghost" viewBox="0 0 60 64" fill="none" aria-hidden="true">
+        <path
+          d="M30 2 C14 2 4 14 4 30 L4 56 Q9 50 14 56 Q19 50 24 56 Q27 52 30 56 Q33 52 36 56 Q41 50 46 56 Q51 50 56 56 L56 30 C56 14 46 2 30 2 Z"
+          fill="#fff4e0"
+        />
+        <circle cx="21" cy="28" r="3.4" fill="#2b1750" />
+        <circle cx="39" cy="28" r="3.4" fill="#2b1750" />
+        <path d="M24 38 Q30 44 36 38" stroke="#2b1750" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <circle cx="14" cy="34" r="3" fill="#ff9fb0" opacity="0.5" />
+        <circle cx="46" cy="34" r="3" fill="#ff9fb0" opacity="0.5" />
+      </svg>
+    </div>
+  )
+}
+
 // Salve de feux d'artifice affichée dans la modale (ouverture + clic bouton).
 function FeuxModale({ cle }) {
   const teintes = [
@@ -198,6 +233,20 @@ const CONTENUS = {
       </>
     ),
     bouton: 'Entrer dans la Magie ! 🏰',
+  },
+  halloween: {
+    mots: ['JOYEUX', 'HALLOWEEN'],
+    emoji: '🎃',
+    scene: <SceneHalloween />,
+    desc: (
+      <>
+        Jusqu’au 28 novembre, Zigzam se déguise pour Halloween ! De nouveaux
+        skins et de nouveaux objets vont arriver petit à petit pendant toute
+        la saison.
+        <strong> Reviens souvent pour ne rien manquer !</strong>
+      </>
+    ),
+    bouton: 'Entrer dans la saison 🎃',
   },
 }
 

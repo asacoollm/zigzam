@@ -347,3 +347,90 @@
     -webkit-text-fill-color: #ffd76a;
   }
 }
+
+/* ============================================================
+   VARIANTE « HALLOWEEN 🎃 »
+   ------------------------------------------------------------
+   Scopée sous `.sann--halloween` : fond noir-violet + orange citrouille.
+   Mignon et rigolo, jamais effrayant (public : élèves de 10 ans).
+   La structure reste identique à la modale Jurassic/Disney.
+   ============================================================ */
+
+.sann--halloween .sann__backdrop {
+  background:
+    radial-gradient(60% 50% at 50% 20%, rgba(255, 122, 24, 0.22), transparent 70%),
+    rgba(18, 8, 33, 0.93);
+}
+
+/* Les « éclairs » Jurassic deviennent une lueur citrouille douce. */
+.sann--halloween .sann__bolt {
+  background: radial-gradient(40% 60% at var(--x, 50%) 0%, rgba(255, 176, 102, 0.6), transparent 55%);
+}
+
+.sann--halloween .sann__card {
+  background: linear-gradient(165deg, #2b1750, #231049 58%, #120821);
+  border: 2px solid rgba(255, 122, 24, 0.5);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 44px rgba(255, 122, 24, 0.16),
+    inset 0 0 60px rgba(123, 255, 79, 0.08);
+  animation: sann-enter 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.sann__halloween-scene {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+}
+.sann__pumpkin {
+  width: 118px;
+  height: auto;
+  animation: sann-pumpkin-bob 2.6s ease-in-out infinite;
+}
+.sann__ghost {
+  width: 70px;
+  height: auto;
+  margin-bottom: 18px;
+  animation: sann-ghost-float 3.4s ease-in-out infinite;
+}
+@keyframes sann-pumpkin-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-4px) rotate(2deg); }
+}
+@keyframes sann-ghost-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+.sann--halloween .sann__title {
+  color: #ffb066;
+  text-shadow: 0 3px 0 #120821, 0 0 18px rgba(255, 122, 24, 0.5);
+}
+.sann--halloween .sann__title-emoji { animation: sann-pumpkin-bob 1.6s ease-in-out infinite; }
+
+.sann--halloween .sann__subtitle { color: #fff4e0; }
+.sann--halloween .sann__desc { color: #e4d9ff; }
+.sann--halloween .sann__desc strong { color: #7bff4f; }
+
+.sann--halloween .sann__countdown {
+  background: rgba(255, 122, 24, 0.12);
+  border-color: rgba(255, 122, 24, 0.35);
+}
+.sann--halloween .sann__countdown-num { color: #ff7a18; }
+.sann--halloween .sann__countdown-label { color: #d9c9ff; }
+
+.sann--halloween .sann__btn {
+  color: #1a0b2e;
+  background: linear-gradient(120deg, #ff7a18, #ffb066 55%, #e8650a);
+  box-shadow: 0 10px 24px rgba(232, 101, 10, 0.45);
+}
+.sann--halloween .sann__btn:hover { box-shadow: 0 14px 30px rgba(255, 122, 24, 0.55); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sann--halloween .sann__pumpkin,
+  .sann--halloween .sann__ghost,
+  .sann--halloween .sann__title-emoji {
+    animation: none;
+  }
+}

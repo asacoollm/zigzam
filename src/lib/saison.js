@@ -76,11 +76,41 @@ export const SAISONS = {
       assets: { decor: 'disney' },
     },
   },
+
+  halloween: {
+    id: 'halloween',
+    slug: 'halloween',
+    nom: 'Halloween 🎃',
+    titre: 'Halloween',
+    numero: 3, // Saison 3
+    // Inactive par défaut : la saison se déclenche depuis /admin → Saisons.
+    actif: false,
+    debut: '2026-10-28T00:00:00Z',
+    fin: '2026-11-28T23:59:59Z',
+    theme: {
+      couleurs: {
+        fondSombre: '#1a0b2e',
+        fondViolet: '#2b1750',
+        fondProfond: '#120821',
+        accent: '#ff7a18',      // orange citrouille
+        accentClair: '#ffb066',
+        slime: '#7bff4f',       // vert slime, pour les touches rigolotes
+        creme: '#fff4e0',
+      },
+      emoji: '🎃',
+      assets: { decor: 'halloween' },
+    },
+  },
 }
 
 // Saison « courante » : celle mise en avant quand AUCUNE saison n'est active
 // en base (onglet de skins « Saison terminée », modale, etc.). C'est la
 // dernière saison sortie — à mettre à jour à chaque nouvelle saison.
+//  Pour l'instant Halloween n'a PAS de skins et n'est pas encore activée :
+//  on garde donc `disney` comme saison courante (même logique que lors du
+//  passage de Jurassic à Disney, qui n'a changé cette constante qu'une
+//  fois Disney réellement sortie). À remettre à 'halloween' le jour où la
+//  saison est activée en prod avec ses propres skins.
 export const SAISON_COURANTE_ID = 'disney'
 
 // Liste ordonnée (par numéro) de toutes les saisons connues.

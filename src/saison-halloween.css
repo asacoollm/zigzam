@@ -1,0 +1,111 @@
+/* ============================================================
+   THÈME SAISON « HALLOWEEN 🎃 »
+   ------------------------------------------------------------
+   Toutes les règles sont scopées sous `body.saison-halloween`
+   (classe posée/retirée par SaisonContext). Quand la classe est
+   absente, l'application retrouve EXACTEMENT son apparence normale.
+   Mignon et rigolo, jamais effrayant (public : élèves de 10 ans).
+   ============================================================ */
+
+/* ---- Ciel noir-violet (remplace le dégradé pastel) ---- */
+body.saison-halloween {
+  background:
+    radial-gradient(55% 40% at 85% 6%, rgba(255, 122, 24, 0.12), transparent 70%),
+    radial-gradient(70% 55% at 20% 100%, rgba(123, 255, 79, 0.05), transparent 70%),
+    linear-gradient(165deg, #1a0b2e 0%, #2b1750 55%, #120821 100%);
+  background-attachment: fixed;
+  color-scheme: dark;
+}
+
+/* Les bonhommes de fond prennent une lueur citrouille. */
+body.saison-halloween .backdrop--saison .guy {
+  opacity: 0.85;
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.45))
+          drop-shadow(0 0 12px rgba(255, 122, 24, 0.3));
+}
+
+/* ============================================================
+   LOGO ZIGZAM — lueur citrouille douce
+   ============================================================ */
+body.saison-halloween .zlogo__sub {
+  background: linear-gradient(96deg, #e8650a, #ffb066 45%, #ff7a18 60%, #e8650a);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: h-citrouille 4.5s linear infinite;
+}
+@keyframes h-citrouille {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 220% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.saison-halloween .zlogo__sub { animation: none; }
+}
+
+/* ============================================================
+   ADAPTATIONS DES MODULES (scopées sous body.saison-halloween)
+   Lisibilité d'abord : texte clair (crème) sur fond sombre partout.
+   ============================================================ */
+
+/* ---- Dashboard : tuiles au contour orange citrouille ---- */
+body.saison-halloween .tile {
+  background: rgba(43, 23, 80, 0.55);
+  border-color: rgba(255, 122, 24, 0.45);
+  box-shadow:
+    0 12px 30px rgba(10, 4, 20, 0.5),
+    inset 0 0 20px rgba(123, 255, 79, 0.08);
+  color: #fff4e0;
+}
+body.saison-halloween .tile::before {
+  background: linear-gradient(90deg, #e8650a, #ffb066 35%, #ff7a18 55%, #7bff4f 80%, #e8650a);
+  background-size: 220% 100%;
+  animation: h-liseré 4s linear infinite;
+}
+@keyframes h-liseré {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 220% 50%; }
+}
+body.saison-halloween .tile:hover {
+  box-shadow:
+    0 20px 40px rgba(10, 4, 20, 0.6),
+    0 0 24px rgba(255, 122, 24, 0.3),
+    inset 0 0 22px rgba(123, 255, 79, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.saison-halloween .tile::before { animation: none; }
+}
+
+/* ---- Discuter : bulles « parchemin de citrouille » ---- */
+body.saison-halloween .disc__bubble--other {
+  background: linear-gradient(135deg, #fff4e0 0%, #ffe6c2 100%);
+  border: 1.5px solid #e8650a;
+  color: #2b1750;
+}
+body.saison-halloween .disc__bubble--mine {
+  background: linear-gradient(135deg, #3a2160 0%, #1f1140 100%);
+  border: 1.5px solid rgba(255, 122, 24, 0.55);
+  color: #fff4e0;
+  box-shadow: 0 0 10px rgba(255, 122, 24, 0.18);
+}
+
+/* ---- Actualités : cartes au fond violet nuit ---- */
+body.saison-halloween .news__card {
+  background-color: rgba(43, 23, 80, 0.6);
+  border-color: rgba(255, 122, 24, 0.32);
+  color: #fff4e0;
+}
+/* Le bouton « 🎃 Écrire une actu citrouille » prend l'orange de saison. */
+body.saison-halloween .news__write {
+  background: linear-gradient(120deg, #ff7a18, #ffb066 55%, #e8650a);
+  border: 1.5px solid rgba(255, 244, 224, 0.6);
+  color: #2b1750;
+  box-shadow: 0 0 18px rgba(255, 122, 24, 0.3);
+}
+
+/* ---- Boutons admin principaux : liseré slime discret ---- */
+body.saison-halloween .admin-btn--primary {
+  box-shadow: 0 0 0 1px rgba(123, 255, 79, 0.25), 0 10px 24px rgba(0, 0, 0, 0.35);
+}
