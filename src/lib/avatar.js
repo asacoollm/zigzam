@@ -317,6 +317,7 @@ export const CATEGORIES = [
       { id: 'fgenie', label: 'Génie Complet', price: 25, saison: 'disney' },
       { id: 'hfullvampire', label: 'Petit Vampire', price: 23, saison: 'halloween' },
       { id: 'hfullsorciere', label: 'Petite Sorcière', price: 24, saison: 'halloween' },
+      { id: 'hfullsquelette', label: 'Squelette Rigolo', price: 25, saison: 'halloween' },
     ],
   },
   {

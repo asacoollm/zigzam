@@ -197,10 +197,89 @@ function sorciere() {
 }
 
 // ------------------------------------------------------------
+//  💀 hfullsquelette — « Squelette Rigolo » : combinaison noire avec
+//  des os blancs dessinés (côtes, bras, jambes), tête de squelette
+//  mignonne à grand sourire et grands yeux ronds, petit nœud rose.
+// ------------------------------------------------------------
+function squelette() {
+  const noir = '#17141f'
+  const noirF = '#0d0b12'
+  const blanc = '#fff4e0'
+  const rose = '#ff8fc4'
+  const roseF = '#d1478d'
+
+  return (
+    <g>
+      {/* Jambes combinaison noire + os dessinés en blanc */}
+      <rect x="41" y="118" width="13" height="32" rx="6.5" fill={noir} stroke={T} strokeWidth="1.5" />
+      <rect x="66" y="118" width="13" height="32" rx="6.5" fill={noir} stroke={T} strokeWidth="1.5" />
+      <g stroke={blanc} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.92">
+        <path d="M47.5 122 v9 M47.5 135 v9" />
+        <path d="M72.5 122 v9 M72.5 135 v9" />
+      </g>
+      {/* petites chaussures noires */}
+      <ellipse cx="44" cy="150" rx="13" ry="8" fill={noirF} stroke={T} strokeWidth="2" />
+      <ellipse cx="76" cy="150" rx="13" ry="8" fill={noirF} stroke={T} strokeWidth="2" />
+
+      {/* Bras combinaison + os */}
+      <rect x="6" y="58" width="13" height="44" rx="6.5" fill={noir} stroke={T} strokeWidth="1.5" />
+      <rect x="101" y="58" width="13" height="44" rx="6.5" fill={noir} stroke={T} strokeWidth="1.5" />
+      <g stroke={blanc} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.92">
+        <path d="M12.5 64 v11 M12.5 83 v11" />
+        <path d="M107.5 64 v11 M107.5 83 v11" />
+      </g>
+      <circle cx="12.5" cy="104" r="6.5" fill={noir} stroke={T} strokeWidth="1.5" />
+      <circle cx="107.5" cy="104" r="6.5" fill={noir} stroke={T} strokeWidth="1.5" />
+      <g stroke={blanc} strokeWidth="1.6" fill="none" strokeLinecap="round" opacity="0.85">
+        <path d="M9 102 l3.5 4 3.5 -4" />
+        <path d="M104 102 l3.5 4 3.5 -4" />
+      </g>
+
+      {/* Corps + cage thoracique blanche façon dessin animé */}
+      <rect x="18" y="16" width="84" height="116" rx="42" fill={noir} stroke={T} strokeWidth="1.8" />
+      <ellipse cx="46" cy="40" rx="23" ry="18" fill="#fff" opacity="0.06" />
+      <line x1="60" y1="50" x2="60" y2="96" stroke={blanc} strokeWidth="3" strokeLinecap="round" opacity="0.92" />
+      <g stroke={blanc} strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.92">
+        <path d="M60 58 Q44 60 38 68" />
+        <path d="M60 58 Q76 60 82 68" />
+        <path d="M60 70 Q42 72 36 82" />
+        <path d="M60 70 Q78 72 84 82" />
+        <path d="M60 82 Q44 84 40 92" />
+        <path d="M60 82 Q76 84 80 92" />
+      </g>
+
+      {/* Visage squelette mignon : panneau crâne clair, grands yeux ronds */}
+      <rect x="33" y="42" width="54" height="36" rx="18" fill={blanc} stroke={T} strokeWidth="1.6" />
+      <circle cx="49" cy="60" r="7.6" fill={noirF} />
+      <circle cx="71" cy="60" r="7.6" fill={noirF} />
+      <circle cx="51.6" cy="57.4" r="2.3" fill="#fff" />
+      <circle cx="73.6" cy="57.4" r="2.3" fill="#fff" />
+      {/* petit nez façon cœur */}
+      <path d="M60 64 Q57 61 60 59 Q63 61 60 64 Z" fill={noirF} />
+      {/* grand sourire façon squelette, bien rigolo */}
+      <path d="M43 72 Q60 86 77 72 Q72 82 60 82 Q48 82 43 72 Z" fill={noirF} />
+      <g stroke={blanc} strokeWidth="1.1" opacity="0.9">
+        <line x1="50" y1="75" x2="50" y2="80" />
+        <line x1="60" y1="76" x2="60" y2="82.5" />
+        <line x1="70" y1="75" x2="70" y2="80" />
+      </g>
+
+      {/* Petit nœud rose sur le crâne */}
+      <g transform="translate(60 17)">
+        <ellipse cx="-8" cy="0" rx="8" ry="5.5" fill={rose} stroke={roseF} strokeWidth="1.3" transform="rotate(-15)" />
+        <ellipse cx="8" cy="0" rx="8" ry="5.5" fill={rose} stroke={roseF} strokeWidth="1.3" transform="rotate(15)" />
+        <circle cx="0" cy="0" r="3.4" fill={roseF} />
+      </g>
+    </g>
+  )
+}
+
+// ------------------------------------------------------------
 //  Registre des skins complets. Clé = id de l'item (lib/avatar.js).
 //  Chaque valeur est une fonction qui renvoie LE BONHOMME ENTIER.
 // ------------------------------------------------------------
 export const HALLOWEEN_FULL = {
   hfullvampire: () => vampire(),
   hfullsorciere: () => sorciere(),
+  hfullsquelette: () => squelette(),
 }
