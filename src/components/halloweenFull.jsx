@@ -32,6 +32,9 @@
 // Contour commun : un brun-violet sombre, plus doux qu'un noir pur.
 const T = '#241c2a'
 
+// Petite étoile à 5 branches (centrée sur 0,0, rayon ~5) — via <g transform>.
+const ETOILE = 'M0 -5 L1.5 -1.6 L5 -1.4 L2.2 0.8 L3.2 4.4 L0 2.4 L-3.2 4.4 L-2.2 0.8 L-5 -1.4 L-1.5 -1.6 Z'
+
 // ------------------------------------------------------------
 //  🧛 hfullvampire — « Petit Vampire » : grande cape noire doublée
 //  de rouge, col haut dressé, peau pâle, petits crocs rigolos,
@@ -109,9 +112,95 @@ function vampire() {
 }
 
 // ------------------------------------------------------------
+//  🧙 hfullsorciere — « Petite Sorcière » : robe violette à étoiles
+//  dorées, chapeau pointu violet à boucle jaune, cheveux orange en
+//  tresses, petites bottines.
+// ------------------------------------------------------------
+function sorciere() {
+  const peau = '#ffd9b0'
+  const violet = '#4c1f96'
+  const violetF = '#2e0f66'
+  const violetC = '#6b3fc4'
+  const jaune = '#ffe14d'
+  const jauneF = '#c98a17'
+  const roux = '#d4690a'
+  const rouxF = '#9a4a08'
+
+  return (
+    <g>
+      {/* Jambes + petites bottines violettes */}
+      <rect x="41" y="118" width="13" height="32" rx="6.5" fill={peau} stroke={T} strokeWidth="1.5" />
+      <rect x="66" y="118" width="13" height="32" rx="6.5" fill={peau} stroke={T} strokeWidth="1.5" />
+      <path d="M33 150 Q33 134 44 134 Q55 134 55 150 Z" fill={violetF} stroke={T} strokeWidth="2" strokeLinejoin="round" />
+      <path d="M65 150 Q65 134 76 134 Q87 134 87 150 Z" fill={violetF} stroke={T} strokeWidth="2" strokeLinejoin="round" />
+      <ellipse cx="44" cy="150" rx="12" ry="5" fill={violet} />
+      <ellipse cx="76" cy="150" rx="12" ry="5" fill={violet} />
+      <circle cx="40" cy="138" r="2.4" fill={jaune} stroke={jauneF} strokeWidth="0.8" />
+      <circle cx="80" cy="138" r="2.4" fill={jaune} stroke={jauneF} strokeWidth="0.8" />
+
+      {/* Bras nus */}
+      <rect x="6" y="58" width="13" height="44" rx="6.5" fill={peau} stroke={T} strokeWidth="1.5" />
+      <rect x="101" y="58" width="13" height="44" rx="6.5" fill={peau} stroke={T} strokeWidth="1.5" />
+      <circle cx="12.5" cy="104" r="6.5" fill={peau} stroke={T} strokeWidth="1.5" />
+      <circle cx="107.5" cy="104" r="6.5" fill={peau} stroke={T} strokeWidth="1.5" />
+
+      {/* Corps + robe violette évasée */}
+      <rect x="18" y="16" width="84" height="116" rx="42" fill={violet} stroke={T} strokeWidth="1.8" />
+      <ellipse cx="46" cy="40" rx="23" ry="18" fill="#fff" opacity="0.14" />
+      <path d="M18.6 96 A42 42 0 0 0 101.4 96 L108 132 Q60 146 12 132 Z" fill={violetF} stroke={T} strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M22 110 Q60 122 98 110" stroke={violetC} strokeWidth="1.6" fill="none" opacity="0.6" />
+      {/* étoiles dorées scintillantes sur la robe */}
+      <g className="d-stars-twinkle" fill={jaune} stroke={jauneF} strokeWidth="0.7">
+        <path d={ETOILE} transform="translate(34 60) scale(0.5)" />
+        <path d={ETOILE} transform="translate(86 70) scale(0.6)" />
+        <path d={ETOILE} transform="translate(50 108) scale(0.55)" />
+        <path d={ETOILE} transform="translate(76 118) scale(0.45)" />
+      </g>
+
+      {/* Visage */}
+      <rect x="33" y="42" width="54" height="36" rx="18" fill={peau} />
+      <ellipse cx="47" cy="52" rx="11" ry="7" fill="#fff" opacity="0.35" />
+      <circle cx="49" cy="60" r="6" fill={T} />
+      <circle cx="71" cy="60" r="6" fill={T} />
+      <circle cx="51.4" cy="57.6" r="2.1" fill="#fff" />
+      <circle cx="73.4" cy="57.6" r="2.1" fill="#fff" />
+      <circle cx="38" cy="70" r="4.6" fill="#ff9fb0" opacity="0.7" />
+      <circle cx="82" cy="70" r="4.6" fill="#ff9fb0" opacity="0.7" />
+      <path d="M50 71 Q60 78 70 71" stroke="#c46a7a" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+
+      {/* Cheveux orange + deux tresses nouées de jaune */}
+      <path d="M28 40 Q32 12 60 10 Q88 12 92 40 Q76 22 60 22 Q44 22 28 40 Z" fill={roux} stroke={T} strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M28 36 Q19 50 24 68 Q29 86 22 100" stroke={roux} strokeWidth="9" fill="none" strokeLinecap="round" />
+      <g stroke={rouxF} strokeWidth="1.3" fill="none" opacity="0.6">
+        <path d="M22 46 l8 3 M19 58 l9 3 M23 70 l8 3 M20 84 l8 3" />
+      </g>
+      <path d="M92 36 Q101 50 96 68 Q91 86 98 100" stroke={roux} strokeWidth="9" fill="none" strokeLinecap="round" />
+      <g stroke={rouxF} strokeWidth="1.3" fill="none" opacity="0.6">
+        <path d="M98 46 l-8 3 M101 58 l-9 3 M97 70 l-8 3 M100 84 l-8 3" />
+      </g>
+      <circle cx="22" cy="100" r="4" fill={jaune} stroke={jauneF} strokeWidth="1" />
+      <circle cx="98" cy="100" r="4" fill={jaune} stroke={jauneF} strokeWidth="1" />
+
+      {/* Chapeau pointu violet, bord ondulé, boucle jaune, étoiles */}
+      <path d="M32 18 Q27 -10 50 -34 Q66 -13 92 18 Q60 27 32 18 Z" fill={violet} stroke={violetF} strokeWidth="2" strokeLinejoin="round" />
+      <path d="M52 -30 Q59 -10 80 16 L66 18 Q53 -1 49 -17 Z" fill={violetC} opacity="0.55" />
+      <ellipse cx="60" cy="18" rx="34" ry="7" fill={violetF} stroke={T} strokeWidth="1.8" />
+      <ellipse cx="60" cy="16.5" rx="30" ry="5" fill={violet} opacity="0.8" />
+      <rect x="50" y="13" width="18" height="11" rx="2" fill={jaune} stroke={jauneF} strokeWidth="1.2" />
+      <rect x="57" y="15.5" width="4" height="6" rx="1" fill={violetF} />
+      <g className="d-stars-twinkle" fill={jaune} stroke={jauneF} strokeWidth="0.7">
+        <path d={ETOILE} transform="translate(49 -12) scale(0.55)" />
+        <path d={ETOILE} transform="translate(70 6) scale(0.45)" />
+      </g>
+    </g>
+  )
+}
+
+// ------------------------------------------------------------
 //  Registre des skins complets. Clé = id de l'item (lib/avatar.js).
 //  Chaque valeur est une fonction qui renvoie LE BONHOMME ENTIER.
 // ------------------------------------------------------------
 export const HALLOWEEN_FULL = {
   hfullvampire: () => vampire(),
+  hfullsorciere: () => sorciere(),
 }
