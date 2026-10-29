@@ -315,6 +315,7 @@ export const CATEGORIES = [
       { id: 'fstitch', label: 'Stitch Complet', price: 24, saison: 'disney' },
       { id: 'fmickey', label: 'Mickey Complet', price: 25, saison: 'disney' },
       { id: 'fgenie', label: 'Génie Complet', price: 25, saison: 'disney' },
+      { id: 'hfullvampire', label: 'Petit Vampire', price: 23, saison: 'halloween' },
     ],
   },
   {

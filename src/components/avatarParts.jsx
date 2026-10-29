@@ -14,6 +14,7 @@ import { DISNEY_FULL } from './disneyFull'
 import { HALLOWEEN_HATS, HALLOWEEN_HAIR, HALLOWEEN_GLASSES } from './halloweenHats'
 import { HALLOWEEN_FACE, HALLOWEEN_SPORT } from './halloweenFaces'
 import { HALLOWEEN_ANIMAL, HALLOWEEN_ANIMAL_PLACEMENT } from './halloweenAnimals'
+import { HALLOWEEN_FULL } from './halloweenFull'
 
 const C = {
   rose: '#ff4d8d', orange: '#ff8c42', jaune: '#fbbf24', vert: '#3dd68c',
@@ -1415,7 +1416,7 @@ export function renderAnimal(id) {
   return <g transform={placement}>{draw}</g>
 }
 // Skin « complet » : remplace tout le bonhomme (cf. FallGuy).
-export function renderFull(id) { return DISNEY_FULL[id]?.() ?? CUSTOM_FULL[id]?.() ?? null }
+export function renderFull(id) { return DISNEY_FULL[id]?.() ?? HALLOWEEN_FULL[id]?.() ?? CUSTOM_FULL[id]?.() ?? null }
 
 // ----------------------------------------------------------------
 //  CHAPEAUX  (posés sur le crâne, centrés x=60 ; couvrent le haut des cheveux)
