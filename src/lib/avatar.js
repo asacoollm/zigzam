@@ -20,6 +20,8 @@ export const SPECIAL_COLORS = [
   // 🏰 Zigzamland Paris (exclusifs de saison)
   'dbleugenie', 'dorpicsou', 'drougedonald', 'dmauveursula', 'droseaurore',
   'dvertpeter', 'dfantasia', 'darcenciel', 'ddalmatiencolor', 'drouxariel',
+  // 🎃 Halloween (exclusifs de saison)
+  'hcitrouille',
 ]
 
 // Résout une couleur (id ou hex legacy) en remplissage SVG.
@@ -70,6 +72,7 @@ export const CATEGORIES = [
       { id: 'dorpicsou', label: 'Or Picsou', price: 14, saison: 'disney' },
       { id: 'dfantasia', label: 'Bleu Nuit Fantasia', price: 14, saison: 'disney' },
       { id: 'darcenciel', label: 'Arc-en-ciel Magique', price: 15, saison: 'disney' },
+      { id: 'hcitrouille', label: 'Citrouille', price: 10, saison: 'halloween' },
     ],
   },
   {
@@ -115,6 +118,7 @@ export const CATEGORIES = [
       { id: 'dsorcier', label: 'Chapeau Sorcier', price: 13, saison: 'disney' },
       { id: 'dstitch', label: 'Bob Stitch', price: 13, saison: 'disney' },
       { id: 'dlionking', label: 'Couronne Roi Lion', price: 14, saison: 'disney' },
+      { id: 'hcitrouillechap', label: 'Tête de citrouille', price: 9, saison: 'halloween' },
     ],
   },
   {
@@ -263,6 +267,7 @@ export const CATEGORIES = [
       { id: 'ddalmatiens', label: 'Trois Dalmatiens', price: 15, saison: 'disney' },
       { id: 'dgeniemini', label: 'Génie Miniature', price: 15, saison: 'disney' },
       { id: 'dclochettepet', label: 'Fée Clochette', price: 15, saison: 'disney' },
+      { id: 'hchauvesouris', label: 'Chauve-souris', price: 12, saison: 'halloween' },
     ],
   },
   {
@@ -291,6 +296,7 @@ export const CATEGORIES = [
       { id: 'dbambi', label: 'Yeux Bambi', price: 9, saison: 'disney' },
       { id: 'dcruellamaq', label: 'Maquillage Cruella', price: 9, saison: 'disney' },
       { id: 'dcheshire', label: 'Sourire Cheshire', price: 10, saison: 'disney' },
+      { id: 'hvisagecitrouille', label: 'Sourire de citrouille', price: 9, saison: 'halloween' },
     ],
   },
   {

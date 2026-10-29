@@ -11,6 +11,9 @@ import { DISNEY_HATS, DISNEY_HAIR, DISNEY_HAIR_BACK } from './disneyHats'
 import { DISNEY_FACE, DISNEY_SPORT } from './disneyFaces'
 import { DISNEY_ANIMAL, DISNEY_ANIMAL_PLACEMENT } from './disneyAnimals'
 import { DISNEY_FULL } from './disneyFull'
+import { HALLOWEEN_HATS } from './halloweenHats'
+import { HALLOWEEN_FACE } from './halloweenFaces'
+import { HALLOWEEN_ANIMAL, HALLOWEEN_ANIMAL_PLACEMENT } from './halloweenAnimals'
 
 const C = {
   rose: '#ff4d8d', orange: '#ff8c42', jaune: '#fbbf24', vert: '#3dd68c',
@@ -1394,20 +1397,21 @@ export const CUSTOM_FULL = {
 }
 
 // ---- Sélecteurs exportés ----
-//  Les skins exclusifs de la saison « Zigzamland Paris » vivent dans leurs
-//  propres fichiers (disneyHats / disneyFaces / disneyAnimals / disneyFull)
-//  pour ne pas doubler la taille de celui-ci : chaque sélecteur consulte
-//  d'abord le catalogue de base, puis celui de la saison.
-export function renderHat(id) { return HATS[id]?.() ?? DISNEY_HATS[id]?.() ?? null }
+//  Les skins exclusifs de saison vivent dans leurs propres fichiers
+//  (disneyHats / disneyFaces / disneyAnimals / disneyFull, puis
+//  halloweenHats / halloweenFaces / halloweenAnimals) pour ne pas
+//  doubler la taille de celui-ci : chaque sélecteur consulte d'abord le
+//  catalogue de base, puis celui de chaque saison.
+export function renderHat(id) { return HATS[id]?.() ?? DISNEY_HATS[id]?.() ?? HALLOWEEN_HATS[id]?.() ?? null }
 export function renderGlasses(id) { return GLASSES[id]?.() ?? null }
 export function renderHair(id) { return HAIR[id]?.() ?? DISNEY_HAIR[id]?.() ?? null }
 export function renderHairBack(id) { return HAIR_BACK[id]?.() ?? DISNEY_HAIR_BACK[id]?.() ?? null }
 export function renderSport(id) { return SPORT[id]?.() ?? DISNEY_SPORT[id]?.() ?? null }
-export function renderFace(id) { return FACE[id]?.() ?? DISNEY_FACE[id]?.() ?? null }
+export function renderFace(id) { return FACE[id]?.() ?? DISNEY_FACE[id]?.() ?? HALLOWEEN_FACE[id]?.() ?? null }
 export function renderAnimal(id) {
-  const draw = ANIMAL[id]?.() ?? DISNEY_ANIMAL[id]?.()
+  const draw = ANIMAL[id]?.() ?? DISNEY_ANIMAL[id]?.() ?? HALLOWEEN_ANIMAL[id]?.()
   if (!draw) return null
-  const placement = ANIMAL_PLACEMENT[id] ?? DISNEY_ANIMAL_PLACEMENT[id] ?? ANIMAL_MED
+  const placement = ANIMAL_PLACEMENT[id] ?? DISNEY_ANIMAL_PLACEMENT[id] ?? HALLOWEEN_ANIMAL_PLACEMENT[id] ?? ANIMAL_MED
   return <g transform={placement}>{draw}</g>
 }
 // Skin « complet » : remplace tout le bonhomme (cf. FallGuy).

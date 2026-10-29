@@ -4,6 +4,7 @@ import {
   renderFull, animalWide,
 } from './avatarParts'
 import { DisneyColorDefs } from './disneyFaces'
+import { HalloweenColorDefs } from './halloweenFaces'
 import './FallGuy.css'
 
 // Défs de couleurs spéciales (dégradés / motifs / effets) — rendues une fois par SVG.
@@ -96,6 +97,9 @@ function ColorDefs() {
 
       {/* ====== 🏰 ZIGZAMLAND PARIS — couleurs exclusives de saison ====== */}
       <DisneyColorDefs />
+
+      {/* ====== 🎃 HALLOWEEN — couleurs exclusives de saison ====== */}
+      <HalloweenColorDefs />
     </>
   )
 }
