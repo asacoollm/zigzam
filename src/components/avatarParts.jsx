@@ -11,8 +11,8 @@ import { DISNEY_HATS, DISNEY_HAIR, DISNEY_HAIR_BACK } from './disneyHats'
 import { DISNEY_FACE, DISNEY_SPORT } from './disneyFaces'
 import { DISNEY_ANIMAL, DISNEY_ANIMAL_PLACEMENT } from './disneyAnimals'
 import { DISNEY_FULL } from './disneyFull'
-import { HALLOWEEN_HATS } from './halloweenHats'
-import { HALLOWEEN_FACE } from './halloweenFaces'
+import { HALLOWEEN_HATS, HALLOWEEN_HAIR, HALLOWEEN_GLASSES } from './halloweenHats'
+import { HALLOWEEN_FACE, HALLOWEEN_SPORT } from './halloweenFaces'
 import { HALLOWEEN_ANIMAL, HALLOWEEN_ANIMAL_PLACEMENT } from './halloweenAnimals'
 
 const C = {
@@ -1403,10 +1403,10 @@ export const CUSTOM_FULL = {
 //  doubler la taille de celui-ci : chaque sélecteur consulte d'abord le
 //  catalogue de base, puis celui de chaque saison.
 export function renderHat(id) { return HATS[id]?.() ?? DISNEY_HATS[id]?.() ?? HALLOWEEN_HATS[id]?.() ?? null }
-export function renderGlasses(id) { return GLASSES[id]?.() ?? null }
-export function renderHair(id) { return HAIR[id]?.() ?? DISNEY_HAIR[id]?.() ?? null }
+export function renderGlasses(id) { return GLASSES[id]?.() ?? HALLOWEEN_GLASSES[id]?.() ?? null }
+export function renderHair(id) { return HAIR[id]?.() ?? DISNEY_HAIR[id]?.() ?? HALLOWEEN_HAIR[id]?.() ?? null }
 export function renderHairBack(id) { return HAIR_BACK[id]?.() ?? DISNEY_HAIR_BACK[id]?.() ?? null }
-export function renderSport(id) { return SPORT[id]?.() ?? DISNEY_SPORT[id]?.() ?? null }
+export function renderSport(id) { return SPORT[id]?.() ?? DISNEY_SPORT[id]?.() ?? HALLOWEEN_SPORT[id]?.() ?? null }
 export function renderFace(id) { return FACE[id]?.() ?? DISNEY_FACE[id]?.() ?? HALLOWEEN_FACE[id]?.() ?? null }
 export function renderAnimal(id) {
   const draw = ANIMAL[id]?.() ?? DISNEY_ANIMAL[id]?.() ?? HALLOWEEN_ANIMAL[id]?.()

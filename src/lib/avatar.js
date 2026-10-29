@@ -119,6 +119,7 @@ export const CATEGORIES = [
       { id: 'dstitch', label: 'Bob Stitch', price: 13, saison: 'disney' },
       { id: 'dlionking', label: 'Couronne Roi Lion', price: 14, saison: 'disney' },
       { id: 'hcitrouillechap', label: 'Tête de citrouille', price: 9, saison: 'halloween' },
+      { id: 'hsorcierestar', label: 'Sorcière Étoilée', price: 13, saison: 'halloween' },
     ],
   },
   {
@@ -146,6 +147,7 @@ export const CATEGORIES = [
       { id: 'diamond', label: 'Diamant', price: 5 },
       { id: 'stargiant', label: 'Étoiles géantes', price: 5 },
       { id: 'laser', label: 'Laser', price: 5 },
+      { id: 'hlunettescitrouille', label: 'Lunettes Citrouille', price: 9, saison: 'halloween' },
     ],
   },
   {
@@ -184,6 +186,7 @@ export const CATEGORIES = [
       { id: 'dmirabel', label: 'Afro Encanto', price: 11, saison: 'disney' },
       { id: 'draiponce', label: 'Tresses Raiponce', price: 12, saison: 'disney' },
       { id: 'dcruella', label: 'Perruque Cruella', price: 12, saison: 'disney' },
+      { id: 'hdracula', label: 'Dracula', price: 10, saison: 'halloween' },
     ],
   },
   {
@@ -214,6 +217,7 @@ export const CATEGORIES = [
       { id: 'dbalai', label: 'Balai Sorcier', price: 12, saison: 'disney' },
       { id: 'dtrident', label: 'Trident Ariel', price: 14, saison: 'disney' },
       { id: 'dexcalibur', label: 'Épée Excalibur', price: 15, saison: 'disney' },
+      { id: 'hbalai', label: 'Balai de Sorcière', price: 14, saison: 'halloween' },
     ],
   },
   {
@@ -268,6 +272,7 @@ export const CATEGORIES = [
       { id: 'dgeniemini', label: 'Génie Miniature', price: 15, saison: 'disney' },
       { id: 'dclochettepet', label: 'Fée Clochette', price: 15, saison: 'disney' },
       { id: 'hchauvesouris', label: 'Chauve-souris', price: 12, saison: 'halloween' },
+      { id: 'hchatnoir', label: 'Chat Noir', price: 14, saison: 'halloween' },
     ],
   },
   {
@@ -297,6 +302,7 @@ export const CATEGORIES = [
       { id: 'dcruellamaq', label: 'Maquillage Cruella', price: 9, saison: 'disney' },
       { id: 'dcheshire', label: 'Sourire Cheshire', price: 10, saison: 'disney' },
       { id: 'hvisagecitrouille', label: 'Sourire de citrouille', price: 9, saison: 'halloween' },
+      { id: 'hvisagesquelette', label: 'Squelette', price: 10, saison: 'halloween' },
     ],
   },
   {

@@ -10,6 +10,8 @@
 const H = {
   corps: '#4a3a74', corpsF: '#241d3d', aile: '#3a2d5c',
   blanc: '#fff', encre: '#241d3d',
+  // — vague 2 —
+  chat: '#1c1824', chatF: '#0d0b12', chatC: '#3a2d5c', jaune: '#ffe14d',
 }
 
 export const HALLOWEEN_ANIMAL = {
@@ -47,9 +49,37 @@ export const HALLOWEEN_ANIMAL = {
       <path d="M1.6 8 l0.8 2 l-1 -0.9 Z" fill="#fff" />
     </g>
   ),
+
+  // Petit chat noir assis, yeux ronds jaunes, queue en point d'interrogation.
+  // Mignon et rigolo : jamais d'air menaçant.
+  hchatnoir: () => (
+    <g>
+      {/* corps assis + tête */}
+      <ellipse cx="0" cy="16" rx="11" ry="10" fill={H.chat} />
+      <circle cx="0" cy="2" r="9" fill={H.chat} />
+      {/* oreilles */}
+      <path d="M-8 -5 l-3 -8 6 4 Z M8 -5 l3 -8 -6 4 Z" fill={H.chat} />
+      <path d="M-7 -5 l-1.5 -4 3 2 Z M7 -5 l1.5 -4 -3 2 Z" fill={H.chatC} opacity="0.6" />
+      {/* grands yeux ronds jaunes */}
+      <circle cx="-3.5" cy="1" r="2.8" fill={H.jaune} />
+      <circle cx="3.5" cy="1" r="2.8" fill={H.jaune} />
+      <circle cx="-3.5" cy="1.3" r="1.3" fill={H.chatF} />
+      <circle cx="3.5" cy="1.3" r="1.3" fill={H.chatF} />
+      {/* moustaches */}
+      <path d="M-9 3 h-6 M9 3 h6" stroke="#fff" strokeWidth="0.8" opacity="0.7" />
+      {/* petit nez + sourire */}
+      <path d="M-1.2 5 L1.2 5 L0 6.6 Z" fill="#ff9fb0" />
+      <path d="M0 6.6 Q-2.4 9 -5 8 M0 6.6 Q2.4 9 5 8" stroke={H.chatF} strokeWidth="0.9" fill="none" strokeLinecap="round" />
+      {/* queue en point d'interrogation */}
+      <path d="M11 18 Q21 16 21 7 Q21 1 15 1.4" stroke={H.chat} strokeWidth="4" fill="none" strokeLinecap="round" />
+      <circle cx="14.5" cy="2" r="2.3" fill={H.chat} />
+    </g>
+  ),
 }
 
 export const HALLOWEEN_ANIMAL_PLACEMENT = {
   // Volante, comme les autres compagnons ailés (owl, parrot, ddumbo).
   hchauvesouris: 'translate(150 48) scale(2.3)',
+  // Assis au sol, comme les autres petits compagnons terrestres (cat, dog).
+  hchatnoir: 'translate(150 88) scale(2.4)',
 }
