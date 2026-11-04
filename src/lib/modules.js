@@ -593,3 +593,16 @@ export async function adminValidateCustomSkin(adminId, skinId) {
   if (r.error || r.data?.error) return { error: ERR }
   return { ok: true }
 }
+
+// ---------------- MÉDIAS 📸 (photos/vidéos — étape 1 : pas d'envoi) ----------------
+// Public : l'interrupteur global seul, pour masquer l'UI élève.
+export async function getMediasActif() {
+  const r = await rpc('get_medias_actif', {})
+  return r.error ? false : !!r.data
+}
+// Superadmin : bascule l'interrupteur global des médias.
+export async function adminSetMediasActif(adminId, actif) {
+  const r = await rpc('admin_set_medias_actif', { p_admin: adminId, p_actif: !!actif })
+  if (r.error || r.data?.error) return { error: ERR }
+  return { ok: true, actif: r.data.actif }
+}

@@ -142,6 +142,14 @@ simple (Hugo) plutôt que `superadmin` — la section est strictement réservée
 
 ---
 
+## 6.5. Note sécurité — bucket Storage "medias" (photos/vidéos)
+
+Comme les buckets `vocaux` et `actualites` déjà en place, le bucket `medias`
+(étape 1, branche `medias-messages`) est **public et non chiffré par
+utilisateur** — l'accès n'est pas cryptographiquement privé (pas de Supabase
+Auth, pas d'URL signée), protégé seulement par des noms de fichiers en UUID
+v4 non devinables ; à revoir si le besoin de confidentialité augmente.
+
 ## 6. Prochaines étapes suggérées (non commencées)
 
 - Retirer les `console.log` de debug listés en §4.1, une fois confirmé que la

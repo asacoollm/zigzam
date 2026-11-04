@@ -33,6 +33,8 @@ import {
   adminListCustomSkins,
   adminValidateCustomSkin,
   createBugReport,
+  getMediasActif,
+  adminSetMediasActif,
 } from '../lib/modules'
 import { adminListFarces, adminSetFarcesActives, getFarcesReglages, TYPES_FARCES } from '../lib/farces'
 import { EPISODES, isPublished } from '../data/episodes'
@@ -1662,6 +1664,43 @@ function SectionFarces({ adminId }) {
   )
 }
 
+function SectionMedias({ adminId }) {
+  const [actif, setActif] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    getMediasActif().then((v) => {
+      setActif(v)
+      setLoading(false)
+    })
+  }, [])
+
+  async function toggle() {
+    setBusy(true)
+    const res = await adminSetMediasActif(adminId, !actif)
+    setBusy(false)
+    if (!res.error) setActif(res.actif)
+  }
+
+  return (
+    <section className="admin-card">
+      <h2 className="admin-section-title">📸 Médias (photos / vidéos)</h2>
+      <p className="admin-note">
+        Étape 1 : base de données prête, mais aucun envoi possible encore (pas
+        de bouton côté élèves). L'interrupteur reste désactivé par défaut.
+      </p>
+      <button
+        className={`admin-btn admin-btn--sm ${actif ? '' : 'admin-btn--primary'}`}
+        onClick={toggle}
+        disabled={busy || loading}
+      >
+        {actif ? '⏸️ Désactiver les médias' : '▶️ Activer les médias'}
+      </button>
+    </section>
+  )
+}
+
 // --------------- Page principale ---------------
 export default function Admin() {
   const { user } = useAuth()
@@ -1707,6 +1746,7 @@ export default function Admin() {
           <SectionBoites adminId={user.id} />
           <SectionSaisons adminId={user.id} />
           <SectionFarces adminId={user.id} />
+          <SectionMedias adminId={user.id} />
         </>
       )}
     </div>
