@@ -1687,8 +1687,8 @@ function SectionMedias({ adminId }) {
     <section className="admin-card">
       <h2 className="admin-section-title">📸 Médias (photos / vidéos)</h2>
       <p className="admin-note">
-        Étape 1 : base de données prête, mais aucun envoi possible encore (pas
-        de bouton côté élèves). L'interrupteur reste désactivé par défaut.
+        Étape 2 : bouton 📷 disponible dans Discuter (limite de 10 photos par
+        jour et par élève), masqué tant que l'interrupteur est désactivé.
       </p>
       <button
         className={`admin-btn admin-btn--sm ${actif ? '' : 'admin-btn--primary'}`}

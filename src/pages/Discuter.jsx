@@ -19,11 +19,15 @@ import {
   sendVocalMessage,
   markVocalEcoute,
   cleanupVocaux,
+  getMediasActif,
+  uploadMediaPhoto,
+  sendPhotoMessage,
 } from '../lib/modules'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
 import { VoiceRecorder, VocalBubble } from '../components/VoiceMessage'
+import { PhotoPicker, PhotoBubble } from '../components/PhotoMessage'
 import './Discuter.css'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -163,6 +167,8 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
   const [saisie, setSaisie] = useState('')
   const [sending, setSending] = useState(false)
   const [vocalActive, setVocalActive] = useState(false)
+  const [photoActive, setPhotoActive] = useState(false)
+  const [mediasActif, setMediasActif] = useState(false)
   const [erreur, setErreur] = useState('')
   const [showAddPart, setShowAddPart] = useState(false)
   const [numerosAjout, setNumerosAjout] = useState('')
@@ -204,6 +210,11 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
       }
     }
   }, [disc.id, userId])
+
+  // Interrupteur global "médias actifs" : masque le bouton 📷 tant qu'il est désactivé.
+  useEffect(() => {
+    getMediasActif().then(setMediasActif)
+  }, [])
 
   // Auto-scroll vers le bas
   useEffect(() => {
@@ -248,6 +259,23 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
         broadcastMessage(channelRef.current, res.message)
       }
     }
+  }
+
+  // Envoi d'une photo : traitement (resize/compression) déjà fait par PhotoPicker,
+  // ici on upload puis on enregistre le message. Renvoie { error } en cas d'échec
+  // pour que PhotoPicker garde l'aperçu et permette de réessayer.
+  async function handleSendPhoto(blob) {
+    const up = await uploadMediaPhoto(blob)
+    if (up.error) return { error: up.error }
+    const res = await sendPhotoMessage(disc.id, userId, up.url)
+    if (res.error) return { error: res.error }
+    if (res.message) {
+      setMessages((prev) => [...prev, res.message])
+      if (channelRef.current) {
+        broadcastMessage(channelRef.current, res.message)
+      }
+    }
+    return { ok: true }
   }
 
   // À la lecture d'un vocal : on note que cet utilisateur l'a écouté.
@@ -406,6 +434,8 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
                 <div className={`disc__bubble${isMine ? ' disc__bubble--mine' : ' disc__bubble--other'}`}>
                   {msg.type === 'vocal' ? (
                     <VocalBubble msg={msg} isMine={isMine} onPlay={() => handlePlayVocal(msg.id)} />
+                  ) : msg.type === 'photo' ? (
+                    <PhotoBubble msg={msg} isMine={isMine} />
                   ) : (
                     <span className="disc__bubble-text">{msg.contenu}</span>
                   )}
@@ -422,7 +452,7 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
       <form className="disc__saisie" onSubmit={handleEnvoyer}>
         {erreur && <p className="disc__erreur disc__erreur--saisie">{erreur}</p>}
         <div className="disc__saisie-row">
-          {!vocalActive && (
+          {!vocalActive && !photoActive && (
             <>
               <input
                 ref={inputRef}
@@ -443,10 +473,17 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
               </button>
             </>
           )}
+          {mediasActif && (
+            <PhotoPicker
+              onSend={handleSendPhoto}
+              onActiveChange={setPhotoActive}
+              disabled={sending || vocalActive}
+            />
+          )}
           <VoiceRecorder
             onSend={handleSendVocal}
             onActiveChange={setVocalActive}
-            disabled={sending}
+            disabled={sending || photoActive}
           />
         </div>
       </form>

@@ -594,7 +594,7 @@ export async function adminValidateCustomSkin(adminId, skinId) {
   return { ok: true }
 }
 
-// ---------------- MÉDIAS 📸 (photos/vidéos — étape 1 : pas d'envoi) ----------------
+// ---------------- MÉDIAS 📸 (photos dans Discuter — étape 2) ----------------
 // Public : l'interrupteur global seul, pour masquer l'UI élève.
 export async function getMediasActif() {
   const r = await rpc('get_medias_actif', {})
@@ -605,4 +605,27 @@ export async function adminSetMediasActif(adminId, actif) {
   const r = await rpc('admin_set_medias_actif', { p_admin: adminId, p_actif: !!actif })
   if (r.error || r.data?.error) return { error: ERR }
   return { ok: true, actif: r.data.actif }
+}
+// Upload d'une photo (déjà redimensionnée/compressée par preparePhoto) vers le
+// bucket Storage "medias". Chemin en UUID v4 aléatoire — pas de métadonnée
+// exploitable dans le nom du fichier (voir HANDOFF.md §6.5).
+export async function uploadMediaPhoto(blob) {
+  const path = `${crypto.randomUUID()}.jpg`
+  const { error } = await supabase.storage
+    .from('medias')
+    .upload(path, blob, { cacheControl: '3600', upsert: false, contentType: blob.type || 'image/jpeg' })
+  if (error) return { error: "Impossible d'envoyer la photo, réessaie 📷" }
+  const { data } = supabase.storage.from('medias').getPublicUrl(path)
+  return { url: data.publicUrl }
+}
+// Envoi d'un message photo (URL déjà uploadée dans "medias").
+export async function sendPhotoMessage(discussionId, auteurId, mediaUrl) {
+  const r = await rpc('send_photo_message', {
+    p_discussion: discussionId, p_auteur: auteurId, p_media_url: mediaUrl,
+  })
+  if (r.error) return r
+  if (r.data?.error === 'inactif') return { error: "L'envoi de photos n'est pas activé pour le moment." }
+  if (r.data?.error === 'limite_quotidienne') return { error: 'Tu as atteint la limite de 10 photos par jour 📷' }
+  if (r.data?.error) return { error: ERR }
+  return { message: r.data }
 }
