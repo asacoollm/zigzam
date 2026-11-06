@@ -144,11 +144,16 @@ simple (Hugo) plutôt que `superadmin` — la section est strictement réservée
 
 ## 6.5. Note sécurité — bucket Storage "medias" (photos/vidéos)
 
-Comme les buckets `vocaux` et `actualites` déjà en place, le bucket `medias`
-(étape 1, branche `medias-messages`) est **public et non chiffré par
-utilisateur** — l'accès n'est pas cryptographiquement privé (pas de Supabase
-Auth, pas d'URL signée), protégé seulement par des noms de fichiers en UUID
-v4 non devinables ; à revoir si le besoin de confidentialité augmente.
+Photos/vidéos dans Discuter (`medias-messages`) sont fusionnées dans `main`
+(2026-11-06) mais **l'interrupteur global reste désactivé** — aucun bouton
+📷/🎥 visible côté élèves tant qu'un superadmin ne l'active pas depuis
+`/admin`. Comme les buckets `vocaux` et `actualites`, le bucket `medias` est
+**public et non chiffré par utilisateur** — l'accès n'est pas
+cryptographiquement privé (pas de Supabase Auth, pas d'URL signée), protégé
+seulement par des noms de fichiers en UUID v4 non devinables. Pour les
+vidéos, le GPS éventuellement présent dans les métadonnées n'est que
+**signalable**, jamais retiré (contrairement aux photos, nettoyées par un
+passage par `<canvas>`) — voir le détail dans le commit de l'étape 3.
 
 ## 6. Prochaines étapes suggérées (non commencées)
 
