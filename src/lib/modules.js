@@ -625,7 +625,62 @@ export async function sendPhotoMessage(discussionId, auteurId, mediaUrl) {
   })
   if (r.error) return r
   if (r.data?.error === 'inactif') return { error: "L'envoi de photos n'est pas activé pour le moment." }
-  if (r.data?.error === 'limite_quotidienne') return { error: 'Tu as atteint la limite de 10 photos par jour 📷' }
+  if (r.data?.error === 'limite_quotidienne') return { error: 'Tu as atteint la limite de 10 médias par jour 📷🎥' }
+  if (r.data?.error) return { error: ERR }
+  return { message: r.data }
+}
+
+const VIDEO_EXT_PAR_MIME = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' }
+
+// Upload d'une vidéo (fichier ORIGINAL, aucune conversion) vers le bucket
+// Storage "medias", avec suivi de progression et annulation possible — ça
+// nécessite un vrai XHR, supabase-js (basé sur fetch) n'expose pas de
+// progression d'upload. Chemin en UUID v4 aléatoire, comme les photos.
+// Renvoie { promise, cancel } : promise résout en { url } ou { error }.
+export function uploadMediaVideo(file, onProgress) {
+  const ext = VIDEO_EXT_PAR_MIME[file.type] || 'mp4'
+  const path = `${crypto.randomUUID()}.${ext}`
+  const xhr = new XMLHttpRequest()
+
+  const promise = new Promise((resolve) => {
+    const form = new FormData()
+    form.append('cacheControl', '3600')
+    form.append('', file)
+
+    xhr.open('POST', `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/medias/${path}`)
+    xhr.setRequestHeader('apikey', import.meta.env.VITE_SUPABASE_ANON_KEY)
+    xhr.setRequestHeader('Authorization', `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`)
+    xhr.setRequestHeader('x-upsert', 'false')
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress?.(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const { data } = supabase.storage.from('medias').getPublicUrl(path)
+        resolve({ url: data.publicUrl })
+      } else {
+        resolve({ error: "Impossible d'envoyer la vidéo, réessaie 🎥" })
+      }
+    }
+    xhr.onerror = () => resolve({ error: "Impossible d'envoyer la vidéo, réessaie 🎥" })
+    xhr.onabort = () => resolve({ error: 'annule' })
+    xhr.send(form)
+  })
+
+  return { promise, cancel: () => xhr.abort() }
+}
+
+// Envoi d'un message vidéo (URL déjà uploadée dans "medias").
+export async function sendVideoMessage(discussionId, auteurId, mediaUrl, dureeS) {
+  const r = await rpc('send_video_message', {
+    p_discussion: discussionId, p_auteur: auteurId, p_media_url: mediaUrl, p_duree_s: dureeS,
+  })
+  if (r.error) return r
+  if (r.data?.error === 'inactif') return { error: "L'envoi de vidéos n'est pas activé pour le moment." }
+  if (r.data?.error === 'limite_quotidienne') return { error: 'Tu as atteint la limite de 10 médias par jour 📷🎥' }
+  if (r.data?.error === 'taille_invalide') return { error: 'Ta vidéo est trop lourde, maximum 15 Mo 🎥' }
+  if (r.data?.error === 'duree_invalide') return { error: 'Ta vidéo fait plus de 30 secondes 🎥' }
+  if (r.data?.error === 'media_introuvable') return { error: "Impossible d'envoyer la vidéo, réessaie 🎥" }
   if (r.data?.error) return { error: ERR }
   return { message: r.data }
 }

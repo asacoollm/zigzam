@@ -787,6 +787,72 @@
   cursor: pointer;
 }
 
+/* ─── Vidéos 🎥 ─── */
+.disc__btn--video {
+  flex: none;
+  width: 46px;
+  min-width: 46px;
+  padding: 0;
+  font-size: 20px;
+  background: rgba(124, 58, 255, 0.12);
+}
+.disc__btn--video:hover:not(:disabled) { background: rgba(124, 58, 255, 0.22); }
+
+.disc__video-preview {
+  height: 54px;
+  width: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex: none;
+  background: #000;
+}
+
+.disc__video-progress {
+  position: relative;
+  flex: 1;
+  min-width: 120px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(124, 58, 255, 0.14);
+  overflow: hidden;
+}
+.disc__video-progress-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--violet, #7c3aff);
+  border-radius: 999px;
+  transition: width 0.15s ease;
+}
+.disc__video-progress-label {
+  position: relative;
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 22px;
+  color: var(--texte, #2b2350);
+  mix-blend-mode: difference;
+}
+
+.disc__video-bubble {
+  position: relative;
+  display: flex;
+  min-width: 160px;
+  min-height: 110px;
+  align-items: center;
+  justify-content: center;
+}
+.disc__video-player {
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 14px;
+  display: block;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.disc__video-player--ready { opacity: 1; }
+
 /* ── Boutons d'appel audio/vidéo ── */
 .disc__btn--call {
   background: rgba(61, 214, 140, 0.16);

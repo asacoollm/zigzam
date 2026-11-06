@@ -22,12 +22,14 @@ import {
   getMediasActif,
   uploadMediaPhoto,
   sendPhotoMessage,
+  sendVideoMessage,
 } from '../lib/modules'
 import Backdrop from '../components/Backdrop'
 import ZigzamLogo from '../components/ZigzamLogo'
 import FallGuy from '../components/FallGuy'
 import { VoiceRecorder, VocalBubble } from '../components/VoiceMessage'
 import { PhotoPicker, PhotoBubble } from '../components/PhotoMessage'
+import { VideoPicker, VideoBubble } from '../components/VideoMessage'
 import './Discuter.css'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -168,6 +170,7 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
   const [sending, setSending] = useState(false)
   const [vocalActive, setVocalActive] = useState(false)
   const [photoActive, setPhotoActive] = useState(false)
+  const [videoActive, setVideoActive] = useState(false)
   const [mediasActif, setMediasActif] = useState(false)
   const [erreur, setErreur] = useState('')
   const [showAddPart, setShowAddPart] = useState(false)
@@ -211,7 +214,7 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
     }
   }, [disc.id, userId])
 
-  // Interrupteur global "médias actifs" : masque le bouton 📷 tant qu'il est désactivé.
+  // Interrupteur global "médias actifs" : masque les boutons 📷/🎥 tant qu'il est désactivé.
   useEffect(() => {
     getMediasActif().then(setMediasActif)
   }, [])
@@ -268,6 +271,21 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
     const up = await uploadMediaPhoto(blob)
     if (up.error) return { error: up.error }
     const res = await sendPhotoMessage(disc.id, userId, up.url)
+    if (res.error) return { error: res.error }
+    if (res.message) {
+      setMessages((prev) => [...prev, res.message])
+      if (channelRef.current) {
+        broadcastMessage(channelRef.current, res.message)
+      }
+    }
+    return { ok: true }
+  }
+
+  // Envoi d'une vidéo : upload (avec progression/annulation) déjà fait par
+  // VideoPicker, ici on enregistre juste le message. Renvoie { error } en cas
+  // d'échec pour que VideoPicker garde l'aperçu et permette de réessayer.
+  async function handleSendVideo(mediaUrl, dureeS) {
+    const res = await sendVideoMessage(disc.id, userId, mediaUrl, dureeS)
     if (res.error) return { error: res.error }
     if (res.message) {
       setMessages((prev) => [...prev, res.message])
@@ -436,6 +454,8 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
                     <VocalBubble msg={msg} isMine={isMine} onPlay={() => handlePlayVocal(msg.id)} />
                   ) : msg.type === 'photo' ? (
                     <PhotoBubble msg={msg} isMine={isMine} />
+                  ) : msg.type === 'video' ? (
+                    <VideoBubble msg={msg} />
                   ) : (
                     <span className="disc__bubble-text">{msg.contenu}</span>
                   )}
@@ -452,7 +472,7 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
       <form className="disc__saisie" onSubmit={handleEnvoyer}>
         {erreur && <p className="disc__erreur disc__erreur--saisie">{erreur}</p>}
         <div className="disc__saisie-row">
-          {!vocalActive && !photoActive && (
+          {!vocalActive && !photoActive && !videoActive && (
             <>
               <input
                 ref={inputRef}
@@ -477,13 +497,20 @@ function ConversationView({ disc, userId, onBack, onDeleted }) {
             <PhotoPicker
               onSend={handleSendPhoto}
               onActiveChange={setPhotoActive}
-              disabled={sending || vocalActive}
+              disabled={sending || vocalActive || videoActive}
+            />
+          )}
+          {mediasActif && (
+            <VideoPicker
+              onSend={handleSendVideo}
+              onActiveChange={setVideoActive}
+              disabled={sending || vocalActive || photoActive}
             />
           )}
           <VoiceRecorder
             onSend={handleSendVocal}
             onActiveChange={setVocalActive}
-            disabled={sending || photoActive}
+            disabled={sending || photoActive || videoActive}
           />
         </div>
       </form>
